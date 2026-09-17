@@ -34,3 +34,6 @@ select = ["E", "F", "I", "UP", "B"]
 testpaths = ["tests"]
 addopts = "-m 'not slow'"
 markers = ["slow: needs network or a live model; excluded by default"]
+
+[tool.ruff.format]
+exclude = ["docs/**", ".analysis/**"]
