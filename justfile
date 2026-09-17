@@ -30,3 +30,7 @@ ch01:
 # Live check of the LangChain adapter (uses your key; run sparingly)
 smoke:
     uv run python scripts/smoke_model.py
+
+# Non-interactive smoke of the chat: pipes two lines in (uses your key; run sparingly)
+smoke-tui:
+    printf 'Reply with exactly one word: pong\n/exit\n' | uv run python -m harness
