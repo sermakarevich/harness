@@ -1,4 +1,4 @@
-"""A session = one conversation id + the model and graph bound to it."""
+"""A session holds one conversation with its model and answer loop."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ from harness.model import make_model
 class Session:
     settings: Settings
     session_id: str
-    graph: object  # CompiledStateGraph
+    graph: object
     config: dict
 
     @classmethod
@@ -28,7 +28,7 @@ class Session:
         cwd: Path | None = None,
         model=None,
     ) -> Session:
-        """Create a fresh conversation. `model` may be injected for tests."""
+        """Start a fresh conversation. Tests may pass in their own model."""
         session_id = new_session_id()
         model = model or make_model(settings, session_id)
         graph = build_graph(model, settings, checkpointer or InMemorySaver(), cwd)

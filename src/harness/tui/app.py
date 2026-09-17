@@ -1,9 +1,7 @@
-"""Terminal chat: read a line, stream the model's reply, repeat.
+"""Terminal chat: read a line, show the reply, repeat.
 
-Rendering is split into three seams so later chapters can grow it without
-rewriting: `handle_command` (slash commands such as /new), `run_turn`
-(send one user message through the graph), and `render_event` (how each
-streamed graph event is shown — tool calls and approvals arrive here later).
+Slash commands start a new chat or show help. One shared store keeps every
+conversation so old ones stay around.
 """
 
 from __future__ import annotations
@@ -38,19 +36,15 @@ class App:
         self.settings = settings
         self.console = console or Console()
         self.cwd = cwd or Path.cwd()
-        self._model = model  # injected in tests only
-        # One checkpointer for the whole app: /new starts a new thread inside it,
-        # so earlier conversations stay resumable later (persistence to disk is a later chapter).
+        self._model = model
         self.checkpointer = InMemorySaver()
         self.session = self._new_session()
-
-    # --- seams -----------------------------------------------------------------
 
     def _new_session(self) -> Session:
         return Session.start(self.settings, self.checkpointer, self.cwd, model=self._model)
 
     def handle_command(self, line: str) -> bool:
-        """Handle a /command. Returns False when the app should exit."""
+        """Run a slash command. Returns False when the app should quit."""
         cmd = line.strip().split()[0].lower()
         if cmd in ("/exit", "/quit"):
             return False
@@ -64,7 +58,10 @@ class App:
         return True
 
     def run_turn(self, text: str) -> None:
-        """Send one user message through the graph and stream the reply."""
+        """Send one user message and show the reply as it arrives.
+
+        Network errors show a message and the chat keeps going.
+        """
         events = self.session.graph.stream(
             {"messages": [HumanMessage(content=text)]},
             self.session.config,
@@ -73,19 +70,17 @@ class App:
         try:
             for message, meta in events:
                 self.render_event(message, meta)
-        except Exception as exc:  # network / API errors must not kill the chat
+        except Exception as exc:
             self.console.print(f"\n[red]error:[/red] {type(exc).__name__}: {exc}")
         finally:
-            self.console.print()  # end the streamed line
+            self.console.print()
 
     def render_event(self, message, meta: dict) -> None:
-        """Show one streamed event. Today: print assistant tokens as they arrive."""
+        """Show one piece of the reply as it arrives."""
         if isinstance(message, AIMessageChunk):
             self.console.print(
                 text_of(message), end="", markup=False, highlight=False, soft_wrap=True
             )
-
-    # --- main loop -------------------------------------------------------------
 
     def banner(self) -> None:
         self.console.print(

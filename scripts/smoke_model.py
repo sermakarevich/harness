@@ -1,4 +1,4 @@
-"""Live smoke test for model.py: one invoke, one stream. Run via `just smoke`."""
+"""Live check that the model answers. Run with just smoke."""
 
 import uuid
 

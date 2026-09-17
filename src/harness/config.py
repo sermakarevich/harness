@@ -1,8 +1,7 @@
-"""Settings: where the model lives and how we authenticate.
+"""Settings: where the model lives and the key that lets us in.
 
-Reads the OpenCode Go key from the environment (or a `.env` file in the
-current directory). The key is deliberately excluded from `repr()` so it can
-never leak into logs or error messages.
+Reads the key from the environment so it never leaks into logs. We also send
+our own app name with each request because the server blocks generic names.
 """
 
 from __future__ import annotations
@@ -23,12 +22,11 @@ class Settings:
     api_key: str = field(repr=False)
     base_url: str = "https://opencode.ai/zen/go/v1"
     model: str = "muse-spark-1.3-contributor"
-    # OpenCode rejects generic library user agents; this identifies our client.
     user_agent: str = "harness-dev/0.1"
 
 
 def load_settings(env_file: str | Path | None = None) -> Settings:
-    """Load settings from `.env` (if present) and the process environment."""
+    """Read settings from the environment and return them."""
     load_dotenv(env_file, override=False)
     api_key = os.environ.get("OPENCODE_API_KEY", "").strip()
     if not api_key:

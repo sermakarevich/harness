@@ -1,9 +1,7 @@
-"""System prompt assembly.
+"""Builds the opening message for the model.
 
-The system prompt is where the harness tells the model who it is and what
-it may assume. Today it is three lines; later chapters append tool
-descriptions, project memory and skill listings here, so keep it a
-function, not a constant.
+It says who the assistant is and what is true today. Later steps add tool
+and memory details here.
 """
 
 from __future__ import annotations

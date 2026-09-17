@@ -1,9 +1,7 @@
-"""The agent loop as a LangGraph graph.
+"""The answer loop of the harness.
 
-Right now the graph is one node: `call_model`, which prepends the system
-prompt and asks the model for the next message. A checkpointer stores the
-messages per `thread_id`, so the same session id yields the same
-conversation. Tools, approval gates and compaction become extra nodes here.
+Today it asks the model once and returns the reply. Later steps add tools
+and safety checks here.
 """
 
 from __future__ import annotations
@@ -23,12 +21,12 @@ from harness.state import HarnessState
 
 
 def new_session_id() -> str:
-    """One id per conversation; doubles as LangGraph thread_id and OpenCode session header."""
+    """Make a fresh id for a new conversation."""
     return f"harness-{uuid.uuid4()}"
 
 
 def thread_config(session_id: str) -> dict:
-    """The `config` LangGraph needs to find this conversation's checkpoint."""
+    """Tell the harness which saved conversation to continue."""
     return {"configurable": {"thread_id": session_id}}
 
 

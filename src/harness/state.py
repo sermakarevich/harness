@@ -1,9 +1,7 @@
-"""Graph state: what the harness remembers while a conversation runs.
+"""Conversation memory for the harness.
 
-`MessagesState` already gives us a `messages` list with an append-style
-reducer (new messages are added, not replaced). Later chapters add fields
-here (token usage, todo list, working-directory facts) — one field per
-harness job, never a grab bag.
+It holds the messages so far. Later steps add one field at a time as the
+harness grows.
 """
 
 from langgraph.graph import MessagesState

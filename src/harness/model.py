@@ -1,9 +1,7 @@
-"""Model transport: turn OpenCode Go into a LangChain chat model.
+"""Turns the model server into a chat model we can use.
 
-LangGraph does not care which vendor is behind the model as long as it gets
-a LangChain `BaseChatModel`. This module is the single place that knows
-about OpenCode Go's quirks (Responses API + mandatory session header), so
-swapping providers later means changing only this file.
+This is the only place that knows the server details. To use another
+provider, change only this file.
 """
 
 from __future__ import annotations
@@ -16,10 +14,10 @@ from harness.config import Settings
 
 
 def make_model(settings: Settings, session_id: str) -> BaseChatModel:
-    """Build a chat model bound to one conversation.
+    """Build a chat model tied to one conversation.
 
-    `session_id` becomes the `x-opencode-session` header: OpenCode uses it for
-    routing and prompt caching, so one conversation must keep one id.
+    The session id travels with each request so replies stay in the same
+    conversation.
     """
     return ChatOpenAI(
         model=settings.model,
@@ -36,8 +34,7 @@ def make_model(settings: Settings, session_id: str) -> BaseChatModel:
 def text_of(message: BaseMessage) -> str:
     """Return the plain text of a message.
 
-    Responses-API models may return `content` as a list of typed blocks
-    instead of a string; the rest of the harness should not care.
+    Some replies arrive in pieces, so we join the text pieces together.
     """
     content = message.content
     if isinstance(content, str):
