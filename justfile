@@ -23,9 +23,18 @@ lint:
 test:
     uv run pytest -q
 
+# Chapter 0 has no code to run; it is `just setup` + `just test`
+ch00: setup test
+
 # Chapter 1: one raw HTTP call to the model, no framework
 ch01:
     uv run python scripts/raw_call.py
+
+# Chapter 2: the LangChain adapter live check
+ch02: smoke
+
+# Chapter 3: the conversation loop in the terminal
+ch03: run
 
 # Live check of the LangChain adapter (uses your key; run sparingly)
 smoke:
