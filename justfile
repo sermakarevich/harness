@@ -22,3 +22,11 @@ lint:
 
 test:
     uv run pytest -q
+
+# Chapter 1: one raw HTTP call to the model, no framework
+ch01:
+    uv run python scripts/raw_call.py
+
+# Live check of the LangChain adapter (uses your key; run sparingly)
+smoke:
+    uv run python scripts/smoke_model.py
