@@ -1,8 +1,4 @@
-"""Slash commands for the terminal chat.
-
-Each line starting with a slash runs here. The app passes itself in
-so commands can read settings and swap the current conversation.
-"""
+"""Commands for the terminal chat."""
 
 from __future__ import annotations
 
@@ -12,8 +8,6 @@ COMMAND_PREFIX = "/"
 
 
 class Command(StrEnum):
-    """Slash commands the terminal chat accepts."""
-
     NEW = f"{COMMAND_PREFIX}new"
     HELP = f"{COMMAND_PREFIX}help"
     EXIT = f"{COMMAND_PREFIX}exit"
@@ -28,13 +22,11 @@ COMMAND_HELP = {
 
 
 def help_text() -> str:
-    """List each slash command with its short description."""
     lines = [f"  {cmd:<8}{text}" for cmd, text in COMMAND_HELP.items()]
     return "Commands:\n" + "\n".join(lines)
 
 
 def handle_command(app, line: str) -> bool:
-    """Run a slash command. Returns False when the app should quit."""
     cmd = line.strip().split()[0].lower()
     if cmd in (Command.EXIT, Command.QUIT):
         return False

@@ -1,7 +1,6 @@
 """Shows each model reply as it arrives.
 
-The turn sends one user message into the graph and prints the answer
-pieces live. Network errors show a message and the chat keeps going.
+Network errors show a message and the chat keeps going.
 """
 
 from __future__ import annotations

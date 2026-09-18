@@ -1,7 +1,4 @@
-"""Terminal chat: read a line, show the reply, repeat.
-
-The app holds the loop; commands and rendering live next door.
-"""
+"""Terminal chat: read a line, show the reply, repeat."""
 
 import sys
 from pathlib import Path
@@ -32,7 +29,6 @@ class App:
         return Session.start(self.settings, self.checkpointer, self.cwd, model=self._model)
 
     def handle_command(self, line: str) -> bool:
-        """Run a slash command. Returns False when the app should quit."""
         return commands.handle_command(self, line)
 
     def run_turn(self, text: str) -> None:

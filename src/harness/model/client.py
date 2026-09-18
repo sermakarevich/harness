@@ -16,11 +16,7 @@ USER_AGENT_HEADER = "User-Agent"
 
 
 def make_model(settings: Settings, session_id: str) -> BaseChatModel:
-    """Build a chat model tied to one conversation.
-
-    The session id travels with each request so replies stay in the same
-    conversation.
-    """
+    """Build a chat model tied to one conversation."""
     return ChatOpenAI(
         model=settings.model,
         api_key=settings.api_key,

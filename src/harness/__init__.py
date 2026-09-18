@@ -2,7 +2,7 @@
 
 A *harness* is everything around a language model that is not the model:
 the loop that calls it, its tools, its memory and its safety rules.
-This package grows one module per harness job; start with `config.py`.
+This package grows one module per harness job.
 """
 
 __version__ = "0.1.0"

@@ -31,7 +31,6 @@ class Settings:
 
 
 def load_settings(env_file: str | Path | None = None) -> Settings:
-    """Read settings from the environment and return them."""
     load_dotenv(env_file, override=False)
     api_key = os.environ.get(ENV_API_KEY, "").strip()
     if not api_key:

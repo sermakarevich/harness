@@ -1,8 +1,4 @@
-"""The answer loop of the harness.
-
-Today it asks the model once and returns the reply. Later steps add tools
-and safety checks here.
-"""
+"""The answer loop of the harness."""
 
 from __future__ import annotations
 

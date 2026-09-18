@@ -29,7 +29,7 @@ class Session:
         cwd: Path | None = None,
         model=None,
     ) -> Session:
-        """Start a fresh conversation. Tests may pass in their own model."""
+        """Start a fresh conversation."""
         session_id = new_session_id()
         model = model or make_model(settings, session_id)
         graph = build_graph(model, settings, checkpointer or InMemorySaver(), cwd)
