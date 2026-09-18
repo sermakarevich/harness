@@ -36,6 +36,14 @@ They bind humans, Claude Code, and fleet workers alike.
 - Python loads the file and fills named placeholders such as `{cwd}`. No prompt text inside Python strings.
 - One prompt per file. The file name says what the prompt is for.
 
+## No hardcoded values
+
+- A literal that carries meaning gets a name. Compare against the name, never the raw value.
+  Write `if cmd == Command.NEW:`, not `if cmd == "/new":`.
+- Group related names in one place: a `StrEnum` for a fixed set of choices (slash commands, content block types), a small frozen dataclass or module-level constants for the rest (header names, id prefixes, file names).
+- Anything a user might want to change (model name, base URL, user agent, timeouts) is a field in `Settings` with an environment override, not a literal in the code that uses it.
+- Framework-required keys such as LangGraph's `"messages"` state key are the one exception; they are part of the library's contract, not our choice.
+
 ## Project conventions
 
 - Python 3.12+, managed by `uv`; run everything through `uv run` or `just`.
