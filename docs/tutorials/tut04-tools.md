@@ -72,6 +72,37 @@ src/harness/
 7. The model answers with text and no tool call.
 8. The router goes to the end and the checkpointer saves the five-message list.
 
+This is the whole tool as the model sees it. LangChain builds it from the function's
+signature and docstring; the function body never leaves your harness:
+
+```bash
+uv run python -c "import json; from pathlib import Path; \
+from langchain_core.utils.function_calling import convert_to_openai_tool; \
+from harness.tools.read_file import read_file_tool; \
+print(json.dumps(convert_to_openai_tool(read_file_tool(Path.cwd())), indent=2))"
+```
+
+```json
+{
+  "type": "function",
+  "function": {
+    "name": "read_file",
+    "description": "Read a text file under the working directory. Paths are relative to it.",
+    "parameters": {
+      "properties": {
+        "path": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "type": "object"
+    }
+  }
+}
+```
+
 ### Design decisions
 
 - **Tool errors are text back to the model, not exceptions.** A wrong path returns
