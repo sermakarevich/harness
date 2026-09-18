@@ -10,7 +10,7 @@ step in Python with LangGraph, using an OpenCode Go model.
 cp .env.example .env   # then add your OpenCode Go key
 just setup
 just test
-just run               # terminal chat, arrives in tutorial 3
+just run               # terminal chat
 ```
 
 Start with the tutorials below. `docs/harnesses/` holds background on how three
@@ -51,6 +51,7 @@ that call the model say so; everything else runs offline.
 | 0 — Setup | `tut00` | [tut00-setup.md](docs/tutorials/tut00-setup.md) |
 | 1 — One raw model call | `tut01` | [tut01-raw-call.md](docs/tutorials/tut01-raw-call.md) |
 | 2 — Messages stack into memory | `tut02` | [tut02-messages.md](docs/tutorials/tut02-messages.md) |
+| 3 — Graph, streaming, terminal | `tut03` | [tut03-graph.md](docs/tutorials/tut03-graph.md) |
 
 More rows appear as tags are published. The full plan is in `docs/dev/TUTORIAL_METHOD.md`.
 
