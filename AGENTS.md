@@ -10,9 +10,10 @@ They bind humans, Claude Code, and fleet workers alike.
 3. **Evolvability** — one module per harness job, so the next step adds a file instead of rewriting one.
 4. **Maintainability** — every behaviour has a test that runs without network.
 
-## No comments
+## No comments unless absolutely necessary
 
 - Do not write `#` comments. If code needs a comment to be understood, rename or split it instead.
+- The only exception is a fact the code cannot show, such as a vendor quirk or a workaround for a bug. Then one short comment, with the reason.
 - One short docstring per module and per public function is allowed. It says what the thing does, in one to three plain sentences.
 
 ## Plain English
@@ -28,6 +29,12 @@ They bind humans, Claude Code, and fleet workers alike.
 - Each file is small and does one thing. A file that needs a second job gets a sibling file, not a second class.
 - A file name says what the file does in one or two plain words (`prompt.py`, `render.py`), never `utils.py`, `helpers.py`, `common.py`.
 - Each folder has a short `__init__.py` docstring saying what layer it is and what lives below it.
+
+## Prompts live in text files
+
+- Every prompt sent to the model is a `.txt` file next to the code that uses it, for example `src/harness/chat/prompts/system.txt`.
+- Python loads the file and fills named placeholders such as `{cwd}`. No prompt text inside Python strings.
+- One prompt per file. The file name says what the prompt is for.
 
 ## Project conventions
 
