@@ -113,7 +113,7 @@ Prose
 - Spell out a domain abbreviation the first time it appears (LLM, MCP, TUI). Everyday
   engineering ones (HTTP, API, URL, JSON, CLI) need no expansion.
 - No marketing words. Say what it does.
-- "In short" is under 50 lines. The whole tutorial is under 220 lines. Wrap prose at
+- "In short" is under 90 lines. The whole tutorial is under 250 lines. Wrap prose at
   100 characters. The file tree has one entry per line, never several on one line.
 
 Code and commands
