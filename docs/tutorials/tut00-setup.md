@@ -1,4 +1,4 @@
-# Chapter 0 — Setup: your workbench before the first model call
+# Tutorial 0 — Setup: your workbench before the first model call
 
 A **harness** is everything around the model that is not the model itself:
 the loop that calls it, the tools it can use, the memory it keeps, and the
@@ -7,19 +7,19 @@ rules that keep it safe and on budget. The common shorthand is
 
 Over the whole tutorial we will build such a harness piece by piece in
 Python, using LangGraph (a Python library for describing an agent as a graph
-of steps with explicit state passed between them). Each chapter fixes one
+of steps with explicit state passed between them). Each tutorial fixes one
 limitation of a bare model call; the full list of the 24 harness operations
 we are working toward lives in `docs/harnesses/OPERATIONS.md` — skim its
 intro, the at-a-glance table, and the "Build order" section now, and treat it
-as the map for the entire journey. This chapter only sets up the workbench.
+as the map for the entire journey. This tutorial only sets up the workbench.
 
 ## Prerequisites
 
 - `uv` — the Python package and environment manager used by this project.
-- `just` — the task runner; every chapter runs as `just chNN`.
+- `just` — the task runner; every tutorial runs as `just tutNN`.
 - An OpenCode Go subscription key — the secret that authenticates our model
   calls (a Large Language Model, LLM for short, is the text-generating
-  Artificial Intelligence model behind every chapter).
+  Artificial Intelligence model behind every tutorial).
 
 ## Hands-on
 
@@ -49,19 +49,19 @@ Both must finish green before you continue. `just setup` runs `uv sync`;
 
 ```text
 src/harness/config.py         settings and key loading from `.env`
-src/harness/model/client.py   LangChain adapter for OpenCode Go (chapter 2)
-src/harness/model/text.py     plain-text reader for model replies (chapter 2)
-src/harness/chat/state.py     conversation state for the graph (chapter 3)
-src/harness/chat/prompt.py    system prompt assembly (chapter 3)
-src/harness/chat/graph.py     the LangGraph conversation loop (chapter 3)
-src/harness/chat/thread.py    session ids and thread config (chapter 3)
+src/harness/model/client.py   LangChain adapter for OpenCode Go (tutorial 2)
+src/harness/model/text.py     plain-text reader for model replies (tutorial 2)
+src/harness/chat/state.py     conversation state for the graph (tutorial 3)
+src/harness/chat/prompt.py    system prompt assembly (tutorial 3)
+src/harness/chat/graph.py     the LangGraph conversation loop (tutorial 3)
+src/harness/chat/thread.py    session ids and thread config (tutorial 3)
 src/harness/chat/session.py   one conversation id plus its model and graph
 src/harness/tui/app.py        terminal chat loop (TUI,
                               a Terminal User Interface you interact with by typing)
 src/harness/tui/commands.py   slash commands (/new, /help, /exit)
 src/harness/tui/render.py     one turn plus streamed reply rendering
 src/harness/__main__.py       `just run` entry point: starts the terminal chat
-scripts/raw_call.py      chapter 1: one raw HTTP call, no framework
+scripts/raw_call.py      tutorial 1: one raw HTTP call, no framework
 docs/NOTES.md            verified transport notes from the live spike
 docs/harnesses/OPERATIONS.md  the 24 operations we are building toward
 ```
@@ -80,4 +80,4 @@ api_key: str = field(repr=False)
 That one flag excludes the key from `repr()` (the debug representation
 Python prints for objects), so the key can never leak into logs or error
 messages. Run `just setup` and `just test` once more if you changed anything —
-chapter 1 makes the first live call.
+tutorial 1 makes the first live call.

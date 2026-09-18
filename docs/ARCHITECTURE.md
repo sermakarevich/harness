@@ -28,7 +28,7 @@ src/harness/tui/commands.py   slash commands (handle_command for /new, /help, /e
 src/harness/tui/render.py     one turn plus streamed reply rendering (run_turn, render_event)
 ```
 
-`scripts/raw_call.py` is chapter 1: one raw HTTP call, no framework.
+`scripts/raw_call.py` is tutorial 1: one raw HTTP call, no framework.
 `scripts/smoke_model.py` is the live check of the LangChain adapter (`just smoke`).
 
 ## Layers

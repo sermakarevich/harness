@@ -1,6 +1,6 @@
-# Chapter 3 — The conversation loop: memory within a session
+# Tutorial 3 — The conversation loop: memory within a session
 
-Chapters 1 and 2 can ask the model things; this chapter gives it a memory.
+Tutorials 1 and 2 can ask the model things; this tutorial gives it a memory.
 The result is a real terminal chat: run it with:
 
 ```bash
@@ -33,7 +33,7 @@ append-style **reducer** — a small merge function that decides how new values
 combine with old ones. Here the reducer appends: every node returns new
 messages and LangGraph adds them to the list instead of replacing it. That is
 the whole memory mechanism at this stage — history accumulates, and each turn
-sends the full history back to the model. Later chapters add one field per
+sends the full history back to the model. Later tutorials add one field per
 harness job (token usage, todo list) to this same class.
 
 ## The single node: `call_model`
@@ -115,7 +115,7 @@ final message. LangGraph fans the tokens out to us; each event is a
 ## The terminal: three seams in three files
 
 `src/harness/tui/app.py` holds the loop, and two sibling files do the rest
-so later chapters can grow the chat without rewriting it:
+so later tutorials can grow the chat without rewriting it:
 
 - `src/harness/tui/commands.py` — `handle_command`: slash commands (`/new`
   starts a fresh session inside the same checkpointer, `/help` prints help,
@@ -141,6 +141,6 @@ that hand off to these two files.
 
 Fixed: the model now has a memory within a session. Ask a follow-up question
 and it sees the earlier turns, because the checkpointer reloads them every
-time. Still missing, and the hook to the next chapters: no tools (the model
+time. Still missing, and the hook to the next tutorials: no tools (the model
 cannot act on the world), memory dies with the process, no cost tracking,
 and no safety gate before dangerous calls.

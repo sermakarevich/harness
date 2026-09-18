@@ -1,11 +1,11 @@
-# Chapter 1 — One raw call: what actually goes over the wire
+# Tutorial 1 — One raw call: what actually goes over the wire
 
-No framework in this chapter — just one plain HTTP call (a single request and
+No framework in this tutorial — just one plain HTTP call (a single request and
 response over the web) to the model, so you can see the exact bytes our
 harness is built on. The whole script is `scripts/raw_call.py`, run it with:
 
 ```bash
-just ch01
+just tut01
 ```
 
 Expected output — a single word:
@@ -73,8 +73,8 @@ We collect every `output_text` part and print them joined — which gives
 
 ## The limitation this leaves us with
 
-This chapter proves the transport works, but the model here can only turn
+This tutorial proves the transport works, but the model here can only turn
 text into text: it remembers nothing between calls, it cannot act on the
 world, and this request shape is vendor-specific — switch providers and every
-line changes. Chapter 2 fixes the last problem first by hiding this call
+line changes. Tutorial 2 fixes the last problem first by hiding this call
 behind a uniform model interface.

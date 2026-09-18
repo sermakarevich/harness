@@ -1,10 +1,10 @@
-# Chapter 2 — The LangChain adapter: one interface for any model
+# Tutorial 2 — The LangChain adapter: one interface for any model
 
-Chapter 1 talks to exactly one vendor in exactly one dialect. LangGraph (the
+Tutorial 1 talks to exactly one vendor in exactly one dialect. LangGraph (the
 Python library we use to describe the agent as a graph of steps) does not
 speak vendor dialects at all — it only accepts a LangChain `BaseChatModel`
 (the common base class every LangChain-compatible model object inherits
-from). So this chapter wraps the raw HTTP call in that uniform shape. All of
+from). So this tutorial wraps the raw HTTP call in that uniform shape. All of
 it lives in `src/harness/model/client.py` (`make_model`) and
 `src/harness/model/text.py` (`text_of`); check it live with:
 
@@ -80,13 +80,13 @@ harness never cares which shape arrived.
 From the "LangChain adapter" section of `docs/NOTES.md`: the primary path
 worked on the first try — plain `ChatOpenAI` with `use_responses_api=True`
 and the session id plus user agent in `default_headers`. No custom fallback
-class was needed. `just ch01` printed `pong`; `just smoke` printed the three
+class was needed. `just tut01` printed `pong`; `just smoke` printed the three
 lines above. The key never appears in output or error text.
 
 ## Limitation fixed
 
-Chapter 1 left us with a vendor-specific call; that is gone. Any code that
+Tutorial 1 left us with a vendor-specific call; that is gone. Any code that
 accepts a `BaseChatModel` can now drive our model without knowing OpenCode
 exists — and LangGraph only ever accepts a `BaseChatModel`. What is still
 missing is everything around the model: memory, tools, and the loop itself.
-Chapter 3 builds the loop.
+Tutorial 3 builds the loop.
