@@ -47,7 +47,7 @@ the library version. The point of the tutorial is to see the machinery.
 
 ## 3. Model transport (already verified)
 
-Full details in [`docs/NOTES.md`](docs/NOTES.md) — verified live on 2026-09-12 against
+Full details in [`docs/NOTES.md`](NOTES.md) — verified live on 2026-09-12 against
 `muse-spark-1.3-contributor`.
 
 - Base URL: `https://opencode.ai/zen/go/v1`, endpoint `/responses` (OpenAI Responses API).
@@ -142,7 +142,7 @@ Primary references, mapped to where they are used:
 
 ```
 harness/
-├── GOAL.md            # this file
+├── GOAL.md            # this file (moved to docs/)
 ├── justfile           # just ch01, just fmt, just lint, just test
 ├── pyproject.toml     # uv-managed
 ├── uv.lock

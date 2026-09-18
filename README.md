@@ -13,7 +13,7 @@ just test
 just run               # terminal chat arrives in a later step
 ```
 
-See `GOAL.md` for the tutorial plan and `docs/harnesses/OPERATIONS.md` for
+See `docs/GOAL.md` for the tutorial plan and `docs/harnesses/OPERATIONS.md` for
 background on how harnesses run agents.
 
 ## Tutorial
