@@ -25,7 +25,7 @@ tutorial 3's code, not the finished harness. This document says how we do that.
 
 ## What every tutorial document contains
 
-Use `docs/tutorials/_TEMPLATE.md`. The sections, in order:
+Use `docs/dev/_TEMPLATE.md`. The sections, in order:
 
 1. **The limitation** — what the chat cannot do before this tutorial, shown as a
    short terminal exchange that fails or gives a poor answer.
@@ -84,5 +84,5 @@ The plan may change; the rules above do not.
    tutorial document. Both point at `AGENTS.md` and this file.
 2. Workers run in order on the shared tree; the code task commits first.
 3. The manager reviews, runs the live check once, and tags the commit `tutNN`.
-4. `docs/ARCHITECTURE.md` gets its operations table updated: the row moves from
+4. `docs/dev/ARCHITECTURE.md` gets its operations table updated: the row moves from
    `planned` to `done`.

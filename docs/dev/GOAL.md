@@ -47,7 +47,7 @@ the library version. The point of the tutorial is to see the machinery.
 
 ## 3. Model transport (already verified)
 
-Full details in [`docs/NOTES.md`](NOTES.md) — verified live on 2026-09-12 against
+Full details in [`docs/dev/NOTES.md`](NOTES.md) — verified live on 2026-09-12 against
 `muse-spark-1.3-contributor`.
 
 - Base URL: `https://opencode.ai/zen/go/v1`, endpoint `/responses` (OpenAI Responses API).

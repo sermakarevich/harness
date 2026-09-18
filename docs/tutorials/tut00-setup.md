@@ -79,10 +79,10 @@ README.md — what the project is and how to start
 justfile — short commands: setup, test, tut00
 pyproject.toml — package list and tool settings
 uv.lock — exact locked versions of every package
-docs/GOAL.md — goal and plan of the tutorial
-docs/NOTES.md — verified notes from the live model spike
-docs/TUTORIAL_METHOD.md — how tutorials, tags, and diffs work
-docs/tutorials/_TEMPLATE.md — shape of every tutorial document
+docs/dev/GOAL.md — goal and plan of the tutorial
+docs/dev/NOTES.md — verified notes from the live model spike
+docs/dev/TUTORIAL_METHOD.md — how tutorials, tags, and diffs work
+docs/dev/_TEMPLATE.md — shape of every tutorial document
 docs/harnesses/OPERATIONS.md — the operations we are building toward
 docs/harnesses/hermes.md — what the hermes harness does
 docs/harnesses/opencode.md — what the opencode harness does

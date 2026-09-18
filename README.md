@@ -12,8 +12,16 @@ just setup
 just test
 ```
 
-See `docs/TUTORIAL_METHOD.md` for how the tutorial is organised.
+`docs/harnesses/` holds background on how three existing harnesses run agents,
+cited from the tutorials.
 
 ## Tutorial
 
 - [Tutorial 0 — Setup](docs/tutorials/tut00-setup.md)
+
+
+## For contributors
+
+Everything about how this repo is built lives in `docs/dev/`: the tutorial method
+and plan (`TUTORIAL_METHOD.md`), the tutorial template, the goal and the verified
+transport notes. Coding rules are in `AGENTS.md`.
