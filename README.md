@@ -50,6 +50,7 @@ that call the model say so; everything else runs offline.
 |---|---|---|
 | 0 — Setup | `tut00` | [tut00-setup.md](docs/tutorials/tut00-setup.md) |
 | 1 — One raw model call | `tut01` | [tut01-raw-call.md](docs/tutorials/tut01-raw-call.md) |
+| 2 — Messages stack into memory | `tut02` | [tut02-messages.md](docs/tutorials/tut02-messages.md) |
 
 More rows appear as tags are published. The full plan is in `docs/dev/TUTORIAL_METHOD.md`.
 
