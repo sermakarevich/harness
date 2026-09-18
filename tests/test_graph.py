@@ -5,15 +5,14 @@ from harness.chat.graph import build_graph
 from harness.chat.prompt import build_system_prompt
 from harness.chat.session import Session
 from harness.chat.thread import new_session_id, thread_config
-from harness.config import Settings
 
 
 def fake_model():
     return GenericFakeChatModel(messages=iter([AIMessage(content="one"), AIMessage(content="two")]))
 
 
-def test_two_turns_accumulate_in_one_thread():
-    graph = build_graph(fake_model(), Settings(api_key="x"))
+def test_two_turns_accumulate_in_one_thread(settings):
+    graph = build_graph(fake_model(), settings)
     cfg = thread_config(new_session_id())
     graph.invoke({"messages": [HumanMessage(content="a")]}, cfg)
     graph.invoke({"messages": [HumanMessage(content="b")]}, cfg)
@@ -21,8 +20,8 @@ def test_two_turns_accumulate_in_one_thread():
     assert [m.content for m in msgs] == ["a", "one", "b", "two"]
 
 
-def test_threads_are_isolated():
-    graph = build_graph(fake_model(), Settings(api_key="x"))
+def test_threads_are_isolated(settings):
+    graph = build_graph(fake_model(), settings)
     cfg1, cfg2 = thread_config("s1"), thread_config("s2")
     graph.invoke({"messages": [HumanMessage(content="a")]}, cfg1)
     graph.invoke({"messages": [HumanMessage(content="b")]}, cfg2)
@@ -30,20 +29,20 @@ def test_threads_are_isolated():
     assert len(graph.get_state(cfg2).values["messages"]) == 2
 
 
-def test_system_prompt_mentions_cwd(tmp_path):
-    assert str(tmp_path) in build_system_prompt(Settings(api_key="x"), cwd=tmp_path)
+def test_system_prompt_mentions_cwd(tmp_path, settings):
+    assert str(tmp_path) in build_system_prompt(settings, cwd=tmp_path)
 
 
-def test_system_prompt_has_today_and_no_placeholders(tmp_path):
+def test_system_prompt_has_today_and_no_placeholders(tmp_path, settings):
     from datetime import date
 
-    prompt = build_system_prompt(Settings(api_key="x"), cwd=tmp_path)
+    prompt = build_system_prompt(settings, cwd=tmp_path)
     assert date.today().isoformat() in prompt
     assert "{" not in prompt
 
 
-def test_stream_mode_messages_yields_ai_chunks():
-    graph = build_graph(fake_model(), Settings(api_key="x"))
+def test_stream_mode_messages_yields_ai_chunks(settings):
+    graph = build_graph(fake_model(), settings)
     cfg = thread_config("s")
     events = list(
         graph.stream({"messages": [HumanMessage(content="a")]}, cfg, stream_mode="messages")
@@ -53,7 +52,7 @@ def test_stream_mode_messages_yields_ai_chunks():
     assert "one" in text
 
 
-def test_session_start_injects_model():
-    s = Session.start(Settings(api_key="x"), model=fake_model())
+def test_session_start_injects_model(settings):
+    s = Session.start(settings, model=fake_model())
     assert s.session_id.startswith("harness-")
     assert s.config["configurable"]["thread_id"] == s.session_id
