@@ -37,7 +37,7 @@ class App:
 
     def render_event(self, message, meta: dict) -> None:
         """Show one piece of the reply as it arrives."""
-        render.render_event(self.console, message, meta)
+        render.render_event(self.console, message, meta, render.StreamState())
 
     def banner(self) -> None:
         self.console.print(

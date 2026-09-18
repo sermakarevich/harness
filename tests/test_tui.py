@@ -1,14 +1,30 @@
 from io import StringIO
 
 from langchain_core.language_models.fake_chat_models import GenericFakeChatModel
-from langchain_core.messages import AIMessage
+from langchain_core.messages import AIMessage, AIMessageChunk
+from langchain_core.outputs import ChatGenerationChunk
 from rich.console import Console
 
 from harness.tui.app import App
 
 
+class FakeToolChatModel(GenericFakeChatModel):
+    def bind_tools(self, tools, **kwargs):
+        return self
+
+    def _stream(self, messages, stop=None, run_manager=None, **kwargs):
+        message = next(self.messages)
+        reply = message if isinstance(message, AIMessage) else AIMessage(content=message)
+        chunk = ChatGenerationChunk(
+            message=AIMessageChunk(content=reply.content, tool_calls=reply.tool_calls)
+        )
+        if run_manager:
+            run_manager.on_llm_new_token(reply.content, chunk=chunk)
+        yield chunk
+
+
 def make_app(settings):
-    model = GenericFakeChatModel(
+    model = FakeToolChatModel(
         messages=iter([AIMessage(content="pong"), AIMessage(content="again")])
     )
     buf = StringIO()
@@ -46,3 +62,37 @@ def test_help_lists_commands(settings):
     app.handle_command("/help")
     out = buf.getvalue()
     assert "/new" in out and "/exit" in out
+
+
+def test_run_turn_prints_tool_call_before_answer(settings, tmp_path):
+    target = tmp_path / "note.txt"
+    target.write_text("hello")
+    model = FakeToolChatModel(
+        messages=iter(
+            [
+                AIMessage(
+                    content="",
+                    tool_calls=[
+                        {
+                            "name": "read_file",
+                            "args": {"path": "note.txt"},
+                            "id": "call-1",
+                            "type": "tool_call",
+                        }
+                    ],
+                ),
+                AIMessage(content="done"),
+            ]
+        )
+    )
+    buf = StringIO()
+    app = App(
+        settings,
+        console=Console(file=buf, width=80, force_terminal=False),
+        cwd=tmp_path,
+        model=model,
+    )
+    app.run_turn("read it")
+    out = buf.getvalue()
+    assert "→ read_file path=" in out
+    assert out.index("→ read_file path=") < out.index("done")
