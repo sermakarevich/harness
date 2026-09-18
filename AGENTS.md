@@ -14,7 +14,9 @@ They bind humans, Claude Code, and fleet workers alike.
 
 - Do not write `#` comments. If code needs a comment to be understood, rename or split it instead.
 - The only exception is a fact the code cannot show, such as a vendor quirk or a workaround for a bug. Then one short comment, with the reason.
-- One short docstring per module and per public function is allowed. It says what the thing does, in one to three plain sentences.
+- One short docstring per module and per public function is allowed. It says what the thing is for, in one to three plain sentences.
+- A docstring never restates a value, a name, or a detail of how the code works. Those change with a one-line edit elsewhere and the prose silently rots. `"""Slash commands the terminal chat accepts."""` is wrong the moment the prefix stops being a slash.
+- If the name already says the purpose, there is no docstring. `class Command(StrEnum)` in `tui/commands.py` needs none.
 
 ## Plain English
 
