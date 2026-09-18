@@ -12,9 +12,10 @@ from langchain_core.messages import SystemMessage
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
-from langgraph.prebuilt import ToolNode, tools_condition
+from langgraph.prebuilt import tools_condition
 
 from harness.chat.prompt import build_system_prompt
+from harness.chat.run_tools import build_run_tools
 from harness.chat.state import HarnessState
 from harness.config import Settings
 from harness.tools.registry import build_tools
@@ -40,7 +41,7 @@ def build_graph(
 
     builder = StateGraph(HarnessState)
     builder.add_node(MODEL_NODE, call_model)
-    builder.add_node(TOOLS_NODE, ToolNode(tools))
+    builder.add_node(TOOLS_NODE, build_run_tools(tools))
     builder.add_edge(START, MODEL_NODE)
     builder.add_conditional_edges(MODEL_NODE, tools_condition, {TOOLS_NODE: TOOLS_NODE, END: END})
     builder.add_edge(TOOLS_NODE, MODEL_NODE)

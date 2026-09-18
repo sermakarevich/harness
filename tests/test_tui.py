@@ -3,7 +3,9 @@ from io import StringIO
 from langchain_core.messages import AIMessage
 from rich.console import Console
 
+from harness.tools.permission import Answer
 from harness.tui.app import App
+from harness.tui.ask import answer_of
 from tests.conftest import FakeToolChatModel
 
 
@@ -108,6 +110,7 @@ def test_run_turn_shortens_long_tool_arg(settings, tmp_path):
         cwd=tmp_path,
         model=model,
     )
+    app.read_line = lambda prompt_text: "y"
     app.run_turn("write it")
     line = next(line for line in buf.getvalue().splitlines() if "→ write_file" in line)
     assert len(line) < 120
@@ -146,9 +149,79 @@ def test_run_turn_shows_every_tool_call_of_one_reply(settings, tmp_path):
         cwd=tmp_path,
         model=model,
     )
+    app.read_line = lambda prompt_text: "y"
     app.run_turn("write both")
     out = buf.getvalue()
     assert "→ write_file path=a.txt" in out
     assert "→ write_file path=b.txt" in out
     assert out.index("→ write_file path=a.txt") < out.index("done")
     assert out.index("→ write_file path=b.txt") < out.index("done")
+
+
+def write_call_app(settings, tmp_path, buf):
+    model = FakeToolChatModel(
+        messages=iter(
+            [
+                AIMessage(
+                    content="",
+                    tool_calls=[
+                        {
+                            "name": "write_file",
+                            "args": {"path": "note.txt", "content": "hello"},
+                            "id": "call-1",
+                            "type": "tool_call",
+                        }
+                    ],
+                ),
+                AIMessage(content="done"),
+            ]
+        )
+    )
+    return App(
+        settings,
+        console=Console(file=buf, width=200, force_terminal=False),
+        cwd=tmp_path,
+        model=model,
+    )
+
+
+def stub_read_line(app, buf, replies):
+    seen = []
+
+    def read(prompt_text):
+        seen.append(prompt_text)
+        buf.write(prompt_text + "\n")
+        return replies.pop(0)
+
+    app.read_line = read
+    return seen
+
+
+def test_run_turn_denied_hides_tool_call(settings, tmp_path):
+    buf = StringIO()
+    app = write_call_app(settings, tmp_path, buf)
+    stub_read_line(app, buf, ["n"])
+    app.run_turn("write it")
+    out = buf.getvalue()
+    assert "allow write_file" in out
+    assert "→ write_file" not in out
+    assert not (tmp_path / "note.txt").exists()
+
+
+def test_run_turn_allowed_shows_tool_call(settings, tmp_path):
+    buf = StringIO()
+    app = write_call_app(settings, tmp_path, buf)
+    seen = stub_read_line(app, buf, ["y"])
+    app.run_turn("write it")
+    out = buf.getvalue()
+    assert "allow write_file" in seen[0]
+    assert "→ write_file" in out
+    assert (tmp_path / "note.txt").read_text() == "hello"
+
+
+def test_answer_of_reads_first_letter():
+    assert answer_of("y") is Answer.YES
+    assert answer_of("always") is Answer.ALWAYS
+    assert answer_of("N") is Answer.NO
+    assert answer_of("") is Answer.NO
+    assert answer_of("maybe") is Answer.NO

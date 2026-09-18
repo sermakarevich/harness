@@ -22,6 +22,7 @@ class App:
         self.console = console or Console()
         self.cwd = cwd or Path.cwd()
         self._model = model
+        self._prompt = None
         self.checkpointer = InMemorySaver()
         self.session = self._new_session()
 
@@ -41,18 +42,24 @@ class App:
             f"session [dim]{self.session.session_id[-8:]}[/dim] · {Command.HELP} for commands"
         )
 
+    def read_line(self, prompt_text: str) -> str:
+        """Read one line, echoing it when the input is not a terminal."""
+        if self._prompt is not None:
+            return self._prompt.prompt(prompt_text)
+        line = input(prompt_text)
+        self.console.print(line, markup=False, highlight=False)
+        return line
+
     def run(self) -> None:
         self.banner()
         interactive = sys.stdin.isatty()
-        prompt = PromptSession(history=InMemoryHistory()) if interactive else None
+        self._prompt = PromptSession(history=InMemoryHistory()) if interactive else None
         while True:
             try:
-                line = prompt.prompt(PROMPT) if prompt else input(PROMPT)
+                line = self.read_line(PROMPT)
             except (EOFError, KeyboardInterrupt):
                 self.console.print()
                 break
-            if not interactive:
-                self.console.print(line, markup=False, highlight=False)
             if not line.strip():
                 continue
             if line.startswith(commands.COMMAND_PREFIX):
