@@ -30,11 +30,8 @@ exactly where that memory lives: in a list your harness keeps and resends every 
 3. You reach the model through one adapter instead of raw HTTP.
 4. You ask the two tutorial 1 questions again and watch the model remember.
 
-Left out for now; tutorial 3 adds all three:
-
-- streaming the answer as it arrives
-- saving the list anywhere past the process
-- a real terminal around the chat
+Left out for now: streaming the answer, saving the list past the process, and a real terminal.
+Tutorial 3 adds all three.
 
 ### The problem
 
