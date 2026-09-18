@@ -12,6 +12,11 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+ENV_API_KEY = "OPENCODE_API_KEY"
+ENV_BASE_URL = "HARNESS_BASE_URL"
+ENV_MODEL = "HARNESS_MODEL"
+ENV_USER_AGENT = "HARNESS_USER_AGENT"
+
 
 class ConfigError(RuntimeError):
     """Raised when a required setting is missing."""
@@ -28,13 +33,14 @@ class Settings:
 def load_settings(env_file: str | Path | None = None) -> Settings:
     """Read settings from the environment and return them."""
     load_dotenv(env_file, override=False)
-    api_key = os.environ.get("OPENCODE_API_KEY", "").strip()
+    api_key = os.environ.get(ENV_API_KEY, "").strip()
     if not api_key:
         raise ConfigError(
             "OPENCODE_API_KEY is not set. Copy .env.example to .env and add your OpenCode Go key."
         )
     return Settings(
         api_key=api_key,
-        base_url=os.environ.get("HARNESS_BASE_URL", Settings.base_url),
-        model=os.environ.get("HARNESS_MODEL", Settings.model),
+        base_url=os.environ.get(ENV_BASE_URL, Settings.base_url),
+        model=os.environ.get(ENV_MODEL, Settings.model),
+        user_agent=os.environ.get(ENV_USER_AGENT, Settings.user_agent),
     )

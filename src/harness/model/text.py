@@ -6,7 +6,20 @@ The client file next to it builds the model itself.
 
 from __future__ import annotations
 
+from enum import StrEnum
+
 from langchain_core.messages import BaseMessage
+
+
+class BlockType(StrEnum):
+    """Content block kinds that carry plain text."""
+
+    TEXT = "text"
+    OUTPUT_TEXT = "output_text"
+
+
+TEXT_KEY = "text"
+TYPE_KEY = "type"
 
 
 def text_of(message: BaseMessage) -> str:
@@ -21,6 +34,9 @@ def text_of(message: BaseMessage) -> str:
     for block in content:
         if isinstance(block, str):
             parts.append(block)
-        elif isinstance(block, dict) and block.get("type") in ("text", "output_text"):
-            parts.append(block.get("text", ""))
+        elif isinstance(block, dict) and block.get(TYPE_KEY) in (
+            BlockType.TEXT,
+            BlockType.OUTPUT_TEXT,
+        ):
+            parts.append(block.get(TEXT_KEY, ""))
     return "".join(parts)

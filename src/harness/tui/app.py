@@ -14,6 +14,9 @@ from rich.console import Console
 from harness.chat.session import Session
 from harness.config import Settings
 from harness.tui import commands, render
+from harness.tui.commands import Command
+
+PROMPT = "> "
 
 
 class App:
@@ -43,7 +46,7 @@ class App:
     def banner(self) -> None:
         self.console.print(
             f"[bold]harness[/bold] · model [cyan]{self.settings.model}[/cyan] · "
-            f"session [dim]{self.session.session_id[-8:]}[/dim] · /help for commands"
+            f"session [dim]{self.session.session_id[-8:]}[/dim] · {Command.HELP} for commands"
         )
 
     def run(self) -> None:
@@ -52,13 +55,13 @@ class App:
         prompt = PromptSession(history=InMemoryHistory()) if interactive else None
         while True:
             try:
-                line = prompt.prompt("> ") if prompt else input("> ")
+                line = prompt.prompt(PROMPT) if prompt else input(PROMPT)
             except (EOFError, KeyboardInterrupt):
                 self.console.print()
                 break
             if not line.strip():
                 continue
-            if line.startswith("/"):
+            if line.startswith(commands.COMMAND_PREFIX):
                 if not self.handle_command(line):
                     break
                 continue

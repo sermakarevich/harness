@@ -11,8 +11,11 @@ from pathlib import Path
 
 from harness.config import Settings
 
+PROMPTS_DIR = Path(__file__).parent / "prompts"
+SYSTEM_PROMPT_FILE = "system.txt"
+
 
 def build_system_prompt(settings: Settings, cwd: Path | None = None) -> str:
     """Build the opening message from the text file on disk."""
-    template = (Path(__file__).parent / "prompts" / "system.txt").read_text().strip()
+    template = (PROMPTS_DIR / SYSTEM_PROMPT_FILE).read_text().strip()
     return template.format(today=date.today().isoformat(), cwd=cwd or Path.cwd())
