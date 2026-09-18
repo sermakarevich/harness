@@ -16,7 +16,31 @@ just run               # terminal chat arrives in a later step
 Start with the tutorials below. `docs/harnesses/` holds background on how three
 existing harnesses run agents, cited from the tutorials.
 
-## Tutorial
+## How to follow the tutorials
+
+Each tutorial is a git tag (`tut00`, `tut01`, ...) and a document in `docs/tutorials/`.
+The document has two layers. **In short** gives the concepts, the scope and the problem
+in plain language, no code. **In detail** walks the code file by file. Read only the first
+layer of every tutorial for the story; read the second to build it.
+
+For each tutorial:
+
+```bash
+git checkout tut01              # the code exactly as the tutorial describes it
+just setup                      # once per checkout, installs the locked environment
+just tut01                      # shows the new ability in the terminal
+just test                       # the tests for this tutorial, no network needed
+git diff tut00..tut01 --stat    # every file this tutorial added or changed
+```
+
+Tutorials are additive: nothing under an older tag is rewritten later, so the diff
+between two neighbouring tags is exactly one concept. `git tag --list 'tut*'` shows how
+far the series goes. `git checkout main` returns to the latest code.
+
+You need `uv`, `just` and an OpenCode Go key in `.env` (see `.env.example`). Tutorials
+that call the model say so; everything else runs offline.
+
+## Tutorials
 
 - [Tutorial 0 — Setup](docs/tutorials/tut00-setup.md): workbench, layout, secrets.
 - [Tutorial 1 — One raw call](docs/tutorials/tut01-raw-call.md): plain HTTP, no framework.
