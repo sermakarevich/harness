@@ -3,7 +3,8 @@
 import uuid
 
 from harness.config import load_settings
-from harness.model import make_model, text_of
+from harness.model.client import make_model
+from harness.model.text import text_of
 
 
 def main() -> None:

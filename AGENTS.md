@@ -32,5 +32,5 @@ They bind humans, Claude Code, and fleet workers alike.
 ## Project conventions
 
 - Python 3.12+, managed by `uv`; run everything through `uv run` or `just`.
-- The model is constructed only in `src/harness/model.py`.
+- The model is constructed only in `src/harness/model/client.py`.
 - Secrets live in `.env` and are never printed, logged, or committed.

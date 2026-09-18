@@ -6,7 +6,6 @@ and safety checks here.
 
 from __future__ import annotations
 
-import uuid
 from pathlib import Path
 
 from langchain_core.language_models import BaseChatModel
@@ -15,19 +14,9 @@ from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
 
+from harness.chat.prompt import build_system_prompt
+from harness.chat.state import HarnessState
 from harness.config import Settings
-from harness.prompt import build_system_prompt
-from harness.state import HarnessState
-
-
-def new_session_id() -> str:
-    """Make a fresh id for a new conversation."""
-    return f"harness-{uuid.uuid4()}"
-
-
-def thread_config(session_id: str) -> dict:
-    """Tell the harness which saved conversation to continue."""
-    return {"configurable": {"thread_id": session_id}}
 
 
 def build_graph(

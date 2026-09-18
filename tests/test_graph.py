@@ -1,10 +1,11 @@
 from langchain_core.language_models.fake_chat_models import GenericFakeChatModel
 from langchain_core.messages import AIMessage, HumanMessage
 
+from harness.chat.graph import build_graph
+from harness.chat.prompt import build_system_prompt
+from harness.chat.session import Session
+from harness.chat.thread import new_session_id, thread_config
 from harness.config import Settings
-from harness.graph import build_graph, new_session_id, thread_config
-from harness.prompt import build_system_prompt
-from harness.session import Session
 
 
 def fake_model():

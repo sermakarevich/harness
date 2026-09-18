@@ -3,7 +3,8 @@ import uuid
 from langchain_core.messages import AIMessage
 
 from harness.config import Settings
-from harness.model import make_model, text_of
+from harness.model.client import make_model
+from harness.model.text import text_of
 
 
 def test_make_model_carries_session_header():

@@ -1,38 +1,23 @@
 """Terminal chat: read a line, show the reply, repeat.
 
-Slash commands start a new chat or show help. One shared store keeps every
-conversation so old ones stay around.
+The app holds the loop; commands and rendering live next door.
 """
-
-from __future__ import annotations
 
 import sys
 from pathlib import Path
 
-from langchain_core.messages import AIMessageChunk, HumanMessage
 from langgraph.checkpoint.memory import InMemorySaver
 from prompt_toolkit import PromptSession
 from prompt_toolkit.history import InMemoryHistory
 from rich.console import Console
 
+from harness.chat.session import Session
 from harness.config import Settings
-from harness.model import text_of
-from harness.session import Session
-
-HELP = """Commands:
-  /new    start a fresh conversation (new session id)
-  /help   show this help
-  /exit   quit (also Ctrl-D)"""
+from harness.tui import commands, render
 
 
 class App:
-    def __init__(
-        self,
-        settings: Settings,
-        console: Console | None = None,
-        cwd: Path | None = None,
-        model=None,
-    ):
+    def __init__(self, settings: Settings, console=None, cwd=None, model=None):
         self.settings = settings
         self.console = console or Console()
         self.cwd = cwd or Path.cwd()
@@ -45,42 +30,15 @@ class App:
 
     def handle_command(self, line: str) -> bool:
         """Run a slash command. Returns False when the app should quit."""
-        cmd = line.strip().split()[0].lower()
-        if cmd in ("/exit", "/quit"):
-            return False
-        if cmd == "/new":
-            self.session = self._new_session()
-            self.console.print(f"[dim]new session {self.session.session_id}[/dim]")
-        elif cmd == "/help":
-            self.console.print(HELP)
-        else:
-            self.console.print(f"[red]unknown command {cmd}[/red] — try /help")
-        return True
+        return commands.handle_command(self, line)
 
     def run_turn(self, text: str) -> None:
-        """Send one user message and show the reply as it arrives.
-
-        Network errors show a message and the chat keeps going.
-        """
-        events = self.session.graph.stream(
-            {"messages": [HumanMessage(content=text)]},
-            self.session.config,
-            stream_mode="messages",
-        )
-        try:
-            for message, meta in events:
-                self.render_event(message, meta)
-        except Exception as exc:
-            self.console.print(f"\n[red]error:[/red] {type(exc).__name__}: {exc}")
-        finally:
-            self.console.print()
+        """Send one user message and show the reply as it arrives."""
+        render.run_turn(self, text)
 
     def render_event(self, message, meta: dict) -> None:
         """Show one piece of the reply as it arrives."""
-        if isinstance(message, AIMessageChunk):
-            self.console.print(
-                text_of(message), end="", markup=False, highlight=False, soft_wrap=True
-            )
+        render.render_event(self.console, message, meta)
 
     def banner(self) -> None:
         self.console.print(
