@@ -41,9 +41,9 @@ Use `docs/dev/_TEMPLATE.md`. Every tutorial has two layers:
    (what we build now, why now, what we leave for later), the problem shown as a failing
    terminal exchange, and a file tree marking new and changed files.
 2. **In detail**: how the new code works, the design decisions behind its shape and the
-   alternatives rejected, at most two excerpts that carry the idea, how to run it, what
-   the tests prove, key takeaways, and what is still missing. The full change is
-   `git diff` between the two tags; the document never walks it file by file.
+   alternatives rejected, at most one excerpt that carries the idea, how to run it,
+   key takeaways, and what is still missing. The full change is `git diff` between the
+   two tags; the document never walks it file by file.
 
 A reader who reads only the first layer of every tutorial still gets the whole story.
 The template ends with the writing rules: audience, prose, code, and the rules that let
@@ -61,10 +61,10 @@ words each. It is the checklist for whoever writes the tutorial.
 
 | # | Concept | Explained | What the reader sees at the end |
 |---|---|---|---|
-| 0 | Project setup | agent = model + harness, and the harness decides most of the result; what the finished harness will do; how the series works: one tag, one recipe, offline tests per tutorial; where settings live and how they are overridden | `just setup`, `just test` green |
+| 0 | Project setup | agent = model + harness, and the harness decides most of the result; what the finished harness will do; how the series works: one tag, one recipe, offline tests per tutorial; where settings live and how they are overridden | `just tutorial` runs the offline tests |
 | 1 | One raw model call [1] | a request is plain HTTP; the key travels in a header; the request is stateless: nothing is kept between calls; the reply is a list of typed blocks (reasoning, text) | `just tutorial` prints `pong` |
-| 2 | Messages stack into memory [2, 3, 4] | three roles: system, user, assistant; the list *is* the memory; every turn resends the whole list; so the context grows each turn; the system prompt sits first and shapes every answer; a new chat is an empty list | chat that remembers within a session, `/new` forgets |
-| 3 | Adapter, graph, streaming [1, 5] | one adapter hides vendor quirks; one graph node is one turn; a checkpointer keeps the list per thread id; tokens arrive one by one, so print them as they come; the read-print loop of a terminal | `just smoke` streams tokens; `just run` opens the chat |
+| 2 | Messages stack into memory [3, 4, 5] | three roles: system, user, assistant; the list *is* the memory; every turn resends the whole list; so the context grows each turn; the system prompt sits first and shapes every answer; a new chat is an empty list; one adapter is the only code that knows the vendor | a line-by-line chat that remembers within a session, `/new` forgets |
+| 3 | Graph, streaming, terminal [2] | one graph node is one turn; a checkpointer keeps the list per thread id, so the harness no longer carries the list by hand; tokens arrive one by one, so print them as they come; the read-print loop of a terminal; errors are shown and the chat goes on | `just tutorial` opens the terminal chat |
 | 4 | Tools and the agent loop [7, 8] | a tool is a schema plus a function; the model asks, the harness runs; the result goes back as a tool message; loop until the model stops asking; first tool: read a file | model reads a file you name |
 | 5 | File tools and the shell tool [10, 11] | edit as exact find-and-replace; shell with a timeout; working directory matters; stdout and stderr become text for the model | model edits a file and runs `pytest` |
 | 6 | Permission gate [12] | read is safe, write and run are not; ask before a side effect; allow once versus always; a denial is a message back to the model, not a crash | terminal asks before a write or a command |
@@ -80,10 +80,11 @@ words each. It is the checklist for whoever writes the tutorial.
 | 16 | Outside tool servers, MCP [22] | tools that live in another process; discover them at start; the same loop from tutorial 4 runs them | tools from a Model Context Protocol server |
 | 17 | Evaluation | a fixed set of tasks; a score before and after a change; catch regressions, not just wins | a number before and after a harness change |
 
-Tutorials 0 to 3 already have code. Tutorials 2 and 3 swap places compared with the
-current `docs/tutorials/` files and `just` recipes, so one small task renames those
-before tagging. Tutorial 2 is taught with a plain message list first; the graph and
-checkpointer arrive in tutorial 3 as the tidy way to keep that list.
+The code for tutorials 1 to 3 exists on `main` and is rebuilt on the `tutorial` branch
+in three additive steps. Tutorial 2 is taught with a plain message list first; the graph
+and checkpointer arrive in tutorial 3 as the tidy way to keep that list. Scripts that
+exist only to teach (`scripts/raw_call.py`, `scripts/chat_list.py`) stay in the tree; they
+are the runnable form of a tutorial, not dead code.
 
 Operations 14, 23 and 24 (snapshot and revert, hooks and plugins, background work)
 are out of scope for the tutorial. They matter for a product, less for learning.
@@ -91,12 +92,38 @@ The plan may change; the rules above do not.
 
 ## How a tutorial gets built
 
+Two roles. The **manager** (Claude Code, driven by the author) writes specs, reviews,
+and does small housekeeping: renames, rules files, commits, tags, README rows, one-line
+document fixes. **Fleet workers** (OpenCode Go model, `opencode-go/muse-spark-1.3-contributor`)
+write every piece of code and every tutorial document. The manager never writes code or
+tutorial prose itself; if a spec is wrong, the manager fixes the spec and resubmits.
+
 1. The manager reads the knowledge-base notes on agent harnesses (`ai search harness`,
    category `structured_papers/agent_harness`) for the concept at hand and lists the
    notes the tutorial should cite.
 2. The manager writes two fleet task specs: one for the code with tests, one for the
-   tutorial document. Both point at `AGENTS.md`, this file and the template.
-3. Workers run in order on the shared tree; the code task commits first.
-4. The manager reviews, runs the live check once, and tags the commit `tutNN`.
-5. `docs/dev/ARCHITECTURE.md` gets its operations table updated: the row moves from
-   `planned` to `done`.
+   tutorial document. Both point at `AGENTS.md`, this file and the template. The
+   document spec carries the Explained row and an acceptance checklist taken from the
+   template rules.
+3. Workers run in order on the `tutorial` work tree; the code task commits first. The
+   code task also sets the `just tutorial` recipe body and adds the README table row.
+4. The manager reviews against the template rules, runs `just tutorial` at the commit
+   once, checks the document's "Run it" output against that run, and tags `tutNN`.
+5. A tag may move while its tutorial is being polished. Once the next tutorial is tagged,
+   the older tag is final and never moves again.
+6. After tutorial 3, `main` is pointed at the `tutorial` line and the operations table
+   in `docs/dev/ARCHITECTURE.md` is kept on `main` only.
+
+## Working agreements
+
+Decisions taken while writing tutorial 0. They hold for every later tutorial.
+
+- Documents live in `docs/tutorials/` on `main` and are identical at the tag. The README
+  table lists one row per published tag.
+- Settings are read with dynaconf under one prefix, `HARNESS_`. Defaults sit in
+  `src/harness/settings.toml`; `.env.example` lists every variable, uncommented, with its
+  default, so a copied `.env` is complete and explicit.
+- Nothing ships that nothing uses: no type markers, no placeholder modules, no recipes
+  for older tutorials.
+- The writing rules live in one place, the template, and are applied to every tutorial
+  document before it is accepted.
