@@ -19,8 +19,8 @@ a time, in Python with **LangGraph**.
 > `while` loop. It gives us persistence, pausing for human approval, and streaming
 > for free.
 
-Each chapter must end with **runnable code** that does something visible, and a short
-explanation of *which model limitation* that chapter's code patches. The tutorial is the
+Each tutorial must end with **runnable code** that does something visible, and a short
+explanation of *which model limitation* that tutorial's code patches. The tutorial is the
 deliverable; the harness it produces is the worked example.
 
 Audience: a Python engineer who has called an LLM API before but has never built an agent
@@ -34,12 +34,12 @@ loop. Plain language, every abbreviation spelled out on first use.
 |---|---|
 | Language | **Python** only (3.12+) |
 | Package / env manager | **uv** — `uv init`, `uv add`, `uv run`, lockfile committed |
-| Task runner | **justfile** — every chapter runnable as `just chNN`, plus `just fmt`, `just lint`, `just test` |
+| Task runner | **justfile** — every tutorial runnable as `just tutNN`, plus `just fmt`, `just lint`, `just test` |
 | Agent framework | **LangGraph** (+ `langchain-core`; `langchain-openai` only as a transport adapter) |
 | Model access | **OpenCode Go subscription key** — pure LLM calls, no vendor agent loop |
 | Secrets | Key is read from `~/.local/share/opencode/auth.json` at runtime. Never committed, never printed, never pasted into chat. |
 
-**No hidden magic rule:** if a chapter can be written with ~30 lines of our own code
+**No hidden magic rule:** if a tutorial can be written with ~30 lines of our own code
 instead of importing a prebuilt abstraction, we write the 30 lines first and *then* show
 the library version. The point of the tutorial is to see the machinery.
 
@@ -59,7 +59,7 @@ Full details in [`docs/NOTES.md`](NOTES.md) — verified live on 2026-09-12 agai
 - Protocol is per model: GPT / Muse-Spark → `/responses`, DeepSeek / GLM / Kimi →
   `/chat/completions`, Qwen / MiniMax → `/messages` (Anthropic protocol).
 
-**Open spike (chapter 1–2 risk):** LangGraph expects a LangChain chat-model object. We
+**Open spike (tutorial 1–2 risk):** LangGraph expects a LangChain chat-model object. We
 need to confirm that `ChatOpenAI(base_url=..., default_headers={...})` with the Responses
 API can carry the mandatory `x-opencode-session` header and stream correctly — and if it
 cannot, write a thin custom `BaseChatModel` over `httpx` instead. This is the first thing
@@ -67,9 +67,9 @@ to test, because everything else sits on it.
 
 ---
 
-## 4. Tutorial outline (each chapter = one model limitation patched)
+## 4. Tutorial outline (each tutorial = one model limitation patched)
 
-| # | Chapter | Limitation it fixes |
+| # | Tutorial | Limitation it fixes |
 |---|---|---|
 | 0 | Project setup: `uv`, `justfile`, layout, config, secret loading | — |
 | 1 | One pure LLM call, no framework, raw `httpx` | baseline: model only reads and writes text |
@@ -88,7 +88,7 @@ to test, because everything else sits on it.
 | 14 | Evaluation: a small task set, and locating failures as model-vs-harness | "it feels better" is not evidence |
 | 15 | Self-improving harness — and why "it changed itself" ≠ "it got better" | measurement trap in self-evolution |
 
-Chapters 0–6 are the **minimum viable harness**. Chapters 7–15 are the parts teams add
+Tutorials 0–6 are the **minimum viable harness**. Tutorials 7–15 are the parts teams add
 once an agent runs longer than a few minutes; each is optional and independently
 skippable, which is itself a lesson (*task–harness fit*: over-fitting bloats, under-fitting
 breaks).
@@ -104,11 +104,11 @@ Primary references, mapped to where they are used:
 - `TheAnatomyOfAnAgentHarness/` — the spine of the whole tutorial: derives each harness
   component from a model limitation; filesystem as the foundational primitive, bash as
   the general tool, sandboxes, memory, three defenses against context rot, long-horizon
-  loops. Use for chapters 3–12.
+  loops. Use for tutorials 3–12.
 - `BuildYourOwnAgentHarness/` — the "15 jobs every harness must do" table; drives the
-  chapter list and the composability argument. Chapters 0, 9–11.
+  tutorial list and the composability argument. Tutorials 0, 9–11.
 - `LangChainCustomHarness/` — `create_agent` + middleware, the four customization levers,
-  task–harness fit. Direct LangGraph framing. Chapters 2–3, 7–11.
+  task–harness fit. Direct LangGraph framing. Tutorials 2–3, 7–11.
 - `AmuxHarnessGuide/`, `HarnessEngineering/`, `HarnessEngineeringCourse/` — broader
   guides, use for cross-checking terminology and filling gaps.
 
@@ -143,27 +143,27 @@ Primary references, mapped to where they are used:
 ```
 harness/
 ├── GOAL.md            # this file (moved to docs/)
-├── justfile           # just ch01, just fmt, just lint, just test
+├── justfile           # just tut01, just fmt, just lint, just test
 ├── pyproject.toml     # uv-managed
 ├── uv.lock
 ├── docs/
 │   ├── NOTES.md       # verified transport notes
-│   └── chapters/      # tutorial prose, one file per chapter
-├── src/harness/       # the harness package, grown chapter by chapter
+│   └── tutorials/      # tutorial prose, one file per tutorial
+├── src/harness/       # the harness package, grown tutorial by tutorial
 └── tests/
 ```
 
-Each chapter adds code rather than rewriting it, so the final `src/harness/` is the
+Each tutorial adds code rather than rewriting it, so the final `src/harness/` is the
 accumulated result of every step and the git history *is* the tutorial.
 
 ---
 
 ## 7. Definition of done
 
-1. `just setup && just ch01` works on a clean machine with only `uv` and an OpenCode Go key.
-2. Every chapter runs standalone and prints something a reader can see and believe.
-3. Chapter 14 produces a real number on a real task set — before/after harness changes.
-4. No secret ever appears in the repository, in the logs, or in chapter output.
+1. `just setup && just tut01` works on a clean machine with only `uv` and an OpenCode Go key.
+2. Every tutorial runs standalone and prints something a reader can see and believe.
+3. Tutorial 14 produces a real number on a real task set — before/after harness changes.
+4. No secret ever appears in the repository, in the logs, or in tutorial output.
 5. Prose is readable by a Python engineer who has never built an agent.
 
 ---
@@ -175,7 +175,7 @@ accumulated result of every step and the git history *is* the tutorial.
 - **Model choice:** which OpenCode Go model is the default for the tutorial? Tool-calling
   quality matters from ch. 3 onward and varies a lot per model.
 - **Tool calling:** does the Go endpoint support native tool/function calling, or do we
-  need a prompt-level fallback? This decides how chapter 3 is written.
+  need a prompt-level fallback? This decides how tutorial 3 is written.
 - **Sandbox:** local subprocess with an allowlist, Docker, or a hosted sandbox for ch. 5?
 - **Rate limits / quota:** what does the subscription actually allow, and do we need
-  caching in the tutorial so readers do not burn their quota re-running chapters?
+  caching in the tutorial so readers do not burn their quota re-running tutorials?

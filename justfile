@@ -19,5 +19,5 @@ lint:
 test:
     uv run pytest -q
 
-# Chapter 0 has no code to run; it is `just setup` + `just test`
-ch00: setup test
+# Tutorial 0 has no code to run; it is `just setup` + `just test`
+tut00: setup test

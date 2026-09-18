@@ -56,7 +56,7 @@ Primary path worked on the first try: plain `ChatOpenAI` with no fallback
 class needed. Constructor: `ChatOpenAI(model=settings.model,
 api_key=settings.api_key, base_url=settings.base_url,
 use_responses_api=True, default_headers={"x-opencode-session":
-session_id, "User-Agent": settings.user_agent})`. `just ch01` printed
+session_id, "User-Agent": settings.user_agent})`. `just tut01` printed
 `pong`; `just smoke` printed `invoke  : pong`, `stream  : 1 2 3 4 5`, `OK`.
 Content shape: `invoke` returns `AIMessage.content` as a **list of typed
 blocks** (reasoning + output_text dicts), not a plain string — hence the

@@ -1,5 +1,5 @@
-# Chapter 0 — Setup
-Git tag: `ch00`. Run: `just ch00`.
+# Tutorial 0 — Setup
+Git tag: `tut00`. Run: `just tut00`.
 
 ## What we are building
 
@@ -7,12 +7,12 @@ A harness is everything around the model that is not the model itself.
 It holds the loop that calls the model, the tools the model can use, the memory of past turns, and the rules that keep it safe.
 An LLM (large language model) is the text-generating model at the center: it reads text and writes the next piece of text.
 LangGraph is a Python library that describes an agent as a graph of steps with shared state passed between them.
-We build one harness piece by piece, one chapter per piece, starting here with setup.
+We build one harness piece by piece, one tutorial per piece, starting here with setup.
 
 ## What you need
 
 - `uv` — the Python package and environment manager; it installs everything.
-- `just` — the task runner; every chapter runs as one short `just` command.
+- `just` — the task runner; every tutorial runs as one short `just` command.
 - An OpenCode Go key — the secret that lets our code call the model; it goes into `.env` below.
 
 ## One tool for the environment
@@ -76,13 +76,13 @@ You should see this last line:
 AGENTS.md — coding rules for this repo
 CLAUDE.md — pointer to the shared harness instructions
 README.md — what the project is and how to start
-justfile — short commands: setup, test, ch00
+justfile — short commands: setup, test, tut00
 pyproject.toml — package list and tool settings
 uv.lock — exact locked versions of every package
 docs/GOAL.md — goal and plan of the tutorial
 docs/NOTES.md — verified notes from the live model spike
-docs/TUTORIAL_METHOD.md — how chapters, tags, and diffs work
-docs/chapters/_TEMPLATE.md — shape of every chapter document
+docs/TUTORIAL_METHOD.md — how tutorials, tags, and diffs work
+docs/tutorials/_TEMPLATE.md — shape of every tutorial document
 docs/harnesses/OPERATIONS.md — the operations we are building toward
 docs/harnesses/hermes.md — what the hermes harness does
 docs/harnesses/opencode.md — what the opencode harness does
@@ -100,8 +100,8 @@ tests/test_config.py — the three offline tests
 ## Run it
 
 ```bash
-git checkout ch00
-just ch00
+git checkout tut00
+just tut00
 ```
 
 Last lines you should see:
@@ -113,4 +113,4 @@ Last lines you should see:
 ## What is still missing
 
 Nothing here talks to a model yet.
-Chapter 1 makes one raw call and prints `pong`.
+Tutorial 1 makes one raw call and prints `pong`.

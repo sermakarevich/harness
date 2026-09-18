@@ -1,11 +1,11 @@
-# Chapter NN — <concept in three words>
+# Tutorial NN — <concept in three words>
 
 Operation(s) from `docs/harnesses/OPERATIONS.md`: <numbers and names>.
-Git tag: `chNN`. Run: `just chNN`.
+Git tag: `tutNN`. Run: `just tutNN`.
 
 ## The limitation
 
-<Short terminal exchange showing what the chat cannot do before this chapter.>
+<Short terminal exchange showing what the chat cannot do before this tutorial.>
 
 ## The concept
 
@@ -14,7 +14,7 @@ One line each on how opencode, pi and hermes-agent do it.>
 
 ## The change
 
-Files touched in `git diff chMM..chNN`:
+Files touched in `git diff tutMM..tutNN`:
 
 - `src/harness/<layer>/<file>.py` — <one line>
 
@@ -23,8 +23,8 @@ Files touched in `git diff chMM..chNN`:
 ## Run it
 
 ```bash
-git checkout chNN
-just chNN
+git checkout tutNN
+just tutNN
 ```
 
 Expected output:
@@ -39,4 +39,4 @@ Expected output:
 
 ## What is still missing
 
-<The limitation the next chapter fixes.>
+<The limitation the next tutorial fixes.>

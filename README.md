@@ -16,4 +16,4 @@ See `docs/TUTORIAL_METHOD.md` for how the tutorial is organised.
 
 ## Tutorial
 
-- [Chapter 0 — Setup](docs/chapters/ch00-setup.md)
+- [Tutorial 0 — Setup](docs/tutorials/tut00-setup.md)
