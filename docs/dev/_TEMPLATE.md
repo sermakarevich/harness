@@ -41,22 +41,25 @@ tests/
 
 ## In detail
 
-### The change, file by file
+### How it works
 
-<For each file in the tree above, in the order the reader should meet them: one or two
-sentences on why it exists or why it changed, then the excerpt.>
+<The mechanism, in prose. Walk one turn or one request through the new code: what is
+called, what state moves where, what the model sees and what comes back. A short text
+diagram of the flow is welcome. Name files in prose; do not quote them here.>
 
-**New file `src/harness/<layer>/<file>.py`**
+### Design decisions
 
-```python
-<the code, copied from the file at tag tutNN>
-```
+<Why this shape and not another. Two to five decisions, each with the trade-off and
+the alternative we rejected. Where the three harnesses in `docs/harnesses/` chose
+differently, say so and why we still chose ours. This is the section that earns
+medium-plus depth.>
 
-**Changed `src/harness/<layer>/<file>.py`**
+### The excerpt that carries the idea
 
-```diff
-<the hunk, copied from `git diff tutMM..tutNN -- <file>`, trimmed to the lines that matter>
-```
+<At most one or two short excerpts, only where reading the code says more than prose.
+Each introduced by a bold line naming the file, copied from the file at tag tutNN. A
+changed file is shown as a `diff` hunk from `git diff tutMM..tutNN`. The rest of the
+change is `git diff tutMM..tutNN`, which the reader runs.>
 
 ### Run it
 
@@ -97,8 +100,9 @@ Audience and depth
   and anything a model does that a programmer would not expect.
 - Medium-plus depth: say the mechanism, the trade-off, and the failure it prevents.
   Skip anything the reader could guess from the name.
-- "The concepts" and "Scope" carry the teaching. "The change" shows the code and
-  explains only what the code cannot say.
+- "The concepts" and "Scope" carry the teaching in the first layer; "How it works" and
+  "Design decisions" carry it in the second. Code appears only where it says more
+  than prose. Never walk the diff file by file; the reader has git for that.
 
 Prose
 - Plain English, short sentences, one idea per sentence. Paragraphs, not one sentence
@@ -112,7 +116,8 @@ Prose
 Code and commands
 - Every excerpt is copied from the file at the tutorial's tag, never retyped, and is
   introduced by a bold line naming the file.
-- Changed files are shown as `diff` blocks from the real git diff. New files as code.
+- A changed file is shown as a `diff` hunk from the real git diff, a new file as code.
+  Two excerpts per tutorial at most.
 - Every command is followed by the output the reader sees, trimmed to the last lines,
   with no timings or dates.
 - Name a file in prose instead of linking to it; links to code do not survive the book.
