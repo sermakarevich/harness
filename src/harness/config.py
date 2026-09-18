@@ -6,16 +6,16 @@ our own app name with each request because the server blocks generic names.
 
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from dotenv import load_dotenv
+from dynaconf import Dynaconf, ValidationError, Validator
 
-ENV_API_KEY = "OPENCODE_API_KEY"
-ENV_BASE_URL = "HARNESS_BASE_URL"
-ENV_MODEL = "HARNESS_MODEL"
-ENV_USER_AGENT = "HARNESS_USER_AGENT"
+SETTINGS_FILENAME = "settings.toml"
+ENV_PREFIX = "HARNESS"
+MISSING_KEY_MESSAGE = (
+    "HARNESS_API_KEY is not set. Copy .env.example to .env and add your OpenCode Go key."
+)
 
 
 class ConfigError(RuntimeError):
@@ -25,21 +25,33 @@ class ConfigError(RuntimeError):
 @dataclass(frozen=True)
 class Settings:
     api_key: str = field(repr=False)
-    base_url: str = "https://opencode.ai/zen/go/v1"
-    model: str = "muse-spark-1.3-contributor"
-    user_agent: str = "harness-dev/0.1"
+    base_url: str
+    model: str
+    user_agent: str
 
 
 def load_settings(env_file: str | Path | None = None) -> Settings:
-    load_dotenv(env_file, override=False)
-    api_key = os.environ.get(ENV_API_KEY, "").strip()
+    options: dict[str, object] = {
+        "envvar_prefix": ENV_PREFIX,
+        "settings_files": [Path(__file__).with_name(SETTINGS_FILENAME)],
+        "environments": False,
+        "load_dotenv": True,
+        "dotenv_override": False,
+    }
+    if env_file is not None:
+        options["dotenv_path"] = env_file
+    settings = Dynaconf(**options)
+    settings.validators.register(Validator("API_KEY", must_exist=True, ne=""))
+    try:
+        settings.validators.validate()
+    except ValidationError as exc:
+        raise ConfigError(MISSING_KEY_MESSAGE) from exc
+    api_key = str(settings.api_key).strip()
     if not api_key:
-        raise ConfigError(
-            "OPENCODE_API_KEY is not set. Copy .env.example to .env and add your OpenCode Go key."
-        )
+        raise ConfigError(MISSING_KEY_MESSAGE)
     return Settings(
         api_key=api_key,
-        base_url=os.environ.get(ENV_BASE_URL, Settings.base_url),
-        model=os.environ.get(ENV_MODEL, Settings.model),
-        user_agent=os.environ.get(ENV_USER_AGENT, Settings.user_agent),
+        base_url=settings.base_url,
+        model=settings.model,
+        user_agent=settings.user_agent,
     )

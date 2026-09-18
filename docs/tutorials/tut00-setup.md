@@ -57,6 +57,7 @@ $ uv run python -m harness
 + justfile                  task runner
 + pyproject.toml, uv.lock   packages, locked versions
 + src/harness/config.py     settings
++ src/harness/settings.toml  defaults
 + tests/test_config.py      three offline tests
 + docs/                     tutorials, background on other harnesses, method
 ```
