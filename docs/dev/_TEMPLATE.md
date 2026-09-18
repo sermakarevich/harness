@@ -95,6 +95,7 @@ just tutNN
 ## Rules for writing a tutorial (delete this section in the real file)
 
 Audience and depth
+- Address the reader as "you". The words "the reader" never appear in a tutorial.
 - The reader is an engineer who knows Python, git, HTTP and environment files. Never
   explain those. Explain harness and LangGraph ideas, the why behind a design choice,
   and anything a model does that a programmer would not expect.
