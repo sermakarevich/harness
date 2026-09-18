@@ -5,7 +5,8 @@ Python library we use to describe the agent as a graph of steps) does not
 speak vendor dialects at all — it only accepts a LangChain `BaseChatModel`
 (the common base class every LangChain-compatible model object inherits
 from). So this chapter wraps the raw HTTP call in that uniform shape. All of
-it lives in `src/harness/model.py`; check it live with:
+it lives in `src/harness/model/client.py` (`make_model`) and
+`src/harness/model/text.py` (`text_of`); check it live with:
 
 ```bash
 just smoke
@@ -23,10 +24,10 @@ OK
 
 ```python
 def make_model(settings: Settings, session_id: str) -> BaseChatModel:
-    """Build a chat model bound to one conversation.
+    """Build a chat model tied to one conversation.
 
-    `session_id` becomes the `x-opencode-session` header: OpenCode uses it for
-    routing and prompt caching, so one conversation must keep one id.
+    The session id travels with each request so replies stay in the same
+    conversation.
     """
     return ChatOpenAI(
         model=settings.model,
@@ -51,9 +52,21 @@ providers later touches only this file.
 ## `text_of`: protection against two content shapes
 
 ```python
-content = message.content
-if isinstance(content, str):
-    return content
+def text_of(message: BaseMessage) -> str:
+    """Return the plain text of a message.
+
+    Some replies arrive in pieces, so we join the text pieces together.
+    """
+    content = message.content
+    if isinstance(content, str):
+        return content
+    parts: list[str] = []
+    for block in content:
+        if isinstance(block, str):
+            parts.append(block)
+        elif isinstance(block, dict) and block.get("type") in ("text", "output_text"):
+            parts.append(block.get("text", ""))
+    return "".join(parts)
 ```
 
 A plain chat model returns `content` as a simple string. Ours does not: the

@@ -38,25 +38,28 @@ harness job (token usage, todo list) to this same class.
 
 ## The single node: `call_model`
 
+`src/harness/chat/graph.py` builds the graph inside `build_graph`. The node
+is nested there:
+
 ```python
-def call_model(state: HarnessState) -> dict:
-    messages = [SystemMessage(content=system_prompt), *state["messages"]]
-    response = model.invoke(messages)
-    return {"messages": [response]}
+    def call_model(state: HarnessState) -> dict:
+        messages = [SystemMessage(content=system_prompt), *state["messages"]]
+        response = model.invoke(messages)
+        return {"messages": [response]}
 ```
 
 Each turn, the node prepends the system prompt (a SystemMessage is a
 LangChain message carrying background instructions for the model, built by
-`build_system_prompt` in `prompt.py`) to the stored history, calls the model
+`build_system_prompt` in `src/harness/chat/prompt.py`) to the stored history, calls the model
 once with `invoke` (a single blocking call that waits for the full answer),
 and returns the reply as a one-element message list — which the reducer
 appends. The graph wiring is two edges:
 
 ```python
-builder = StateGraph(HarnessState)
-builder.add_node("call_model", call_model)
-builder.add_edge(START, "call_model")
-builder.add_edge("call_model", END)
+    builder = StateGraph(HarnessState)
+    builder.add_node("call_model", call_model)
+    builder.add_edge(START, "call_model")
+    builder.add_edge("call_model", END)
 ```
 
 `START` marks where a turn begins, `END` where it finishes. Tools will later
@@ -64,14 +67,16 @@ appear as a second node with a conditional edge between them.
 
 ## The checkpointer and `thread_id`: one id, one conversation
 
+`src/harness/chat/thread.py` holds both helpers:
+
 ```python
 def new_session_id() -> str:
-    """One id per conversation; doubles as LangGraph thread_id and OpenCode session header."""
+    """Make a fresh id for a new conversation."""
     return f"harness-{uuid.uuid4()}"
 
 
 def thread_config(session_id: str) -> dict:
-    """The `config` LangGraph needs to find this conversation's checkpoint."""
+    """Tell the harness which saved conversation to continue."""
     return {"configurable": {"thread_id": session_id}}
 ```
 
@@ -86,14 +91,20 @@ server-side caching agree on what "one conversation" means.
 ## `stream_mode="messages"`: tokens stream even though the node calls `invoke`
 
 The node uses `invoke`, which waits for the complete reply — yet the terminal
-fills in word by word. The trick is in `App.run_turn`:
+fills in word by word. The trick is in `run_turn` in
+`src/harness/tui/render.py`:
 
 ```python
-events = self.session.graph.stream(
-    {"messages": [HumanMessage(content=text)]},
-    self.session.config,
-    stream_mode="messages",
-)
+def run_turn(app, text: str) -> None:
+    """Send one user message and show the reply as it arrives.
+
+    Network errors show a message and the chat keeps going.
+    """
+    events = app.session.graph.stream(
+        {"messages": [HumanMessage(content=text)]},
+        app.session.config,
+        stream_mode="messages",
+    )
 ```
 
 `graph.stream` with `stream_mode="messages"` replays the model's token chunks
@@ -101,25 +112,30 @@ as events while the node runs, even though the node itself only sees the
 final message. LangGraph fans the tokens out to us; each event is a
 `(message, metadata)` pair handed to `render_event` below.
 
-## The terminal: three seams in `App`
+## The terminal: three seams in three files
 
-`src/harness/tui/app.py` splits rendering into three methods so later
-chapters can grow the chat without rewriting it:
+`src/harness/tui/app.py` holds the loop, and two sibling files do the rest
+so later chapters can grow the chat without rewriting it:
 
-- `handle_command` — slash commands (`/new` starts a fresh session inside the
-  same checkpointer, `/help` prints help, `/exit` quits, unknown input gets an
-  error). Returns False only when the app should exit.
-- `run_turn` — sends one user message through the graph and streams the
-  reply, catching network errors so a failed call never kills the chat.
-- `render_event` — shows one streamed event; today it prints assistant token
-  chunks as they arrive:
+- `src/harness/tui/commands.py` — `handle_command`: slash commands (`/new`
+  starts a fresh session inside the same checkpointer, `/help` prints help,
+  `/exit` quits, unknown input gets an error). Returns False only when the
+  app should exit.
+- `src/harness/tui/render.py` — `run_turn`: sends one user message through
+  the graph and streams the reply, catching network errors so a failed call
+  never kills the chat.
+- `src/harness/tui/render.py` — `render_event`: shows one streamed event;
+  today it prints assistant token chunks as they arrive:
 
 ```python
-def render_event(self, message, meta: dict) -> None:
-    """Show one streamed event. Today: print assistant tokens as they arrive."""
+def render_event(console, message, meta: dict) -> None:
+    """Show one piece of the reply as it arrives."""
     if isinstance(message, AIMessageChunk):
-        self.console.print(text_of(message), end="", markup=False, highlight=False, soft_wrap=True)
+        console.print(text_of(message), end="", markup=False, highlight=False, soft_wrap=True)
 ```
+
+`App` in `src/harness/tui/app.py` keeps thin methods with the same names
+that hand off to these two files.
 
 ## Limitation fixed — and what is left
 

@@ -48,15 +48,19 @@ Both must finish green before you continue. `just setup` runs `uv sync`;
 ## Project layout
 
 ```text
-src/harness/config.py    settings and key loading from `.env`
-src/harness/model.py     LangChain adapter for OpenCode Go (chapter 2)
-src/harness/state.py     conversation state for the graph (chapter 3)
-src/harness/prompt.py    system prompt assembly (chapter 3)
-src/harness/graph.py     the LangGraph conversation loop (chapter 3)
-src/harness/session.py   one conversation id plus its model and graph
-src/harness/tui/app.py   terminal chat: read a line, stream a reply (TUI,
-                         a Terminal User Interface you interact with by typing)
-src/harness/__main__.py  `just run` entry point: starts the terminal chat
+src/harness/config.py         settings and key loading from `.env`
+src/harness/model/client.py   LangChain adapter for OpenCode Go (chapter 2)
+src/harness/model/text.py     plain-text reader for model replies (chapter 2)
+src/harness/chat/state.py     conversation state for the graph (chapter 3)
+src/harness/chat/prompt.py    system prompt assembly (chapter 3)
+src/harness/chat/graph.py     the LangGraph conversation loop (chapter 3)
+src/harness/chat/thread.py    session ids and thread config (chapter 3)
+src/harness/chat/session.py   one conversation id plus its model and graph
+src/harness/tui/app.py        terminal chat loop (TUI,
+                              a Terminal User Interface you interact with by typing)
+src/harness/tui/commands.py   slash commands (/new, /help, /exit)
+src/harness/tui/render.py     one turn plus streamed reply rendering
+src/harness/__main__.py       `just run` entry point: starts the terminal chat
 scripts/raw_call.py      chapter 1: one raw HTTP call, no framework
 docs/NOTES.md            verified transport notes from the live spike
 docs/harnesses/OPERATIONS.md  the 24 operations we are building toward
