@@ -1,83 +1,110 @@
-# Tutorial 0 — Setup: your workbench before the first model call
+# Tutorial 0 — Setup
 
-A **harness** is everything around the model that is not the model itself:
-the loop that calls it, the tools it can use, the memory it keeps, and the
-rules that keep it safe and on budget. The common shorthand is
-`agent = model + harness`.
+After this tutorial you have a runnable, tested workbench and know what the series builds.
 
-Over the whole tutorial we will build such a harness piece by piece in
-Python, using LangGraph (a Python library for describing an agent as a graph
-of steps with explicit state passed between them). Each tutorial fixes one
-limitation of a bare model call; the full list of the 24 harness operations
-we are working toward lives in `docs/harnesses/OPERATIONS.md` — skim its
-intro, the at-a-glance table, and the "Build order" section now, and treat it
-as the map for the entire journey. This tutorial only sets up the workbench.
+## In short
 
-## Prerequisites
+### The concepts
 
-- `uv` — the Python package and environment manager used by this project.
-- `just` — the task runner; every tutorial runs as `just tutNN`.
-- An OpenCode Go subscription key — the secret that authenticates our model
-  calls (a Large Language Model, LLM for short, is the text-generating
-  Artificial Intelligence model behind every tutorial).
+An agent is a model plus a harness. The model is an LLM (large language model) that reads text and
+writes the next piece of text. The harness is everything around it:
 
-## Hands-on
+- the loop that calls the model
+- the tools the model can run
+- the context the model sees
+- the rules the model must follow
 
-Copy the example environment file and put your key in it:
+The harness decides most of the result. One team rose from Top 30 to Top 5 on Terminal-Bench 2.0
+by changing only the harness around the same model (knowledge base: TheAnatomyOfAnAgentHarness).
+A second study measured a 6x swing from the harness alone (knowledge base: MetaHarness). The rule
+this series follows comes from a third source: "Put rules in code, not wishes in prompts"
+(knowledge base: HowToBuildACustomAgentHarness). The cause is plain: the model sees only what the
+harness puts in its context and acts only through what the harness runs for it.
 
-```bash
-cp .env.example .env   # then replace the placeholder with your real key
-```
+### Scope
 
-The placeholder line inside looks like this:
+This tutorial does two things:
 
-```bash
-OPENCODE_API_KEY=your-opencode-go-key-here
-```
+1. You get an OpenCode Go key. The Go subscription costs 10 USD a month and is enough for the
+   whole series. The key goes into a local `.env` file and nowhere else.
+2. You set up the codebase scaffold: a `harness` package, settings loaded from the environment,
+   offline tests, and a `just` task runner.
 
-Then install the locked environment and run the test suite:
+No model call happens yet. Tutorial 1 makes the first one.
 
-```bash
-just setup
-just test
-```
+Every later tutorial grows this scaffold by one concept. The finished harness has:
 
-Both must finish green before you continue. `just setup` runs `uv sync`;
-`just test` runs `pytest` (a Python test runner) over `tests/`.
+- a tool-using loop with a permission gate
+- saved sessions and cost tracking
+- compaction and memory files
+- skills and sub-agents
+- an evaluation suite
 
-## Project layout
+Each tutorial is one git tag and one `just tutNN` recipe, with offline tests.
+
+### The problem
 
 ```text
-src/harness/config.py         settings and key loading from `.env`
-src/harness/model/client.py   LangChain adapter for OpenCode Go (tutorial 2)
-src/harness/model/text.py     plain-text reader for model replies (tutorial 2)
-src/harness/chat/state.py     conversation state for the graph (tutorial 3)
-src/harness/chat/prompt.py    system prompt assembly (tutorial 3)
-src/harness/chat/graph.py     the LangGraph conversation loop (tutorial 3)
-src/harness/chat/thread.py    session ids and thread config (tutorial 3)
-src/harness/chat/session.py   one conversation id plus its model and graph
-src/harness/tui/app.py        terminal chat loop (TUI,
-                              a Terminal User Interface you interact with by typing)
-src/harness/tui/commands.py   slash commands (/new, /help, /exit)
-src/harness/tui/render.py     one turn plus streamed reply rendering
-src/harness/__main__.py       `just run` entry point: starts the terminal chat
-scripts/raw_call.py      tutorial 1: one raw HTTP call, no framework
-docs/dev/NOTES.md            verified transport notes from the live spike
-docs/harnesses/OPERATIONS.md  the 24 operations we are building toward
+$ uv run python -m harness
+.venv/bin/python3: No module named harness.__main__; 'harness' is a package and cannot be directly executed
 ```
 
-## Why the key lives in `.env` and never in code
+### What changes
 
-A secret pasted into source code ends up in git history forever, where every
-clone carries it. `.env` is gitignored, so it stays on your machine only, and
-`load_settings()` in `src/harness/config.py` reads it at startup. As a second
-lock, the `Settings` dataclass marks the field with `field(repr=False)`:
-
-```python
-api_key: str = field(repr=False)
+```text
++ .env.example              key placeholder
++ AGENTS.md                 coding rules
++ justfile                  task runner
++ pyproject.toml, uv.lock   packages, locked versions
++ src/harness/config.py     settings
++ src/harness/settings.toml  defaults
++ tests/test_config.py      three offline tests
++ docs/                     tutorials, background on other harnesses, method
 ```
 
-That one flag excludes the key from `repr()` (the debug representation
-Python prints for objects), so the key can never leak into logs or error
-messages. Run `just setup` and `just test` once more if you changed anything —
-tutorial 1 makes the first live call.
+## In detail
+
+### How it works
+
+Settings are the first harness job: the model name, the endpoint, and the key all come from the
+environment, never from code. That is what lets the same harness talk to another model later by
+changing one line in `.env`. The key is required and the harness fails at startup when it is
+missing, so a broken setup surfaces before the first model call, not during it.
+
+Tests never touch the network. Anything that calls the live model is marked `slow` and excluded by
+default, so `just test` is free and fast from tutorial 0 to the end of the series.
+
+### Design decisions
+
+- **Model as a setting, not a constant.** The series is about the harness, so the model must be
+  swappable without touching harness code.
+- **Offline tests by default.** A harness has many moving parts; a test suite that costs money and
+  minutes per run would not be run.
+
+### Run it
+
+```bash
+git checkout tut00
+cp .env.example .env    # paste your OpenCode Go key
+just tut00
+```
+
+```text
+3 passed
+```
+
+### Under the hood
+
+The OpenCode server rejects generic `User-Agent` values, so the harness sends a named one. It is
+the first example of a rule the harness enforces in code rather than hopes for.
+
+### Key takeaways
+
+- An agent is a model plus a harness, and the harness decides most of the result.
+- The harness controls two things: what the model sees and what it can do.
+- The model is a setting; the harness must outlive any single model.
+
+### What is still missing
+
+Nothing here talks to a model. Tutorial 1 makes one raw HTTP call with no framework and shows the
+request is stateless: everything the model knows must travel inside that single call.

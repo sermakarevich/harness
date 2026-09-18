@@ -4,12 +4,12 @@ version = "0.1.0"
 description = "An agent harness built step by step with LangGraph"
 requires-python = ">=3.12"
 dependencies = [
+    "dynaconf>=3.3.5",
     "httpx>=0.28.1",
     "langchain-core>=1.6.3",
     "langchain-openai>=1.6.2",
     "langgraph>=1.2.11",
     "prompt-toolkit>=3.0.53",
-    "python-dotenv>=1.2.3",
     "rich>=15.0.0",
 ]
 
