@@ -95,6 +95,8 @@ just tutNN
 ## Rules for writing a tutorial (delete this section in the real file)
 
 Audience and depth
+- Prefer structure over long sentences. A sentence that lists three or more items becomes
+  a bullet list; steps become a numbered list. Lists are easier to remember than prose.
 - Address the reader as "you". The words "the reader" never appear in a tutorial.
 - The reader is an engineer who knows Python, git, HTTP and environment files. Never
   explain those. Explain harness and LangGraph ideas, the why behind a design choice,

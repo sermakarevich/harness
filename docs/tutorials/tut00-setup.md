@@ -7,28 +7,51 @@ After this tutorial you have a runnable, tested workbench and know what the seri
 ### The concepts
 
 An agent is a model plus a harness. The model is an LLM (large language model) that reads text and
-writes the next piece of text. The harness is everything around it: the loop that calls it, the
-tools it can run, the context it sees, and the rules it must follow. The harness decides most of the
-result: one team rose from Top 30 to Top 5 on Terminal-Bench 2.0 by changing only the harness around
-the same model, though that is one benchmark and a vendor-reported number (knowledge base:
-TheAnatomyOfAnAgentHarness). A second study measured a 6x swing on one benchmark from the harness
-alone (knowledge base: MetaHarness). One explainer calls the model "only half the story" and sets
-the rule this series follows: "Put rules in code, not wishes in prompts" (knowledge base:
-HowToBuildACustomAgentHarness). The cause is plain: the model sees only what the harness puts in its
-context and acts only through what the harness runs for it.
+writes the next piece of text. The harness is everything around it:
+
+- the loop that calls the model
+- the tools the model can run
+- the context the model sees
+- the rules the model must follow
+
+The harness decides most of the result. Three sources back this up:
+
+- One team rose from Top 30 to Top 5 on Terminal-Bench 2.0 by changing only the harness around
+  the same model; that is one benchmark and a vendor-reported number (knowledge base:
+  TheAnatomyOfAnAgentHarness).
+- A second study measured a 6x swing on one benchmark from the harness alone (knowledge base:
+  MetaHarness).
+- One explainer calls the model "only half the story" and sets the rule this series follows:
+  "Put rules in code, not wishes in prompts" (knowledge base: HowToBuildACustomAgentHarness).
+
+The cause is plain: the model sees only what the harness puts in its context and acts only
+through what the harness runs for it.
 
 ### Scope
 
-This tutorial does two things. First, you get an OpenCode Go key. The Go subscription costs 10
-USD a month and is enough for the whole series; the key goes into a local `.env` file and nowhere
-else. Second, you set up the codebase scaffold: the `harness` package, settings loaded from the
-environment, three offline tests, the `just` task runner, and the coding rules in `AGENTS.md`. No
-model call happens yet. Tutorial 1 makes the first one, a raw HTTP call with no framework.
+This tutorial does two things:
 
-Every later tutorial grows this scaffold by one concept, up to a tool-using loop with a permission
-gate, saved sessions, cost tracking, compaction, memory files, skills, sub-agents, and an
-evaluation suite. Each tutorial is one git tag and one `just tutNN` recipe, with offline tests.
-Read "In short" for the story and "In detail" to build it.
+1. You get an OpenCode Go key. The Go subscription costs 10 USD a month and is enough for the
+   whole series. The key goes into a local `.env` file and nowhere else.
+2. You set up the codebase scaffold:
+   - the `harness` package
+   - settings loaded from the environment
+   - three offline tests
+   - the `just` task runner
+   - the coding rules in `AGENTS.md`
+
+No model call happens yet. Tutorial 1 makes the first one, a raw HTTP call with no framework.
+
+Every later tutorial grows this scaffold by one concept. The finished harness has:
+
+- a tool-using loop with a permission gate
+- saved sessions and cost tracking
+- compaction and memory files
+- skills and sub-agents
+- an evaluation suite
+
+Each tutorial is one git tag and one `just tutNN` recipe, with offline tests. Read "In short" for
+the story and "In detail" to build it.
 
 ### The problem
 
