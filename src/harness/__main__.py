@@ -1,34 +1,20 @@
-"""Runs two prompts as two requests and prints both replies."""
-
-from __future__ import annotations
+"""`python -m harness` → start the terminal chat."""
 
 import sys
 
-from harness.config import ConfigError, load_settings
-from harness.model.client import ask, new_session_id
-from harness.model.text import output_types, text_of
+from rich.console import Console
 
-PROMPTS = (
-    "Remember this word: pelican",
-    "Which word did I ask you to remember? Answer with the word only.",
-)
-ECHO_PREFIX = "> "
-BLOCKS_LINE = "blocks: {kinds}"
+from harness.config import ConfigError, load_settings
+from harness.tui.app import App
 
 
 def main() -> int:
-    """Send both prompts and show the model keeps nothing between them."""
     try:
         settings = load_settings()
     except ConfigError as exc:
-        print(exc, file=sys.stderr)
+        Console(stderr=True).print(f"[red]{exc}[/red]")
         return 2
-    session_id = new_session_id()
-    for prompt in PROMPTS:
-        print(ECHO_PREFIX + prompt)
-        reply = ask(settings, session_id, prompt)
-        print(text_of(reply))
-        print(BLOCKS_LINE.format(kinds=", ".join(output_types(reply))))
+    App(settings).run()
     return 0
 
 

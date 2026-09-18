@@ -1,24 +1,36 @@
-"""Reads the block kinds and the plain text out of a reply."""
+"""Reads plain text out of model replies.
+
+Some replies arrive in pieces, so this joins the text pieces together.
+"""
 
 from __future__ import annotations
 
 from enum import StrEnum
 
+from langchain_core.messages import BaseMessage
+
 
 class BlockType(StrEnum):
+    TEXT = "text"
     OUTPUT_TEXT = "output_text"
 
 
-def output_types(response: dict) -> list[str]:
-    """List the kind of every block in a reply."""
-    return [str(item.get("type", "")) for item in response.get("output", [])]
+TEXT_KEY = "text"
+TYPE_KEY = "type"
 
 
-def text_of(response: dict) -> str:
-    """Join the plain text pieces of a reply."""
+def text_of(message: BaseMessage) -> str:
+    """Join the text pieces of a reply together."""
+    content = message.content
+    if isinstance(content, str):
+        return content
     parts: list[str] = []
-    for item in response.get("output", []):
-        for part in item.get("content", []):
-            if part.get("type") == BlockType.OUTPUT_TEXT:
-                parts.append(part.get("text", ""))
+    for block in content:
+        if isinstance(block, str):
+            parts.append(block)
+        elif isinstance(block, dict) and block.get(TYPE_KEY) in (
+            BlockType.TEXT,
+            BlockType.OUTPUT_TEXT,
+        ):
+            parts.append(block.get(TEXT_KEY, ""))
     return "".join(parts)

@@ -25,3 +25,7 @@ test:
 
 # Shows what this tutorial built
 tutorial: run
+
+# Pipes a fixed exchange into the chat (uses your key; run sparingly)
+smoke:
+    printf 'Remember this word: pelican\nWhich word did I ask you to remember? Answer with the word only.\n/new\nWhich word did I ask you to remember? Answer with the word only.\n' | uv run python -m harness

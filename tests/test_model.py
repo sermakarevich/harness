@@ -1,50 +1,27 @@
-"""Offline tests for the raw model call and reply reading."""
+import uuid
 
-from harness.model.client import (
-    AUTHORIZATION_HEADER,
-    BEARER_PREFIX,
-    SESSION_HEADER,
-    SESSION_ID_PREFIX,
-    USER_AGENT_HEADER,
-    headers,
-    new_session_id,
-)
-from harness.model.text import output_types, text_of
+from langchain_core.messages import AIMessage
 
-REPLY = {
-    "output": [
-        {"type": "reasoning"},
-        {
-            "type": "message",
-            "content": [
-                {"type": "output_text", "text": "po"},
-                {"type": "output_text", "text": "ng"},
-                {"type": "other", "text": "!"},
-            ],
-        },
-    ]
-}
+from harness.model.client import make_model
+from harness.model.text import text_of
 
 
-def test_output_types_lists_every_block():
-    assert output_types(REPLY) == ["reasoning", "message"]
+def test_make_model_carries_session_header(settings):
+    sid = f"t-{uuid.uuid4()}"
+    model = make_model(settings, session_id=sid)
+    headers = dict(getattr(model, "default_headers", None) or {})
+    assert headers.get("x-opencode-session") == sid
+    assert headers.get("User-Agent")
 
 
-def test_text_of_joins_only_output_text():
-    assert text_of(REPLY) == "pong"
+def test_make_model_uses_go_endpoint_and_model(settings):
+    model = make_model(settings, session_id="s")
+    assert "opencode.ai/zen/go" in str(getattr(model, "openai_api_base", "") or model.__dict__)
+    assert model.model_name == "muse-spark-1.3-contributor"
 
 
-def test_headers_carry_key_session_and_agent(settings):
-    sent = headers(settings, "session-123")
-    assert sent[SESSION_HEADER] == "session-123"
-    assert sent[AUTHORIZATION_HEADER].startswith(BEARER_PREFIX)
-    assert sent[AUTHORIZATION_HEADER].endswith(settings.api_key)
-    assert sent[USER_AGENT_HEADER] == settings.user_agent
-
-
-def test_new_session_id_has_prefix_and_differs():
-    first = new_session_id()
-    second = new_session_id()
-    assert first.startswith(SESSION_ID_PREFIX)
-    assert second.startswith(SESSION_ID_PREFIX)
-    assert first != second
+def test_text_of_string_and_blocks():
+    assert text_of(AIMessage(content="hi")) == "hi"
+    blocks = [{"type": "text", "text": "a"}, {"type": "output_text", "text": "b"}]
+    assert text_of(AIMessage(content=blocks)) == "ab"
+    assert text_of(AIMessage(content=[])) == ""
