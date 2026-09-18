@@ -14,7 +14,9 @@ just run               # terminal chat
 ```
 
 `docs/harnesses/` holds background on how three existing harnesses run agents,
-cited from the tutorials.
+cited from the tutorials. The notes the tutorials cite as "knowledge base" live in the
+[agent harness topic](https://github.com/sermakarevich/knowlegde_base/tree/main/knowledge/structured_papers/agent_harness)
+of the author's knowledge base.
 
 ## How to follow the tutorials
 
