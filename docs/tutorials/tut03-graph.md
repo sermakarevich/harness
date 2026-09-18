@@ -4,33 +4,27 @@ After this tutorial you have a terminal chat that remembers within a session,
 streams its answers and survives a failed call.
 
 ## In short
+
 ### The concepts
-- **One graph node is one turn.** You send a message; one node prefixes the
-  system prompt and answers. The reply joins the thread.
-  - opencode rebuilds model messages from stored parts on every turn.
-  - pi walks its session tree from leaf to root and converts the path.
-  - hermes-agent copies stored history into a working turn context.
-- **A checkpointer keeps the list per thread id.** You name a thread and it loads
-  the list for the turn. The model is a stateless compute unit; its memory is
-  this external list (knowledge base: HarnessEngineering).
-  - opencode keeps messages and parts in a local file database.
-  - pi saves sessions as line-delimited files linked into a tree.
-  - hermes-agent flushes messages append-only during the turn.
-- **Tokens arrive one by one, so you print them as they come.** You stream each
-  token instead of waiting for the whole answer (knowledge base:
-  HarnessEngineeringCourse).
-  - opencode converts both runtimes into one typed event stream.
-  - pi re-emits arriving tokens as display events with text pieces.
-  - hermes-agent fans fragments out through a single writer.
+- **One graph node is one turn.** You send a message; one node prefixes the system prompt and
+  answers. The reply joins the thread. opencode, pi and hermes-agent all rebuild the model's
+  messages from stored history on every turn.
+- **A checkpointer keeps the list per thread id.** You name a thread and it loads the list for
+  the turn. The model is a stateless compute unit; its memory is this external list (knowledge
+  base: HarnessEngineering). opencode keeps it in a local database, pi in line-delimited files,
+  hermes-agent in an append-only log.
+- **Tokens arrive one by one, so you print them as they come.** You stream each token instead
+  of waiting for the whole answer (knowledge base: HarnessEngineeringCourse). All three
+  harnesses turn arriving tokens into display events.
+
 ### Scope
 1. You move the turn into a LangGraph graph with a single node.
 2. You let a checkpointer keep the list under a thread id instead of a variable.
 3. You stream the answer token by token as it arrives.
-4. You wrap it in a terminal with three commands:
-   - `/new` starts a fresh thread id.
-   - `/help` lists the commands.
-   - `/exit` leaves the chat.
+4. You wrap it in a terminal with three commands: `/new` starts a fresh thread id, `/help`
+   lists the commands, `/exit` leaves the chat.
 Left out for now: tools (tutorial 4) and saving sessions to disk (tutorial 7).
+
 ### The problem
 
 ```text
@@ -47,7 +41,9 @@ You haven't asked me to remember a word.
 context: 3 messages
 ```
 
-Each answer arrived in one block after a pause — the list was one variable that died with the run.
+Memory works, but each answer arrives in one block after a pause, and the list is one variable
+inside the process, so it dies with the run.
+
 ### What changes
 
 ```text
@@ -60,8 +56,9 @@ src/harness/
 ~   tui/app.py                read-print loop with banner and history
 ~   tui/commands.py           three commands with help text
 +   tui/render.py             prints each token as it arrives
-tests/                       offline tests for the graph and terminal
+~   tests/                    offline tests for the graph and terminal
 ```
+
 ## In detail
 
 ### How it works
@@ -85,7 +82,8 @@ tests/                       offline tests for the graph and terminal
 
 ### The excerpt that carries the idea
 
-**`src/harness/chat/graph.py` — the whole turn in four lines:**
+The whole turn in `src/harness/chat/graph.py` is four lines:
+
 ```python
     def call_model(state: HarnessState) -> dict:
         messages = [SystemMessage(content=system_prompt), *state["messages"]]
