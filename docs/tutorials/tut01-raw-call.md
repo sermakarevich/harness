@@ -8,18 +8,18 @@ call by the second.
 ### The concepts
 
 - A model call is plain HTTP. You send one request with a model name and a prompt, and you
-get one reply back. Everything else around that exchange is the harness.
+  get one reply back. Everything else around that exchange is the harness.
   - opencode sends even the simplest call through one shared streaming service.
   - pi keeps a one-shot streamed call with no tool loop, used on its own only for summaries.
   - hermes-agent runs stateless one-off calls through `run_oneshot`, outside session history.
 - The key travels in a header. Your harness owns the key and adds it to every request, so
-the model never sees it.
+  the model never sees it.
 - The request is stateless. Nothing is kept between calls, not even under the same session id.
-Whatever the model must know has to travel inside the request. An LLM (large language model)
-is stateless: "LLMs are stateless. Every call replays the entire conversation history. The
-harness fakes memory." (knowledge base: AGENTIC_ENGINEERING_PATTERS). Treat the model as a
-stateless compute unit and keep all state across turns outside it (knowledge base:
-HarnessEngineering).
+  Whatever the model must know has to travel inside the request. An LLM (large language model)
+  is stateless: "LLMs are stateless. Every call replays the entire conversation history. The
+  harness fakes memory." (knowledge base: AGENTIC_ENGINEERING_PATTERS). Treat the model as a
+  stateless compute unit and keep all state across turns outside it (knowledge base:
+  HarnessEngineering).
 
 ### Scope
 
@@ -69,15 +69,16 @@ you -> harness -> HTTP -> model -> blocks -> text
 ### Design decisions
 
 - **The harness makes the session id, not the server.** One fresh id per run stays stable across
-both calls, so you can trace the conversation without asking the server for anything.
+  both calls, so you can trace the conversation without asking the server for anything.
 - **Only `output_text` reaches you; reasoning stays inside.** You see the answer while the
-harness keeps the full block list, so private model notes never leak onto your screen.
+  harness keeps the full block list, so private model notes never leak onto your screen.
 - **The timeout is a setting because a hung call would block your whole loop.** You can
-raise or lower it from the environment without touching the code that sends the request.
+  raise or lower it from the environment without touching the code that sends the request.
 
 ### The excerpt that carries the idea
 
 **src/harness/model/client.py**
+
 ```python
 def ask(settings: Settings, session_id: str, prompt: str) -> dict:
     """Send one prompt to the model and return the parsed reply."""
@@ -99,7 +100,6 @@ just tutorial
 ```
 
 ```text
-uv run python -m harness
 > Remember this word: pelican
 Got it! I'll remember the word: **pelican**.
 blocks: reasoning, message
@@ -120,7 +120,7 @@ A request without `x-opencode-session` is rejected with `MissingSessionID`, and 
 
 - A model call is plain HTTP: one request, one reply, with your key travelling in a header.
 - The request is stateless: nothing is kept between calls, so everything you want the model to
-know has to travel inside the request.
+  know has to travel inside the request.
 - The reply is a list of typed blocks, and the harness decides which blocks you see.
 
 ### What is still missing

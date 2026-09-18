@@ -6,8 +6,6 @@ from enum import StrEnum
 
 
 class BlockType(StrEnum):
-    REASONING = "reasoning"
-    MESSAGE = "message"
     OUTPUT_TEXT = "output_text"
 
 
