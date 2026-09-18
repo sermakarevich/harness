@@ -36,8 +36,10 @@ Use `docs/dev/_TEMPLATE.md`. Every tutorial has two layers:
 1. **In short**, about one screen, no code: the concepts in plain language, the scope
    (what we build now, why now, what we leave for later), the problem shown as a failing
    terminal exchange, and a file tree marking new and changed files.
-2. **In detail**: the change file by file with excerpts and diff hunks copied from the
-   real tag, how to run it, what the tests prove, key takeaways, and what is still missing.
+2. **In detail**: how the new code works, the design decisions behind its shape and the
+   alternatives rejected, at most two excerpts that carry the idea, how to run it, what
+   the tests prove, key takeaways, and what is still missing. The full change is
+   `git diff` between the two tags; the document never walks it file by file.
 
 A reader who reads only the first layer of every tutorial still gets the whole story.
 The template ends with the writing rules: audience, prose, code, and the rules that let
