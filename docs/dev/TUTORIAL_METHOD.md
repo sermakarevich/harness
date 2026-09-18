@@ -23,20 +23,25 @@ tutorial 3's code, not the finished harness. This document says how we do that.
 - Every tutorial has tests that run without a network connection.
 - The layout follows `AGENTS.md`: layers as folders, small files, imports point down.
 
+## Who the reader is
+
+An engineer who knows Python, git, HTTP and environment files, and has not built an
+agent harness. We explain harness ideas, model behaviour and design trade-offs at
+medium-plus depth. We never explain programming basics; that reads as Captain Obvious.
+
 ## What every tutorial document contains
 
-Use `docs/dev/_TEMPLATE.md`. The sections, in order:
+Use `docs/dev/_TEMPLATE.md`. Every tutorial has two layers:
 
-1. **The limitation** — what the chat cannot do before this tutorial, shown as a
-   short terminal exchange that fails or gives a poor answer.
-2. **The concept** — the idea in plain words, three to eight sentences, no code.
-   What the three harnesses we studied do about it (one line each, from
-   `docs/harnesses/OPERATIONS.md`).
-3. **The change** — the diff walked through file by file. Excerpts are copied from
-   the real files. Each excerpt gets a short plain-English paragraph.
-4. **Run it** — `git checkout tutNN`, `just tutNN`, expected output.
-5. **Tests** — what the tests prove and how to run them.
-6. **What is still missing** — the limitation the next tutorial fixes.
+1. **In short**, about one screen, no code: the concepts in plain language, the scope
+   (what we build now, why now, what we leave for later), the problem shown as a failing
+   terminal exchange, and a file tree marking new and changed files.
+2. **In detail**: the change file by file with excerpts and diff hunks copied from the
+   real tag, how to run it, what the tests prove, key takeaways, and what is still missing.
+
+A reader who reads only the first layer of every tutorial still gets the whole story.
+The template ends with the writing rules: audience, prose, code, and the rules that let
+the tutorials compile into one book.
 
 ## The tutorial plan
 
@@ -50,7 +55,7 @@ words each. It is the checklist for whoever writes the tutorial.
 
 | # | Concept | Explained | What the reader sees at the end |
 |---|---|---|---|
-| 0 | Project setup | one tool for the environment (uv); secrets in `.env`, never in git; tests run offline | `just setup`, `just test` green |
+| 0 | Project setup | agent = model + harness, and the harness decides most of the result; what the finished harness will do; how the series works: one tag, one recipe, offline tests per tutorial; where settings live and how they are overridden | `just setup`, `just test` green |
 | 1 | One raw model call [1] | a request is plain HTTP; the key travels in a header; the request is stateless: nothing is kept between calls; the reply is a list of typed blocks (reasoning, text) | `just tut01` prints `pong` |
 | 2 | Messages stack into memory [2, 3, 4] | three roles: system, user, assistant; the list *is* the memory; every turn resends the whole list; so the context grows each turn; the system prompt sits first and shapes every answer; a new chat is an empty list | chat that remembers within a session, `/new` forgets |
 | 3 | Adapter, graph, streaming [1, 5] | one adapter hides vendor quirks; one graph node is one turn; a checkpointer keeps the list per thread id; tokens arrive one by one, so print them as they come; the read-print loop of a terminal | `just smoke` streams tokens; `just run` opens the chat |
@@ -80,9 +85,12 @@ The plan may change; the rules above do not.
 
 ## How a tutorial gets built
 
-1. The manager writes two fleet task specs: one for the code with tests, one for the
-   tutorial document. Both point at `AGENTS.md` and this file.
-2. Workers run in order on the shared tree; the code task commits first.
-3. The manager reviews, runs the live check once, and tags the commit `tutNN`.
-4. `docs/dev/ARCHITECTURE.md` gets its operations table updated: the row moves from
+1. The manager reads the knowledge-base notes on agent harnesses (`ai search harness`,
+   category `structured_papers/agent_harness`) for the concept at hand and lists the
+   notes the tutorial should cite.
+2. The manager writes two fleet task specs: one for the code with tests, one for the
+   tutorial document. Both point at `AGENTS.md`, this file and the template.
+3. Workers run in order on the shared tree; the code task commits first.
+4. The manager reviews, runs the live check once, and tags the commit `tutNN`.
+5. `docs/dev/ARCHITECTURE.md` gets its operations table updated: the row moves from
    `planned` to `done`.
