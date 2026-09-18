@@ -29,6 +29,7 @@ src/harness/tui/render.py     one turn plus streamed reply rendering (run_turn, 
 ```
 
 `scripts/raw_call.py` is tutorial 1: one raw HTTP call, no framework.
+`scripts/chat_list.py` is tutorial 2: a chat whose memory is a plain message list.
 `scripts/smoke_model.py` is the live check of the LangChain adapter (`just smoke`).
 
 ## Layers

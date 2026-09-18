@@ -8,7 +8,7 @@ default:
 setup:
     uv sync
 
-# Start the terminal chat (added in a later step)
+# Start the terminal chat
 run:
     uv run python -m harness
 
@@ -23,13 +23,13 @@ lint:
 test:
     uv run pytest -q
 
-# Shows what the latest tutorial built
+# Shows what this tutorial built: the terminal chat
 tutorial: run
 
-# Live check of the LangChain adapter (uses your key; run sparingly)
+# Live check of the model adapter: one answer, one stream (uses your key; run sparingly)
 smoke:
     uv run python scripts/smoke_model.py
 
-# Non-interactive smoke of the chat: pipes two lines in (uses your key; run sparingly)
+# Non-interactive check of the chat: pipes two lines in (uses your key; run sparingly)
 smoke-tui:
     printf 'Reply with exactly one word: pong\n/exit\n' | uv run python -m harness

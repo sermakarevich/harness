@@ -21,6 +21,7 @@ def make_model(settings: Settings, session_id: str) -> BaseChatModel:
         model=settings.model,
         api_key=settings.api_key,
         base_url=settings.base_url,
+        timeout=settings.timeout_seconds,
         use_responses_api=True,
         default_headers={
             SESSION_HEADER: session_id,
