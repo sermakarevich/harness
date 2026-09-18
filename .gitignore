@@ -1,0 +1,17 @@
+# Read-only reference checkouts of the harnesses we analyse, plus fleet task specs.
+# Large (opencode-src alone is ~224 MB) and reproducible — never committed.
+.analysis/
+
+# Python / uv
+.venv/
+__pycache__/
+*.pyc
+
+# Secrets — the OpenCode Go key lives here; never committed
+.env
+
+# Tooling caches
+.ruff_cache/
+.pytest_cache/
+*.egg-info/
+dist/
