@@ -1,6 +1,6 @@
 # pi — harness operation inventory
 
-Package version `0.80.2`, package root `/Users/sergii/.local/lib/node_modules/@earendil-works/pi-coding-agent`.
+Package version `0.80.2`, installed npm package `@earendil-works/pi-coding-agent`.
 All `Where` paths below are relative to that root. Read docs first, confirmed with targeted greps in `dist/`.
 
 ## 1. Pure LLM call

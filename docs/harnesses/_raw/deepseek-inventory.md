@@ -1,6 +1,6 @@
 # DeepSeek Harness — harness operation inventory
 
-Project root: `/Users/sergii/git/harness/.analysis/deepseek-src`, version `0.1.6-alpha.2`, commit `ddefc45`.
+Source: a local clone of `deepseek-ai/deepseek-harness`, version `0.1.6-alpha.2`, commit `ddefc45`.
 The product is a set of small plugins on the Cordis plugin framework. Cordis is the vendored plugin system underneath: plugins contribute services, typed events, and reversible registrations to a shared context.
 
 ## 1. Pure LLM call

@@ -1,6 +1,6 @@
 # hermes-agent — harness operation inventory
 
-Project root: `/Users/sergii/.hermes/hermes-agent`. Version `0.21.1` (from `pyproject.toml` `[project] version`).
+Source: a local checkout of hermes-agent. Version `0.21.1` (from `pyproject.toml` `[project] version`).
 Factual inventory of how this harness implements each operation; no redesign notes.
 
 ## 1. Pure LLM call

@@ -1,6 +1,6 @@
 # opencode — harness operation inventory
 
-Read from `/Users/sergii/git/harness/.analysis/opencode-src`, commit `e03db9b`.
+Source: a local clone of `sst/opencode`, commit `e03db9b`.
 Only `packages/opencode/src/` was examined; nothing outside it is cited below.
 
 ## 1. Pure LLM call
