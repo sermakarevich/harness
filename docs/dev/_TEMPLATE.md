@@ -56,7 +56,7 @@ medium-plus depth.>
 
 ### The excerpt that carries the idea
 
-<At most one or two short excerpts, only where reading the code says more than prose.
+<Optional. At most one short excerpt, only where reading the code says more than prose.
 Each introduced by a bold line naming the file, copied from the file at tag tutNN. A
 changed file is shown as a `diff` hunk from `git diff tutMM..tutNN`. The rest of the
 change is `git diff tutMM..tutNN`, which the reader runs.>
@@ -103,8 +103,13 @@ Audience and depth
   and anything a model does that a programmer would not expect.
 - Medium-plus depth: say the mechanism, the trade-off, and the failure it prevents.
   Skip anything the reader could guess from the name.
+- Agentic, not pythonic. Every paragraph is about what the model sees, what it can do,
+  or what the harness enforces. A dataclass versus a library, a constant versus a
+  literal, how a function is laid out: none of that belongs in a tutorial. If a
+  sentence would read the same in a Django tutorial, delete it.
 - "The concepts" and "Scope" carry the teaching in the first layer; "How it works" and
-  "Design decisions" carry it in the second. Code appears only where it says more
+  "Design decisions" carry it in the second. Two to three design decisions, each one
+  about harness behaviour, each in two sentences: the choice and what it protects. Code appears only where it says more
   than prose. Never walk the diff file by file; the reader has git for that.
 
 Prose
@@ -113,14 +118,15 @@ Prose
 - Spell out a domain abbreviation the first time it appears (LLM, MCP, TUI). Everyday
   engineering ones (HTTP, API, URL, JSON, CLI) need no expansion.
 - No marketing words. Say what it does.
-- "In short" is under 90 lines. The whole tutorial is under 250 lines. Wrap prose at
-  100 characters. The file tree has one entry per line, never several on one line.
+- "In short" is under 60 lines. The whole tutorial is under 130 lines. Wrap prose at
+  100 characters. The file tree names the files that carry the idea, one entry per line;
+  markers, lockfiles and folders of docs collapse into one entry.
 
 Code and commands
 - Every excerpt is copied from the file at the tutorial's tag, never retyped, and is
   introduced by a bold line naming the file.
 - A changed file is shown as a `diff` hunk from the real git diff, a new file as code.
-  Two excerpts per tutorial at most.
+  One excerpt per tutorial at most, and none is fine.
 - Every command is followed by the output the reader sees, trimmed to the last lines,
   with no timings or dates.
 - Name a file in prose instead of linking to it; links to code do not survive the book.
