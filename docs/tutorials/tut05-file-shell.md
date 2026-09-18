@@ -8,15 +8,17 @@ so it can fix a bug and run the tests itself.
 ### The concepts
 
 - **Edit is exact find-and-replace.** The model sends exact old and new text; you replace it
-  only on exactly one match, else answer with error text. A one-space miss fails the match
-  (knowledge base: ModelOrHarnessFailureTaxonomy), so the error text lets the model recover;
-  models are post-trained inside harnesses (knowledge base: OsmaniHarness). opencode edits
+  only on exactly one match, else answer with error text. An edit that fails over one missing
+  space is the textbook malformed argument (knowledge base: ModelOrHarnessFailureTaxonomy), so
+  the error text must let the model recover. Models are post-trained inside harnesses and do
+  best with the edit shapes they were trained on (knowledge base: OsmaniHarness). opencode edits
   with diagnostics, pi queues edits per file, hermes-agent guards its file tools.
 - **Shell runs with a timeout in the working directory.** A command that never ends would hang
   your chat, so you kill it after a fixed number of seconds and say so. Every command runs in
-  the folder you started in, with a timeout, and paths outside it are rejected in one shared
-  piece of code; the exit code comes back with the combined output (knowledge base:
-  HarnessEngineeringCourse). opencode has a default timeout, pi streams, hermes-agent guards.
+  the folder you started in, and every path is checked against that folder in one shared piece
+  of code. A sandbox does the same: scoped working directory, timeout, exit code with the
+  combined output (knowledge base: HarnessEngineeringCourse). opencode has a default timeout,
+  pi streams, hermes-agent guards.
 - **A process becomes text.** The model never sees your process, only text: output, error,
   exit code. The shell is the general-purpose tool (knowledge base: TheAnatomyOfAnAgentHarness):
   with it the model writes and runs code to make its own tools on the fly. opencode keeps the
@@ -90,25 +92,24 @@ just tutorial
 ```
 
 ```text
-harness · model muse-spark-1.3-contributor · session e68004f8 · /help for
+harness · model muse-spark-1.3-contributor · session fba45f6d · /help for
 commands
 > Write scratch_math.py with a function add(a, b) that on purpose returns a - b,
 and test_scratch_math.py with one test that add(2, 3) == 5. Then run pytest -q
 test_scratch_math.py and tell me the result in one line.
-Writing the files and running the test.
+Writing the off-by-subtraction files and running your failing test.
 → write_file content=def add(a, b): return a - b  path=scratch_math.py
-Files ready — running pytest now.
+→ write_file content=from scratch_math import add def test_add(): assert add(2, 3… path=test_scratch_math.py
+Files are ready — running pytest now.
 → shell command=pytest -q test_scratch_math.py
-Test failed: 1 failed — `assert -1 == 5` (add returns a-b).
-
+1 failed — add(2, 3) returned -1 instead of 5.
 > Now fix the bug in scratch_math.py with the smallest possible edit, run the same
 pytest command again and tell me the result in one line.
-Fixing the one-character bug and re-running the test.
+Fixing the subtraction to addition and re-running the test.
 → edit_file new_text= return a + b old_text= return a - b path=scratch_math.py
 Fix applied — verifying with pytest.
 → shell command=pytest -q test_scratch_math.py
-Test passed: 1 passed.
-
+1 passed — add(2, 3) now returns 5.
 > /exit
 ```
 
