@@ -1,51 +1,64 @@
-"""The terminal chat at this point.
-
-Read a line, print the reply and the size of the list, repeat.
-"""
-
-from __future__ import annotations
+"""Terminal chat: read a line, show the reply, repeat."""
 
 import sys
+from pathlib import Path
 
-from harness.chat.loop import Chat
-from harness.chat.prompt import build_system_prompt
+from langgraph.checkpoint.memory import InMemorySaver
+from prompt_toolkit import PromptSession
+from prompt_toolkit.history import InMemoryHistory
+from rich.console import Console
+
+from harness.chat.session import Session
 from harness.config import Settings
-from harness.model.client import make_model, new_session_id
-from harness.tui.commands import COMMAND_PREFIX, Command
+from harness.tui import commands, render
+from harness.tui.commands import Command
 
 PROMPT = "> "
-CONTEXT_LINE = "context: {count} messages"
-NEW_NOTICE = "new conversation"
-UNKNOWN_COMMAND = "unknown command {command}"
 
 
 class App:
-    def __init__(self, settings: Settings, model=None):
-        model = model or make_model(settings, new_session_id())
-        self.chat = Chat(model, build_system_prompt(settings))
+    def __init__(self, settings: Settings, console=None, cwd=None, model=None):
+        self.settings = settings
+        self.console = console or Console()
+        self.cwd = cwd or Path.cwd()
+        self._model = model
+        self.checkpointer = InMemorySaver()
+        self.session = self._new_session()
 
-    def handle_command(self, line: str) -> None:
-        if line == Command.NEW:
-            self.chat.reset()
-            print(NEW_NOTICE)
-        else:
-            print(UNKNOWN_COMMAND.format(command=line))
+    def _new_session(self) -> Session:
+        return Session.start(self.settings, self.checkpointer, self.cwd, model=self._model)
+
+    def handle_command(self, line: str) -> bool:
+        return commands.handle_command(self, line)
 
     def run_turn(self, text: str) -> None:
-        print(self.chat.ask(text))
-        print(CONTEXT_LINE.format(count=self.chat.size()))
+        """Send one user message and show the reply as it arrives."""
+        render.run_turn(self, text)
+
+    def render_event(self, message, meta: dict) -> None:
+        """Show one piece of the reply as it arrives."""
+        render.render_event(self.console, message, meta)
+
+    def banner(self) -> None:
+        self.console.print(
+            f"[bold]harness[/bold] · model [cyan]{self.settings.model}[/cyan] · "
+            f"session [dim]{self.session.session_id[-8:]}[/dim] · {Command.HELP} for commands"
+        )
 
     def run(self) -> None:
+        self.banner()
+        interactive = sys.stdin.isatty()
+        prompt = PromptSession(history=InMemoryHistory()) if interactive else None
         while True:
             try:
-                line = input(PROMPT)
-            except EOFError:
+                line = prompt.prompt(PROMPT) if prompt else input(PROMPT)
+            except (EOFError, KeyboardInterrupt):
+                self.console.print()
                 break
-            if not sys.stdin.isatty():
-                print(line)
             if not line.strip():
                 continue
-            if line.startswith(COMMAND_PREFIX):
-                self.handle_command(line)
-            else:
-                self.run_turn(line)
+            if line.startswith(commands.COMMAND_PREFIX):
+                if not self.handle_command(line):
+                    break
+                continue
+            self.run_turn(line)

@@ -1,0 +1,35 @@
+"""The answer loop of the harness."""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+from langchain_core.language_models import BaseChatModel
+from langchain_core.messages import SystemMessage
+from langgraph.checkpoint.base import BaseCheckpointSaver
+from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.graph import END, START, StateGraph
+
+from harness.chat.prompt import build_system_prompt
+from harness.chat.state import HarnessState
+from harness.config import Settings
+
+
+def build_graph(
+    model: BaseChatModel,
+    settings: Settings,
+    checkpointer: BaseCheckpointSaver | None = None,
+    cwd: Path | None = None,
+):
+    system_prompt = build_system_prompt(settings, cwd)
+
+    def call_model(state: HarnessState) -> dict:
+        messages = [SystemMessage(content=system_prompt), *state["messages"]]
+        response = model.invoke(messages)
+        return {"messages": [response]}
+
+    builder = StateGraph(HarnessState)
+    builder.add_node("call_model", call_model)
+    builder.add_edge(START, "call_model")
+    builder.add_edge("call_model", END)
+    return builder.compile(checkpointer=checkpointer or InMemorySaver())

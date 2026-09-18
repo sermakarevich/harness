@@ -1,20 +1,48 @@
-from harness.tui.app import NEW_NOTICE, App
-from tests.conftest import RecordingModel
+from io import StringIO
+
+from langchain_core.language_models.fake_chat_models import GenericFakeChatModel
+from langchain_core.messages import AIMessage
+from rich.console import Console
+
+from harness.tui.app import App
 
 
-def test_turn_prints_reply_and_context(settings, capsys):
-    app = App(settings, model=RecordingModel())
-    app.run_turn("hi")
-    out = capsys.readouterr().out
-    assert "reply 1" in out
-    assert "context: 3 messages" in out
+def make_app(settings):
+    model = GenericFakeChatModel(
+        messages=iter([AIMessage(content="pong"), AIMessage(content="again")])
+    )
+    buf = StringIO()
+    app = App(
+        settings,
+        console=Console(file=buf, width=80, force_terminal=False),
+        model=model,
+    )
+    return app, buf
 
 
-def test_new_command_resets(settings, capsys):
-    app = App(settings, model=RecordingModel())
-    app.run_turn("hi")
-    capsys.readouterr()
-    app.handle_command("/new")
-    out = capsys.readouterr().out
-    assert NEW_NOTICE in out
-    assert app.chat.size() == 1
+def test_run_turn_streams_reply(settings):
+    app, buf = make_app(settings)
+    app.run_turn("ping")
+    assert "pong" in buf.getvalue()
+
+
+def test_new_command_changes_session(settings):
+    app, buf = make_app(settings)
+    before = app.session.session_id
+    assert app.handle_command("/new") is True
+    assert app.session.session_id != before
+    assert "new session" in buf.getvalue()
+
+
+def test_exit_and_unknown_commands(settings):
+    app, buf = make_app(settings)
+    assert app.handle_command("/exit") is False
+    assert app.handle_command("/bogus") is True
+    assert "unknown command" in buf.getvalue()
+
+
+def test_help_lists_commands(settings):
+    app, buf = make_app(settings)
+    app.handle_command("/help")
+    out = buf.getvalue()
+    assert "/new" in out and "/exit" in out
