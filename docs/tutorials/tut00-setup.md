@@ -60,10 +60,10 @@ $ uv run python -m harness
 
 ### How it works
 
-Running just tut00 starts with the recipes defined in justfile. The setup recipe first loads
-variables from the environment file into the process so later steps see them. Then uv sync
-builds the locked environment from pyproject.toml and uv.lock so every reader gets the same
-packages. Finally pytest runs the suite in tests with the slow marker excluded by the
+Running just tut00 starts with the recipes defined in justfile. Before any recipe runs, just
+loads the variables from the environment file into the process, so every step sees them. The
+setup recipe then runs uv sync, which builds the locked environment from pyproject.toml and
+uv.lock so every reader gets the same packages. Finally pytest runs the suite in tests with the slow marker excluded by the
 configuration in pyproject.toml, so no network or key is needed.
 
 When Python code needs settings it calls load_settings from the config module in
