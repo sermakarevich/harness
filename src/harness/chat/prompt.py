@@ -13,9 +13,6 @@ from harness.config import Settings
 
 
 def build_system_prompt(settings: Settings, cwd: Path | None = None) -> str:
-    cwd = cwd or Path.cwd()
-    return (
-        "You are a helpful assistant running inside a terminal chat harness.\n"
-        f"Today is {date.today().isoformat()}. The user's working directory is {cwd}.\n"
-        "Answer concisely in plain language; use Markdown only when it helps."
-    )
+    """Build the opening message from the text file on disk."""
+    template = (Path(__file__).parent / "prompts" / "system.txt").read_text().strip()
+    return template.format(today=date.today().isoformat(), cwd=cwd or Path.cwd())

@@ -14,6 +14,7 @@ src/harness/__main__.py       `just run` entry point: load settings, start the c
 src/harness/chat/__init__.py  conversation layer: graph, session, thread, prompt, state
 src/harness/chat/graph.py     the agent loop as a graph (build_graph plus call_model)
 src/harness/chat/prompt.py    system prompt assembly (build_system_prompt)
+src/harness/chat/prompts/system.txt system prompt text with {today} and {cwd} slots
 src/harness/chat/session.py   one conversation id bound to its model and graph
 src/harness/chat/state.py     conversation state (HarnessState); one field per harness job
 src/harness/chat/thread.py    session ids (new_session_id) and thread config

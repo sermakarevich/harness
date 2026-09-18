@@ -34,6 +34,14 @@ def test_system_prompt_mentions_cwd(tmp_path):
     assert str(tmp_path) in build_system_prompt(Settings(api_key="x"), cwd=tmp_path)
 
 
+def test_system_prompt_has_today_and_no_placeholders(tmp_path):
+    from datetime import date
+
+    prompt = build_system_prompt(Settings(api_key="x"), cwd=tmp_path)
+    assert date.today().isoformat() in prompt
+    assert "{" not in prompt
+
+
 def test_stream_mode_messages_yields_ai_chunks():
     graph = build_graph(fake_model(), Settings(api_key="x"))
     cfg = thread_config("s")
