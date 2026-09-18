@@ -42,6 +42,7 @@ They bind humans, Claude Code, and fleet workers alike.
   Write `if cmd == Command.NEW:`, not `if cmd == "/new":`.
 - Group related names in one place: a `StrEnum` for a fixed set of choices (slash commands, content block types), a small frozen dataclass or module-level constants for the rest (header names, id prefixes, file names).
 - Anything a user might want to change (model name, base URL, user agent, timeouts) is a field in `Settings` with an environment override, not a literal in the code that uses it.
+- One fact, one place. A value that follows from another is derived in code, never typed again. Define `COMMAND_PREFIX = "/"` once and write `NEW = f"{COMMAND_PREFIX}new"`; build help text from the enum members instead of listing the names a third time.
 - Framework-required keys such as LangGraph's `"messages"` state key are the one exception; they are part of the library's contract, not our choice.
 
 ## Project conventions
