@@ -30,6 +30,7 @@ def test_repr_never_leaks_key():
         base_url="https://example.com",
         model="example-model",
         user_agent="example-agent",
+        timeout_seconds=60,
     )
     assert "super-secret" not in repr(s)
     assert "super-secret" not in str(s)

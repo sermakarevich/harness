@@ -8,6 +8,10 @@ default:
 setup:
     uv sync
 
+# Start the harness
+run:
+    uv run python -m harness
+
 fmt:
     uv run ruff format .
     uv run ruff check --fix .
@@ -19,5 +23,5 @@ lint:
 test:
     uv run pytest -q
 
-# Shows what this tutorial built; tutorial 0 is the workbench itself
-tutorial: setup test
+# Shows what this tutorial built
+tutorial: run
