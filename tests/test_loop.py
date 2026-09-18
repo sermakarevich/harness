@@ -1,17 +1,7 @@
-from langchain_core.messages import AIMessage, SystemMessage
+from langchain_core.messages import SystemMessage
 
 from harness.chat.loop import Chat
-
-
-class RecordingModel:
-    def __init__(self):
-        self.seen: list[int] = []
-        self.first: list = []
-
-    def invoke(self, messages):
-        self.seen.append(len(messages))
-        self.first.append(messages[0])
-        return AIMessage(content=f"reply {len(self.seen)}")
+from tests.conftest import RecordingModel
 
 
 def test_every_turn_sends_the_whole_list(settings):

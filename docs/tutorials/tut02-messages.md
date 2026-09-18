@@ -31,6 +31,7 @@ exactly where that memory lives: in a list your harness keeps and resends every 
 4. You ask the two tutorial 1 questions again and watch the model remember.
 
 Left out for now; tutorial 3 adds all three:
+
 - streaming the answer as it arrives
 - saving the list anywhere past the process
 - a real terminal around the chat
@@ -62,6 +63,7 @@ src/harness/
 ~   __main__.py               starts the chat
 tests/                        offline tests for the list, prompt, and commands
 ```
+
 ## In detail
 
 ### How it works
@@ -77,7 +79,7 @@ second turn the model sees all of it, including its own earlier answer, so the w
 
 The `context: N messages` line makes this growth visible; later tutorials put a price on it (8)
 and cut it back (10). You type `/new` and the harness keeps only the system message, so the next
-question travels alone and the model forgets again — the same cause as tutorial 1, now yours.
+question travels alone and the model forgets again. It is the same cause as tutorial 1, now under your control.
 
 ### Design decisions
 

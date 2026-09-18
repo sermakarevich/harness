@@ -1,17 +1,5 @@
-from langchain_core.messages import AIMessage
-
 from harness.tui.app import NEW_NOTICE, App
-
-
-class RecordingModel:
-    def __init__(self):
-        self.seen: list[int] = []
-        self.first: list = []
-
-    def invoke(self, messages):
-        self.seen.append(len(messages))
-        self.first.append(messages[0])
-        return AIMessage(content=f"reply {len(self.seen)}")
+from tests.conftest import RecordingModel
 
 
 def test_turn_prints_reply_and_context(settings, capsys):
