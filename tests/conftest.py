@@ -1,8 +1,28 @@
 """Shared fixtures for offline tests."""
 
 import pytest
+from langchain_core.language_models.fake_chat_models import GenericFakeChatModel
+from langchain_core.messages import AIMessage, AIMessageChunk
+from langchain_core.outputs import ChatGenerationChunk
 
 from harness.config import load_settings
+
+
+class FakeToolChatModel(GenericFakeChatModel):
+    """A scripted model whose replies may carry tool calls."""
+
+    def bind_tools(self, tools, **kwargs):
+        return self
+
+    def _stream(self, messages, stop=None, run_manager=None, **kwargs):
+        message = next(self.messages)
+        reply = message if isinstance(message, AIMessage) else AIMessage(content=message)
+        chunk = ChatGenerationChunk(
+            message=AIMessageChunk(content=reply.content, tool_calls=reply.tool_calls)
+        )
+        if run_manager:
+            run_manager.on_llm_new_token(reply.content, chunk=chunk)
+        yield chunk
 
 
 @pytest.fixture

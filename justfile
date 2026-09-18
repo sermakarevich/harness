@@ -26,6 +26,6 @@ test:
 # Shows what this tutorial built
 tutorial: run
 
-# Pipes a fixed exchange into the chat (uses your key; run sparingly)
+# Pipes a file-reading request into the chat (uses your key; run sparingly)
 smoke:
-    printf 'Remember this word: pelican\nWhich word did I ask you to remember? Answer with the word only.\n/exit\n' | uv run python -m harness
+    printf 'Read the file README.md and tell me its first heading. Answer with the heading only.\n/exit\n' | uv run python -m harness

@@ -13,9 +13,8 @@ just test
 just run               # terminal chat
 ```
 
-Start with the tutorials below. `docs/harnesses/` holds background on how three
-existing harnesses run agents, cited from the tutorials. The notes the tutorials cite as
-"knowledge base" live in the
+`docs/harnesses/` holds background on how three existing harnesses run agents,
+cited from the tutorials. The notes the tutorials cite as "knowledge base" live in the
 [agent harness topic](https://github.com/sermakarevich/knowlegde_base/tree/main/knowledge/structured_papers/agent_harness)
 of the author's knowledge base.
 
@@ -42,8 +41,8 @@ git diff tut00..tut01 --stat    # every file this tutorial added or changed
 
 Each tutorial adds one concept. A concept arrives in its simplest form and a later tutorial
 replaces it with the real one, so the diff between two neighbouring tags is one concept and
-nothing stays in the tree that the finished harness does not use. `git tag --list 'tut*'`
-shows how far the series goes. `git checkout main` returns to the latest code.
+nothing stays in the tree that the finished harness does not use. `git tag --list 'tut*'` shows how
+far the series goes. `git checkout main` returns to the latest code.
 
 You need `uv`, `just` and an OpenCode Go key in `.env` (see `.env.example`). Tutorials
 that call the model say so; everything else runs offline.
@@ -56,7 +55,7 @@ that call the model say so; everything else runs offline.
 | 1 — One raw model call | `tut01` | [tut01-raw-call.md](docs/tutorials/tut01-raw-call.md) |
 | 2 — Messages stack into memory | `tut02` | [tut02-messages.md](docs/tutorials/tut02-messages.md) |
 | 3 — Graph, streaming, terminal | `tut03` | [tut03-graph.md](docs/tutorials/tut03-graph.md) |
-| 4 — Tools and the agent loop | `tut04` | planned |
+| 4 — Tools and the agent loop | `tut04` | [tut04-tools.md](docs/tutorials/tut04-tools.md) |
 | 5 — File tools and the shell tool | `tut05` | planned |
 | 6 — Permission gate | `tut06` | planned |
 | 7 — Session persistence | `tut07` | planned |
@@ -77,6 +76,5 @@ order of the story are in `docs/dev/TUTORIAL_METHOD.md`.
 ## For contributors
 
 Everything about how this repo is built lives in `docs/dev/`: the tutorial method
-and plan (`TUTORIAL_METHOD.md`), the tutorial template, the architecture map
-(`ARCHITECTURE.md`), the goal and the verified transport notes. Coding rules are in
-`AGENTS.md`.
+and plan (`TUTORIAL_METHOD.md`), the tutorial template, the goal and the verified
+transport notes. Coding rules are in `AGENTS.md`.
