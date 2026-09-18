@@ -24,6 +24,7 @@ class StreamState:
     def __init__(self) -> None:
         self.chunks: AIMessageChunk | None = None
         self.printed_text = False
+        self.tools_shown = False
 
 
 def show_tool_call(console, message: ToolMessage, state: StreamState) -> None:
@@ -42,12 +43,15 @@ def show_tool_call(console, message: ToolMessage, state: StreamState) -> None:
         highlight=False,
         soft_wrap=True,
     )
-    state.chunks = None
+    state.tools_shown = True
 
 
 def render_event(console, message, meta: dict, state: StreamState) -> None:
     """Show one piece of the reply as it arrives."""
     if isinstance(message, AIMessageChunk):
+        if state.tools_shown:
+            state.chunks = None
+            state.tools_shown = False
         text = text_of(message)
         if text:
             console.print(text, end="", markup=False, highlight=False, soft_wrap=True)
