@@ -49,6 +49,7 @@ that call the model say so; everything else runs offline.
 | Tutorial | Tag | Document |
 |---|---|---|
 | 0 — Setup | `tut00` | [tut00-setup.md](docs/tutorials/tut00-setup.md) |
+| 1 — One raw model call | `tut01` | [tut01-raw-call.md](docs/tutorials/tut01-raw-call.md) |
 
 More rows appear as tags are published. The full plan is in `docs/dev/TUTORIAL_METHOD.md`.
 

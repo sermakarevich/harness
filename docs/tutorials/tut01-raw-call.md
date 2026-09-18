@@ -1,80 +1,131 @@
-# Tutorial 1 — One raw call: what actually goes over the wire
+# Tutorial 1 — One raw model call
 
-No framework in this tutorial — just one plain HTTP call (a single request and
-response over the web) to the model, so you can see the exact bytes our
-harness is built on. The whole script is `scripts/raw_call.py`, run it with:
+After this tutorial you have talked to the model once and know what a call is.
 
-```bash
-just tut01
-```
+## In short
 
-Expected output — a single word:
+### The concepts
+
+- A model call is plain HTTP: one request, one reply. The secret key travels in
+  a header, so the harness owns the key and the model never sees it.
+- The request is stateless: nothing is kept between calls, so whatever the model
+  must know travels inside the request. "LLMs (large language models) are
+  stateless. Every call replays the entire conversation history. The harness
+  fakes memory." (knowledge base: AGENTIC_ENGINEERING_PATTERS). Treat the model
+  as a stateless compute unit and keep all state across turns outside it
+  (knowledge base: HarnessEngineering).
+- The reply is a list of typed blocks: `reasoning` first, then a `message` with
+  `output_text` parts. The harness decides which blocks you see.
+
+How the three harnesses in `docs/harnesses/OPERATIONS.md` make this call:
+
+- opencode routes every call through one service, so you get events back, not a string.
+- pi keeps a one-shot streamed call with no tool loop, used on its own only for summaries.
+- hermes-agent runs stateless calls through `run_oneshot`: a fresh list, no history kept.
+
+### Scope
+
+You do three things in this tutorial:
+
+1. You send one request with `httpx`.
+2. You read the typed blocks in the reply.
+3. You add the three headers the server requires:
+   - the key, so the server knows it is you calling
+   - the session id, for routing and cached work
+   - the user agent, naming your harness
+
+Left out on purpose: any memory of earlier calls. Tutorial 2 adds it.
+
+### The problem
+
+Before this tutorial there is no script, so you get a missing file, not a reply:
 
 ```text
+$ uv run python scripts/raw_call.py
+.venv/bin/python3: can't open file 'scripts/raw_call.py': [Errno 2] No such file or
+directory
+```
+
+### What changes
+
+```text
++ scripts/raw_call.py          one request, blocks, print
++ tests/test_raw_call.py       block reading without the network
+~ src/harness/settings.toml    timeout default
+~ justfile                     run the script
+```
+
+## In detail
+
+### How it works
+
+You run the script and it loads your settings from the environment. It builds one
+request, which carries:
+
+- the model name and the input string
+- the key header, so the server knows it is you calling
+- the session id header, made fresh for this call
+- the user agent header, naming your harness
+
+The server answers with a list of blocks, and you print their kinds plus the joined text:
+
+```text
+you -> harness -> HTTP -> model -> blocks -> text
+```
+
+The printout shows the block kinds first and `pong` next. Nothing is saved: the session
+id is fresh on every run, so a follow-up call starts blank.
+
+### Design decisions
+
+- **The harness makes the session id, not the server.** You get one stable id per
+  conversation, which the server uses for routing and prompt caching.
+- **Only `output_text` reaches you; reasoning stays inside.** The reasoning blocks are the
+  model's scratch work, not its answer, so the harness reads them and shows you the text.
+- **The timeout is a setting, not a fixed value.** A hung call would freeze the whole
+  harness, so the limit is yours to change in `.env`, not in code.
+
+### The excerpt that carries the idea
+
+**scripts/raw_call.py** joins only the text parts you show and skips the rest:
+
+```python
+def text_of(response: dict) -> str:
+    """Join every text piece of the reply into one answer."""
+    return "".join(
+        part["text"]
+        for item in response.get("output", [])
+        for part in item.get("content", [])
+        if part.get("type") == PART_OUTPUT_TEXT
+    )
+```
+
+### Run it
+
+```bash
+git checkout tut01
+just tutorial
+```
+
+```text
+blocks: reasoning, message
 pong
 ```
 
-## Walking through `scripts/raw_call.py`
+### Under the hood
 
-`load_settings()` reads your key and endpoint from `.env`, so the script
-itself never contains a secret. Next it builds a fresh session id:
+The server rejects a request without `x-opencode-session` with `MissingSessionID`, so
+you always send a fresh id. It also rejects a generic `User-Agent`, so you send your
+harness name instead.
 
-```python
-session_id = f"harness-raw-{uuid.uuid4()}"
-```
+### Key takeaways
 
-`uuid4()` makes a random unique identifier; the prefix marks where it came
-from. Then comes the call itself — the URL, the headers, and the body in one place:
+- A model call is one plain HTTP request and one reply; everything else is the harness.
+- The key and the session id travel in headers the harness sets; the model never sees the key.
+- Every request is stateless: you resend what the model must know, and you pick the blocks.
 
-```python
-resp = httpx.post(
-    f"{s.base_url}/responses",
-    headers={
-        "Authorization": f"Bearer {s.api_key}",
-        "x-opencode-session": session_id,
-        "User-Agent": s.user_agent,
-    },
-    json={"model": s.model, "input": "Reply with exactly one word: pong"},
-    timeout=60,
-)
-```
+### What is still missing
 
-The URL is the base URL plus `/responses`. We use the Responses API
-(Application Programming Interface, the web protocol the model speaks) and
-not the older `chat/completions` endpoint because this is a per-model rule:
-GPT and Muse-Spark models live behind `/responses`, while DeepSeek, GLM and
-Kimi use `/chat/completions` and Qwen and MiniMax use `/messages`. Our
-default model is `muse-spark-1.3-contributor`, so `/responses` it is
-(see `docs/dev/NOTES.md` for the verified mapping).
-
-The headers carry the two mandatory credentials plus an identifier.
-`Authorization: Bearer …` proves who we are — bare requests without it are
-rejected. `x-opencode-session` is the second mandatory header: OpenCode uses
-it for routing and prompt caching (reusing work from earlier calls), so one
-conversation must keep one stable id. The `User-Agent` names our client,
-because OpenCode rejects generic library defaults.
-
-The request body is deliberately tiny — a model name and one input string.
-No tools, no history, no options. The answer is shaped differently from the
-older API: text does not sit at the top level but nested inside output items:
-
-```python
-# Responses API: output is a list of items; text lives in output[i].content[j].text
-texts = [
-    part["text"]
-    for item in data.get("output", [])
-    for part in item.get("content", [])
-    if part.get("type") == "output_text"
-]
-```
-
-We collect every `output_text` part and print them joined — which gives
-`pong`. Anything else (an empty answer) falls back to printing the raw data.
-
-## The limitation this leaves us with
-
-This tutorial proves the transport works, but the model here can only turn
-text into text: it remembers nothing between calls, it cannot act on the
-world, and this request shape is vendor-specific — switch providers and every
-line changes. Tutorial 2 fixes the last problem first by hiding this call
-behind a uniform model interface.
+The model forgets everything the moment your call ends. Ask a follow-up and you get a
+blank stare: nothing carries over. Tutorial 2 stacks your messages into a list that is
+the memory.
