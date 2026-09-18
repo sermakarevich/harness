@@ -40,7 +40,8 @@ Every later tutorial grows this scaffold by one concept. The finished harness ha
 - skills and sub-agents
 - an evaluation suite
 
-Each tutorial is one git tag and one `just tutNN` recipe, with offline tests.
+Each tutorial is one git tag with a `just tutorial` recipe and offline tests. Code runs at the
+tag; documents are read on `main`.
 
 ### The problem
 
@@ -86,7 +87,7 @@ default, so `just test` is free and fast from tutorial 0 to the end of the serie
 ```bash
 git checkout tut00
 cp .env.example .env    # paste your OpenCode Go key
-just tut00
+just tutorial
 ```
 
 ```text

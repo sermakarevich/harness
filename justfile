@@ -19,5 +19,5 @@ lint:
 test:
     uv run pytest -q
 
-# Tutorial 0 has no code to run; it is `just setup` + `just test`
-tut00: setup test
+# Shows what this tutorial built; tutorial 0 is the workbench itself
+tutorial: setup test

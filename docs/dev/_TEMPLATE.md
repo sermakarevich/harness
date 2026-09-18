@@ -65,7 +65,7 @@ change is `git diff tutMM..tutNN`, which the reader runs.>
 
 ```bash
 git checkout tutNN
-just tutNN
+just tutorial
 ```
 
 ```text

@@ -17,17 +17,21 @@ cited from the tutorials.
 
 ## How to follow the tutorials
 
-Each tutorial is a git tag (`tut00`, `tut01`, ...) and a document in `docs/tutorials/`.
+Each tutorial is a document in `docs/tutorials/` and a git tag (`tut00`, `tut01`, ...).
+Read the documents here on `main`; run the code at the tag. `main` is the latest code and
+is not kept runnable for older tutorials. The tag is frozen and always matches its document.
+
 The document has two layers. **In short** gives the concepts, the scope and the problem
-in plain language, no code. **In detail** walks the code file by file. Read only the first
-layer of every tutorial for the story; read the second to build it.
+in plain language, no code. **In detail** explains how the code works and why it is built
+that way. Read only the first layer of every tutorial for the story; read the second to
+build it.
 
 For each tutorial:
 
 ```bash
 git checkout tut01              # the code exactly as the tutorial describes it
 just setup                      # once per checkout, installs the locked environment
-just tut01                      # shows the new ability in the terminal
+just tutorial                   # shows what this tutorial built
 just test                       # the tests for this tutorial, no network needed
 git diff tut00..tut01 --stat    # every file this tutorial added or changed
 ```
@@ -41,8 +45,11 @@ that call the model say so; everything else runs offline.
 
 ## Tutorials
 
-- [Tutorial 0 — Setup](docs/tutorials/tut00-setup.md)
+| Tutorial | Tag | Document |
+|---|---|---|
+| 0 — Setup | `tut00` | [tut00-setup.md](docs/tutorials/tut00-setup.md) |
 
+More rows appear as tags are published. The full plan is in `docs/dev/TUTORIAL_METHOD.md`.
 
 ## For contributors
 
