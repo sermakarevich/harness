@@ -1,6 +1,6 @@
 # Tutorial 0 — Setup
 
-After this tutorial the reader has a runnable, tested workbench and knows what the series builds.
+After this tutorial you have a runnable, tested workbench and know what the series builds.
 
 ## In short
 
@@ -19,13 +19,16 @@ context and acts only through what the harness runs for it.
 
 ### Scope
 
-The finished harness grows into a tool-using loop with a permission gate, saved sessions, cost
-tracking, compaction, memory files, skills, sub-agents, and an evaluation suite. This tutorial
-builds only the workbench under all of that: settings, offline tests, the task runner, and the
-coding rules. No model call happens yet. Tutorial 1 makes one raw HTTP call with no framework and
-shows the request is stateless. The series works the same way throughout: one git tag and one `just
-tutNN` recipe per tutorial, offline tests, additive code, and one visible limitation fixed at a
-time. Read "In short" for the story and "In detail" to build it.
+This tutorial does two things. First, you get an OpenCode Go key. The Go subscription costs 10
+USD a month and is enough for the whole series; the key goes into a local `.env` file and nowhere
+else. Second, you set up the codebase scaffold: the `harness` package, settings loaded from the
+environment, three offline tests, the `just` task runner, and the coding rules in `AGENTS.md`. No
+model call happens yet. Tutorial 1 makes the first one, a raw HTTP call with no framework.
+
+Every later tutorial grows this scaffold by one concept, up to a tool-using loop with a permission
+gate, saved sessions, cost tracking, compaction, memory files, skills, sub-agents, and an
+evaluation suite. Each tutorial is one git tag and one `just tutNN` recipe, with offline tests.
+Read "In short" for the story and "In detail" to build it.
 
 ### The problem
 
@@ -60,11 +63,11 @@ $ uv run python -m harness
 
 ### How it works
 
-Running just tut00 starts with the recipes defined in justfile. Before any recipe runs, just
-loads the variables from the environment file into the process, so every step sees them. The
-setup recipe then runs uv sync, which builds the locked environment from pyproject.toml and
-uv.lock so every reader gets the same packages. Finally pytest runs the suite in tests with the slow marker excluded by the
-configuration in pyproject.toml, so no network or key is needed.
+Running just tut00 starts with the recipes defined in justfile. Before any recipe runs, just loads
+the variables from the environment file into the process, so every step sees them. The setup recipe
+then runs uv sync, which builds the locked environment from pyproject.toml and uv.lock so you get
+the same packages as everyone else. Finally pytest runs the suite in tests with the slow marker
+excluded by the configuration in pyproject.toml, so no network or key is needed.
 
 When Python code needs settings it calls load_settings from the config module in
 src/harness/config.py. That function reads the environment file without overriding real
@@ -86,8 +89,8 @@ leak it into logs.
 - Live-model tests carry the `slow` marker and stay excluded by default, so `just test` runs
   offline with no key and no network. Mocking the vendor API in every test was rejected because
   it would freeze fake request shapes instead of testing real settings behavior.
-- Only the key is required and every other field ships with a default that works, so a new
-  reader runs with one line in the environment file. Requiring every field up front was rejected
+- Only the key is required and every other field ships with a default that works, so you
+  run with one line in the environment file. Requiring every field up front was rejected
   because it would force setup work before the first run teaches anything.
 
 ### The excerpt that carries the idea
@@ -118,6 +121,7 @@ a missing key stops at startup with a fix instead of a late network error.
 
 ```bash
 git checkout tut00
+cp .env.example .env    # paste your OpenCode Go key
 just tut00
 ```
 
