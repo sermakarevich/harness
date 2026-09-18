@@ -56,7 +56,7 @@ that call the model say so; everything else runs offline.
 | 2 — Messages stack into memory | `tut02` | [tut02-messages.md](docs/tutorials/tut02-messages.md) |
 | 3 — Graph, streaming, terminal | `tut03` | [tut03-graph.md](docs/tutorials/tut03-graph.md) |
 | 4 — Tools and the agent loop | `tut04` | [tut04-tools.md](docs/tutorials/tut04-tools.md) |
-| 5 — File tools and the shell tool | `tut05` | planned |
+| 5 — File tools and the shell tool | `tut05` | [tut05-file-shell.md](docs/tutorials/tut05-file-shell.md) |
 | 6 — Permission gate | `tut06` | planned |
 | 7 — Session persistence | `tut07` | planned |
 | 8 — Token accounting and cost | `tut08` | planned |

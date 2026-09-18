@@ -5,11 +5,19 @@ Network errors show a message and the chat keeps going.
 
 from __future__ import annotations
 
+import re
+
 from langchain_core.messages import AIMessageChunk, HumanMessage, ToolMessage
 
 from harness.model.text import text_of
 
 TOOL_ARROW = "→"
+TOOL_ARG_WIDTH = 60
+
+
+def shorten(value: object) -> str:
+    text = re.sub(r"\s+", " ", str(value))
+    return text if len(text) <= TOOL_ARG_WIDTH else text[:TOOL_ARG_WIDTH] + "…"
 
 
 class StreamState:
@@ -26,7 +34,7 @@ def show_tool_call(console, message: ToolMessage, state: StreamState) -> None:
     if state.printed_text:
         console.print()
         state.printed_text = False
-    args = " ".join(f"{key}={value}" for key, value in call.get("args", {}).items())
+    args = " ".join(f"{key}={shorten(value)}" for key, value in call.get("args", {}).items())
     console.print(
         f"{TOOL_ARROW} {call.get('name')} {args}".rstrip(),
         style="dim",

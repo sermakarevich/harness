@@ -29,6 +29,7 @@ class Settings:
     model: str
     user_agent: str
     timeout_seconds: int
+    shell_timeout_seconds: int
 
 
 def load_settings(env_file: str | Path | None = None) -> Settings:
@@ -56,4 +57,5 @@ def load_settings(env_file: str | Path | None = None) -> Settings:
         model=settings.model,
         user_agent=settings.user_agent,
         timeout_seconds=settings.timeout_seconds,
+        shell_timeout_seconds=settings.shell_timeout_seconds,
     )

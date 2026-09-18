@@ -6,8 +6,7 @@ from pathlib import Path
 
 from langchain_core.tools import tool
 
-OUTSIDE_MESSAGE = "path is outside the working directory: {path}"
-MISSING_MESSAGE = "file not found: {path}"
+from harness.tools.paths import MISSING_MESSAGE, OUTSIDE_MESSAGE, resolve_inside
 
 
 def read_file_tool(cwd: Path):
@@ -17,9 +16,8 @@ def read_file_tool(cwd: Path):
     @tool
     def read_file(path: str) -> str:
         """Read a text file under the working directory. Paths are relative to it."""
-        candidate = Path(path)
-        target = candidate.resolve() if candidate.is_absolute() else (root / candidate).resolve()
-        if target != root and root not in target.parents:
+        target = resolve_inside(root, path)
+        if target is None:
             return OUTSIDE_MESSAGE.format(path=path)
         if not target.is_file():
             return MISSING_MESSAGE.format(path=path)
