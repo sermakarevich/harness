@@ -23,18 +23,8 @@ lint:
 test:
     uv run pytest -q
 
-# Tutorial 0 has no code to run; it is `just setup` + `just test`
-tut00: setup test
-
-# Tutorial 1: one raw HTTP call to the model, no framework
-tut01:
-    uv run python scripts/raw_call.py
-
-# Tutorial 2: the LangChain adapter live check
-tut02: smoke
-
-# Tutorial 3: the conversation loop in the terminal
-tut03: run
+# Shows what the latest tutorial built
+tutorial: run
 
 # Live check of the LangChain adapter (uses your key; run sparingly)
 smoke:

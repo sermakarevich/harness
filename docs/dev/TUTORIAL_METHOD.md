@@ -12,14 +12,18 @@ tutorial 3's code, not the finished harness. This document says how we do that.
    with something the chat cannot do yet, adds the smallest code that fixes it, and
    ends with a command the reader can run and see.
 3. **The git history is the tutorial.** Every tutorial ends in a git tag (`tut03`).
-   The tutorial document walks through `git diff tut02..tut03`. The reader checks out
-   the tag, runs `just tut03`, reads the diff.
+   The reader checks out the tag, runs `just tutorial`, reads `git diff tut02..tut03`.
+   Code runs at the tag, never from `main`: `main` is the latest code and is not kept
+   runnable for older tutorials. The documents stay on `main` for reading and for the
+   book.
 
 ## What this means for the code
 
 - Tutorials are additive. Once a tag exists, the code under it is not refactored.
   A change that cuts across old tutorials becomes its own tutorial.
-- Every tutorial has a `just tutNN` recipe that shows the new ability in the terminal.
+- Every tag has one `just tutorial` recipe that shows what that tutorial built. The
+  recipe body changes from tag to tag; the name does not. No tag carries recipes for
+  older tutorials, so `main` equals the last tag with nothing to strip.
 - Every tutorial has tests that run without a network connection.
 - The layout follows `AGENTS.md`: layers as folders, small files, imports point down.
 
@@ -58,7 +62,7 @@ words each. It is the checklist for whoever writes the tutorial.
 | # | Concept | Explained | What the reader sees at the end |
 |---|---|---|---|
 | 0 | Project setup | agent = model + harness, and the harness decides most of the result; what the finished harness will do; how the series works: one tag, one recipe, offline tests per tutorial; where settings live and how they are overridden | `just setup`, `just test` green |
-| 1 | One raw model call [1] | a request is plain HTTP; the key travels in a header; the request is stateless: nothing is kept between calls; the reply is a list of typed blocks (reasoning, text) | `just tut01` prints `pong` |
+| 1 | One raw model call [1] | a request is plain HTTP; the key travels in a header; the request is stateless: nothing is kept between calls; the reply is a list of typed blocks (reasoning, text) | `just tutorial` prints `pong` |
 | 2 | Messages stack into memory [2, 3, 4] | three roles: system, user, assistant; the list *is* the memory; every turn resends the whole list; so the context grows each turn; the system prompt sits first and shapes every answer; a new chat is an empty list | chat that remembers within a session, `/new` forgets |
 | 3 | Adapter, graph, streaming [1, 5] | one adapter hides vendor quirks; one graph node is one turn; a checkpointer keeps the list per thread id; tokens arrive one by one, so print them as they come; the read-print loop of a terminal | `just smoke` streams tokens; `just run` opens the chat |
 | 4 | Tools and the agent loop [7, 8] | a tool is a schema plus a function; the model asks, the harness runs; the result goes back as a tool message; loop until the model stops asking; first tool: read a file | model reads a file you name |
