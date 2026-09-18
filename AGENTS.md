@@ -21,6 +21,14 @@ They bind humans, Claude Code, and fleet workers alike.
 - Spell out every abbreviation the first time it appears in a document (for example: LLM, large language model).
 - Short sentences. One idea per sentence.
 
+## Hierarchy: high calls low, folders show the layers
+
+- Code is organised top-down. A higher-level function calls lower-level functions, never the other way round. Imports point down the hierarchy only; no cycles.
+- Folders mirror the layers. The entry point sits at the top, then the user interface, then the conversation logic, then model transport, then settings at the bottom.
+- Each file is small and does one thing. A file that needs a second job gets a sibling file, not a second class.
+- A file name says what the file does in one or two plain words (`prompt.py`, `render.py`), never `utils.py`, `helpers.py`, `common.py`.
+- Each folder has a short `__init__.py` docstring saying what layer it is and what lives below it.
+
 ## Project conventions
 
 - Python 3.12+, managed by `uv`; run everything through `uv run` or `just`.
