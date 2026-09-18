@@ -58,50 +58,43 @@ $ uv run python -m harness
 
 ## In detail
 
-### The change, file by file
+### How it works
+
+Running just tut00 starts with the recipes defined in justfile. The setup recipe first loads
+variables from the environment file into the process so later steps see them. Then uv sync
+builds the locked environment from pyproject.toml and uv.lock so every reader gets the same
+packages. Finally pytest runs the suite in tests with the slow marker excluded by the
+configuration in pyproject.toml, so no network or key is needed.
+
+When Python code needs settings it calls load_settings from the config module in
+src/harness/config.py. That function reads the environment file without overriding real
+environment variables, so deploys win over local files. It then looks for the key and fails
+fast with ConfigError when the key is missing or blank instead of failing later at request
+time. Every other field falls back to its default in Settings, so base URL, model, and user
+agent work with no extra setup. The call returns a frozen Settings object that carries the
+resolved values together. That object hides the key from printed forms, so repr and str never
+leak it into logs.
+
+### Design decisions
+
+- A frozen dataclass with plain defaults keeps settings in one readable place with few moving
+  parts, and the price is no validation beyond the key. A settings library was rejected because
+  it would add concepts and config layers for four fields.
+- Environment variable names live in `ENV_*` constants next to the settings they feed, so a
+  rename is one edit in one file. String literals at each call site were rejected because the
+  same name would drift across copies.
+- Live-model tests carry the `slow` marker and stay excluded by default, so `just test` runs
+  offline with no key and no network. Mocking the vendor API in every test was rejected because
+  it would freeze fake request shapes instead of testing real settings behavior.
+- Only the key is required and every other field ships with a default that works, so a new
+  reader runs with one line in the environment file. Requiring every field up front was rejected
+  because it would force setup work before the first run teaches anything.
+
+### The excerpt that carries the idea
 
 **New file `src/harness/config.py`**
 
-Settings holds the defaults for the base URL, the model name, and the user agent, while `ENV_*`
-constants name the variables that override each field. Loading works in layers from weakest to
-strongest: code defaults, then a `.env` file loaded with `override=False`, then real variables in
-the surroundings. A real variable beats the file because deploys must win over local files without
-anyone editing them. The key is required, so an empty key fails fast with `ConfigError` instead of a
-late network error. The key field uses `repr=False`, which keeps it out of every printed object.
-
 ```python
-"""Settings: where the model lives and the key that lets us in.
-
-Reads the key from the environment so it never leaks into logs. We also send
-our own app name with each request because the server blocks generic names.
-"""
-
-from __future__ import annotations
-
-import os
-from dataclasses import dataclass, field
-from pathlib import Path
-
-from dotenv import load_dotenv
-
-ENV_API_KEY = "OPENCODE_API_KEY"
-ENV_BASE_URL = "HARNESS_BASE_URL"
-ENV_MODEL = "HARNESS_MODEL"
-ENV_USER_AGENT = "HARNESS_USER_AGENT"
-
-
-class ConfigError(RuntimeError):
-    """Raised when a required setting is missing."""
-
-
-@dataclass(frozen=True)
-class Settings:
-    api_key: str = field(repr=False)
-    base_url: str = "https://opencode.ai/zen/go/v1"
-    model: str = "muse-spark-1.3-contributor"
-    user_agent: str = "harness-dev/0.1"
-
-
 def load_settings(env_file: str | Path | None = None) -> Settings:
     load_dotenv(env_file, override=False)
     api_key = os.environ.get(ENV_API_KEY, "").strip()
@@ -117,59 +110,9 @@ def load_settings(env_file: str | Path | None = None) -> Settings:
     )
 ```
 
-**New file `tests/test_config.py`**
-
-`test_load_settings_reads_key` proves the key loads from the environment while model and URL fall
-back to defaults. `test_missing_key_raises` proves an empty key fails fast with `ConfigError`.
-`test_repr_never_leaks_key` proves the key stays out of printed output.
-
-```python
-import pytest
-
-from harness.config import ConfigError, Settings, load_settings
-
-
-def test_load_settings_reads_key(monkeypatch):
-    monkeypatch.setenv("OPENCODE_API_KEY", "test-key-123")
-    s = load_settings(env_file="/nonexistent/.env")
-    assert s.api_key == "test-key-123"
-    assert s.model == "muse-spark-1.3-contributor"
-    assert s.base_url.startswith("https://opencode.ai/zen/go")
-
-
-def test_missing_key_raises(monkeypatch):
-    monkeypatch.delenv("OPENCODE_API_KEY", raising=False)
-    with pytest.raises(ConfigError):
-        load_settings(env_file="/nonexistent/.env")
-
-
-def test_repr_never_leaks_key():
-    s = Settings(api_key="super-secret")
-    assert "super-secret" not in repr(s)
-    assert "super-secret" not in str(s)
-```
-
-**New file `pyproject.toml`**
-
-Only the pytest block matters here. The `slow` marker names the tests that need a network or a live
-model, and `addopts` excludes them, so later tutorials can add live-model tests while `just test`
-still runs offline with no key.
-
-```toml
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-addopts = "-m 'not slow'"
-markers = ["slow: needs network or a live model; excluded by default"]
-```
-
-**New file `justfile`**
-
-Tutorial 0 has no program to run, so its recipe chains the two checks: install the locked setup,
-then run the offline tests.
-
-```just
-tut00: setup test
-```
+The `override=False` argument keeps real environment variables ahead of the file, so a local
+file never wins on a deploy by accident. The empty-key branch raises `ConfigError` at once, so
+a missing key stops at startup with a fix instead of a late network error.
 
 ### Run it
 
