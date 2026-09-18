@@ -1,10 +1,17 @@
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
+from langgraph.types import Command
 
 from harness.chat.graph import build_graph
 from harness.chat.session import Session
 from harness.chat.thread import thread_config
 from harness.model.client import new_session_id
+from harness.tools.permission import DENIED_MESSAGE, Answer
+from harness.tools.write_file import WRITTEN_MESSAGE
 from tests.conftest import FakeToolChatModel
+
+
+def tool_call(name, args, call_id="call-1"):
+    return {"name": name, "args": args, "id": call_id, "type": "tool_call"}
 
 
 def fake_model():
@@ -75,3 +82,90 @@ def test_tool_loop_reads_file_and_answers(tmp_path, settings):
     assert isinstance(msgs[1], AIMessage) and msgs[1].tool_calls
     assert isinstance(msgs[2], ToolMessage) and msgs[2].content == "hello"
     assert isinstance(msgs[3], AIMessage) and msgs[3].content == "done"
+
+
+def write_call_model(*replies):
+    return FakeToolChatModel(messages=iter(list(replies)))
+
+
+def test_write_file_pauses_before_running(tmp_path, settings):
+    model = write_call_model(
+        AIMessage(
+            content="",
+            tool_calls=[tool_call("write_file", {"path": "note.txt", "content": "hello"})],
+        ),
+        AIMessage(content="done"),
+    )
+    session = Session.start(settings, cwd=tmp_path, model=model)
+    session.graph.invoke({"messages": [HumanMessage(content="write it")]}, session.config)
+    target = tmp_path / "note.txt"
+    assert not target.exists()
+    pending = session.pending_request()
+    assert pending["name"] == "write_file"
+    assert pending["args"] == {"path": "note.txt", "content": "hello"}
+    session.graph.invoke(Command(resume=Answer.YES), session.config)
+    assert target.read_text() == "hello"
+    msgs = session.graph.get_state(session.config).values["messages"]
+    assert isinstance(msgs[-2], ToolMessage)
+    assert msgs[-2].content == WRITTEN_MESSAGE.format(path="note.txt")
+
+
+def test_write_file_denied_runs_nothing(tmp_path, settings):
+    model = write_call_model(
+        AIMessage(
+            content="",
+            tool_calls=[tool_call("write_file", {"path": "note.txt", "content": "hello"})],
+        ),
+        AIMessage(content="denied, stopping"),
+    )
+    graph = build_graph(model, settings, cwd=tmp_path)
+    cfg = thread_config("gate-no")
+    graph.invoke({"messages": [HumanMessage(content="write it")]}, cfg)
+    assert not (tmp_path / "note.txt").exists()
+    graph.invoke(Command(resume=Answer.NO), cfg)
+    assert not (tmp_path / "note.txt").exists()
+    msgs = graph.get_state(cfg).values["messages"]
+    assert isinstance(msgs[-2], ToolMessage) and msgs[-2].content == DENIED_MESSAGE
+
+
+def test_always_answer_skips_the_next_pause(tmp_path, settings):
+    model = write_call_model(
+        AIMessage(
+            content="",
+            tool_calls=[tool_call("write_file", {"path": "a.txt", "content": "a"})],
+        ),
+        AIMessage(content="one"),
+        AIMessage(
+            content="",
+            tool_calls=[
+                tool_call("write_file", {"path": "b.txt", "content": "b"}, call_id="call-2")
+            ],
+        ),
+        AIMessage(content="two"),
+    )
+    graph = build_graph(model, settings, cwd=tmp_path)
+    cfg = thread_config("gate-always")
+    graph.invoke({"messages": [HumanMessage(content="first")]}, cfg)
+    graph.invoke(Command(resume=Answer.ALWAYS), cfg)
+    assert (tmp_path / "a.txt").read_text() == "a"
+    graph.invoke({"messages": [HumanMessage(content="second")]}, cfg)
+    assert graph.get_state(cfg).interrupts == ()
+    assert (tmp_path / "b.txt").read_text() == "b"
+
+
+def test_read_file_never_pauses(tmp_path, settings):
+    target = tmp_path / "note.txt"
+    target.write_text("hello")
+    model = write_call_model(
+        AIMessage(
+            content="",
+            tool_calls=[tool_call("read_file", {"path": "note.txt"})],
+        ),
+        AIMessage(content="done"),
+    )
+    graph = build_graph(model, settings, cwd=tmp_path)
+    cfg = thread_config("gate-read")
+    graph.invoke({"messages": [HumanMessage(content="read it")]}, cfg)
+    assert graph.get_state(cfg).interrupts == ()
+    msgs = graph.get_state(cfg).values["messages"]
+    assert isinstance(msgs[-2], ToolMessage) and msgs[-2].content == "hello"

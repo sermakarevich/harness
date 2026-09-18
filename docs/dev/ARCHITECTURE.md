@@ -6,26 +6,36 @@ table, and the "Build order" section of that document first.
 
 ## 1. Module map
 
-The real layered tree (`find src -name '*.py' | sort`):
+The real tree, layer by layer from the top down:
 
 ```text
 src/harness/__init__.py       package root
 src/harness/__main__.py       `just run` entry point: load settings, start the chat
-src/harness/chat/__init__.py  conversation layer: graph, session, thread, prompt, state
+src/harness/config.py         settings and key loading from `.env`; key hidden from `repr`
+src/harness/tui/__init__.py   terminal layer: app, commands, render, ask
+src/harness/tui/app.py        terminal chat loop (App delegates to commands and render)
+src/harness/tui/ask.py        the permission question and its yes / always / no answers
+src/harness/tui/commands.py   slash commands (handle_command for /new, /help, /exit)
+src/harness/tui/render.py     one turn plus streamed reply rendering (run_turn, render_event)
+src/harness/chat/__init__.py  conversation layer: graph, session, thread, prompt, state, tools node
 src/harness/chat/graph.py     the agent loop as a graph (build_graph plus call_model)
 src/harness/chat/prompt.py    system prompt assembly (build_system_prompt)
 src/harness/chat/prompts/system.txt system prompt text with {today} and {cwd} slots
+src/harness/chat/run_tools.py the tools node: ask about every risky call, then run them
 src/harness/chat/session.py   one conversation id bound to its model and graph
 src/harness/chat/state.py     conversation state (HarnessState); one field per harness job
 src/harness/chat/thread.py    session ids (new_session_id) and thread config
-src/harness/config.py         settings and key loading from `.env`; key hidden from `repr`
+src/harness/tools/__init__.py tool layer: one file per tool plus the shared path and policy rules
+src/harness/tools/edit_file.py  replaces one exact piece of text in a file
+src/harness/tools/paths.py    resolves every path under the working directory
+src/harness/tools/permission.py which tool names run without a question
+src/harness/tools/read_file.py  reads one file
+src/harness/tools/registry.py lists the tools the model may call
+src/harness/tools/shell.py    runs one command with a timeout
+src/harness/tools/write_file.py creates or overwrites one file
 src/harness/model/__init__.py model layer: client plus text helper
 src/harness/model/client.py   the single seam where a model object is built (make_model)
 src/harness/model/text.py     plain-text reader for model replies (text_of)
-src/harness/tui/__init__.py   terminal layer: app plus commands plus render
-src/harness/tui/app.py        terminal chat loop (App delegates to commands and render)
-src/harness/tui/commands.py   slash commands (handle_command for /new, /help, /exit)
-src/harness/tui/render.py     one turn plus streamed reply rendering (run_turn, render_event)
 ```
 
 Tutorial 1 wrote `model/client.py` as one raw HTTP call and tutorial 2 replaced it with the
@@ -51,8 +61,13 @@ a lower file never imports from a file above it.
    Go with the `x-opencode-session` header.
 6. Token chunks stream back through `stream_mode="messages"` events.
 7. `render_event` (`src/harness/tui/render.py`) prints each assistant chunk as it arrives via `text_of` (`src/harness/model/text.py`).
-8. The final message is appended to state (`src/harness/chat/state.py`) and saved under the `thread_id`.
-9. If the call fails, `run_turn` prints the error and the loop continues.
+8. If the reply asks for a tool, the graph routes to `run_tools` (`src/harness/chat/run_tools.py`),
+   which pauses the turn with `interrupt()` for every call that `src/harness/tools/permission.py`
+   does not list as safe. `run_turn` reads the waiting question from the saved state, asks it with
+   `src/harness/tui/ask.py`, and resumes the graph with your answer. Allowed calls run, denied
+   calls come back as a tool message saying so, and the model is called again from step 4.
+9. The final message is appended to state (`src/harness/chat/state.py`) and saved under the `thread_id`.
+10. If the call fails, `run_turn` prints the error and the loop continues.
 
 ## 3. Operations map
 
@@ -73,7 +88,7 @@ hints in OPERATIONS.md).
 | 9 | Parallel tool calls | 4 | planned | `ToolNode` runs siblings concurrently; `Send` fan-out for custom work |
 | 10 | File tools | 2 | partial | `tools/read_file.py`, `write_file.py`, `edit_file.py` with path checks in `tools/paths.py` (`tut05`); no search, no output caps yet |
 | 11 | Shell execution | 2 | partial | `tools/shell.py` around `subprocess` with timeout and exit code (`tut05`); output not trimmed yet |
-| 12 | Permission / approval gate | 4 | planned | `interrupt()` in the tools node in `chat/graph.py`, rendered in `tui/render.py` |
+| 12 | Permission / approval gate | 4 | done | `tools/permission.py` names the safe tools, `chat/run_tools.py` pauses with `interrupt()`, `tui/ask.py` asks (`tut06`) |
 | 13 | Session persistence | 3 | partial | In-memory only in `chat/graph.py`; swap `InMemorySaver` for `SqliteSaver` |
 | 14 | Snapshot & revert | 5 | planned | `get_state_history`/`update_state` on `chat/graph.py` + per-turn working-directory Snapshot |
 | 15 | Token accounting & cost | 3 | planned | `usage_metadata` + rate table against the model catalog |

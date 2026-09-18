@@ -8,12 +8,14 @@ from langchain_core.tools import tool
 
 from harness.tools.paths import MISSING_MESSAGE, OUTSIDE_MESSAGE, resolve_inside
 
+TOOL_NAME = "read_file"
+
 
 def read_file_tool(cwd: Path):
     """Build the file-reading tool for one working directory."""
     root = cwd.resolve()
 
-    @tool
+    @tool(TOOL_NAME)
     def read_file(path: str) -> str:
         """Read a text file under the working directory. Paths are relative to it."""
         target = resolve_inside(root, path)
