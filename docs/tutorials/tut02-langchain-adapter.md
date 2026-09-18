@@ -12,7 +12,7 @@ it lives in `src/harness/model/client.py` (`make_model`) and
 just smoke
 ```
 
-Expected output (verified against the live endpoint, see `docs/NOTES.md`):
+Expected output (verified against the live endpoint, see `docs/dev/NOTES.md`):
 
 ```text
 invoke  : pong
@@ -71,13 +71,13 @@ def text_of(message: BaseMessage) -> str:
 
 A plain chat model returns `content` as a simple string. Ours does not: the
 Responses API returns a list of typed blocks (reasoning and `output_text`
-dictionaries), as the transport spike in `docs/NOTES.md` discovered. `text_of`
+dictionaries), as the transport spike in `docs/dev/NOTES.md` discovered. `text_of`
 joins the `text` and `output_text` blocks into one string, so the rest of the
 harness never cares which shape arrived.
 
 ## The transport spike outcome
 
-From the "LangChain adapter" section of `docs/NOTES.md`: the primary path
+From the "LangChain adapter" section of `docs/dev/NOTES.md`: the primary path
 worked on the first try — plain `ChatOpenAI` with `use_responses_api=True`
 and the session id plus user agent in `default_headers`. No custom fallback
 class was needed. `just tut01` printed `pong`; `just smoke` printed the three

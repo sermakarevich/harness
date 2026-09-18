@@ -45,7 +45,7 @@ not the older `chat/completions` endpoint because this is a per-model rule:
 GPT and Muse-Spark models live behind `/responses`, while DeepSeek, GLM and
 Kimi use `/chat/completions` and Qwen and MiniMax use `/messages`. Our
 default model is `muse-spark-1.3-contributor`, so `/responses` it is
-(see `docs/NOTES.md` for the verified mapping).
+(see `docs/dev/NOTES.md` for the verified mapping).
 
 The headers carry the two mandatory credentials plus an identifier.
 `Authorization: Bearer …` proves who we are — bare requests without it are

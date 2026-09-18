@@ -62,7 +62,7 @@ src/harness/tui/commands.py   slash commands (/new, /help, /exit)
 src/harness/tui/render.py     one turn plus streamed reply rendering
 src/harness/__main__.py       `just run` entry point: starts the terminal chat
 scripts/raw_call.py      tutorial 1: one raw HTTP call, no framework
-docs/NOTES.md            verified transport notes from the live spike
+docs/dev/NOTES.md            verified transport notes from the live spike
 docs/harnesses/OPERATIONS.md  the 24 operations we are building toward
 ```
 

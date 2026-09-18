@@ -13,8 +13,8 @@ just test
 just run               # terminal chat arrives in a later step
 ```
 
-See `docs/GOAL.md` for the tutorial plan and `docs/harnesses/OPERATIONS.md` for
-background on how harnesses run agents.
+Start with the tutorials below. `docs/harnesses/` holds background on how three
+existing harnesses run agents, cited from the tutorials.
 
 ## Tutorial
 
@@ -24,5 +24,11 @@ background on how harnesses run agents.
 - [Tutorial 3 — The conversation loop](docs/tutorials/tut03-conversation-loop.md): memory within a session.
 
 Run them as `just tut00`, `just tut01`, `just tut02`, `just tut03`.
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for how the code maps to the
-24 harness operations.
+
+
+## For contributors
+
+Everything about how this repo is built lives in `docs/dev/`: the tutorial method
+and plan (`TUTORIAL_METHOD.md`), the tutorial template, the architecture map
+(`ARCHITECTURE.md`), the goal and the verified transport notes. Coding rules are in
+`AGENTS.md`.
