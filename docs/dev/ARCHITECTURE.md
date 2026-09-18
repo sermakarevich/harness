@@ -65,14 +65,14 @@ hints in OPERATIONS.md).
 | 1 | Pure LLM call | 1 | done | `model/client.py` (raw `httpx` at `tut01`, LangChain since `tut02`) |
 | 2 | Streaming | 1 | done | `tui/render.py run_turn` + `stream_mode="messages"` |
 | 3 | Conversation state | 2 | done | `chat/state.py` + `InMemorySaver` in `chat/graph.py` |
-| 4 | System prompt assembly | 2 | partial | `chat/prompt.py` (static three lines today; tools and memory append here) |
+| 4 | System prompt assembly | 2 | partial | `chat/prompt.py` (four static lines, one names the tools; memory appends here) |
 | 5 | Provider & model abstraction | 3 | partial | `make_model` in `model/client.py` is the single seam; no catalog yet |
 | 6 | Reliability | 4 | planned | `RetryPolicy` on `call_model` in `chat/graph.py` + `with_retry`/`with_fallbacks` on the model |
-| 7 | Tool definitions | 2 | planned | `@tool` functions bound via `bind_tools`, run by a `tools` node in `chat/graph.py` |
-| 8 | Agent loop | 2 | planned | `tools` node + conditional edge (`tools_condition`) in `chat/graph.py` |
+| 7 | Tool definitions | 2 | done | `@tool` functions in `tools/`, listed in `tools/registry.py`, bound via `bind_tools` (`tut04`) |
+| 8 | Agent loop | 2 | done | `tools` node + conditional edge (`tools_condition`) in `chat/graph.py` (`tut04`) |
 | 9 | Parallel tool calls | 4 | planned | `ToolNode` runs siblings concurrently; `Send` fan-out for custom work |
-| 10 | File tools | 2 | planned | `@tool` read/write/edit/search functions with path checks and output caps |
-| 11 | Shell execution | 2 | planned | `@tool` around `subprocess` with timeout, exit code, trimmed output |
+| 10 | File tools | 2 | partial | `tools/read_file.py`, `write_file.py`, `edit_file.py` with path checks in `tools/paths.py` (`tut05`); no search, no output caps yet |
+| 11 | Shell execution | 2 | partial | `tools/shell.py` around `subprocess` with timeout and exit code (`tut05`); output not trimmed yet |
 | 12 | Permission / approval gate | 4 | planned | `interrupt()` in the tools node in `chat/graph.py`, rendered in `tui/render.py` |
 | 13 | Session persistence | 3 | partial | In-memory only in `chat/graph.py`; swap `InMemorySaver` for `SqliteSaver` |
 | 14 | Snapshot & revert | 5 | planned | `get_state_history`/`update_state` on `chat/graph.py` + per-turn working-directory Snapshot |
