@@ -19,8 +19,15 @@ tutorial 3's code, not the finished harness. This document says how we do that.
 
 ## What this means for the code
 
-- Tutorials are additive. Once a tag exists, the code under it is not refactored.
-  A change that cuts across old tutorials becomes its own tutorial.
+- Everything lives under `src/`. A concept first appears in its simplest form and a later
+  tutorial replaces that form with the real one in the same file or folder. The diff between
+  two neighbouring tags is still one concept. Nothing stays in the tree that the finished
+  harness does not use: no teaching scripts, no old versions kept next to new ones.
+- Every tutorial from 1 on runs through `python -m harness`. The entry point grows with the
+  series: one call, then a chat, then a terminal.
+- Every tutorial shows its concept with a real run. A tutorial that removes a limitation
+  first shows the limitation with the code of the tutorial before, then the fix. The
+  document copies both runs.
 - Every tag has one `just tutorial` recipe that shows what that tutorial built. The
   recipe body changes from tag to tag; the name does not. No tag carries recipes for
   older tutorials, so `main` equals the last tag with nothing to strip.
@@ -81,10 +88,10 @@ words each. It is the checklist for whoever writes the tutorial.
 | 17 | Evaluation | a fixed set of tasks; a score before and after a change; catch regressions, not just wins | a number before and after a harness change |
 
 The code for tutorials 1 to 3 exists on `main` and is rebuilt on the `tutorial` branch
-in three additive steps. Tutorial 2 is taught with a plain message list first; the graph
-and checkpointer arrive in tutorial 3 as the tidy way to keep that list. Scripts that
-exist only to teach (`scripts/raw_call.py`, `scripts/chat_list.py`) stay in the tree; they
-are the runnable form of a tutorial, not dead code.
+in three steps. Tutorial 1 talks to the server with plain `httpx` inside the model layer.
+Tutorial 2 replaces that with the LangChain adapter and keeps the conversation as a plain
+message list. Tutorial 3 replaces the list with a graph and a checkpointer and adds the
+terminal. Each step replaces the simplest form with the next; nothing is kept only to teach.
 
 Operations 14, 23 and 24 (snapshot and revert, hooks and plugins, background work)
 are out of scope for the tutorial. They matter for a product, less for learning.
