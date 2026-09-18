@@ -2,7 +2,7 @@
 
 from enum import StrEnum
 
-from harness.tools.read_file import TOOL_NAME
+from harness.tools.read_file import TOOL_NAME as READ_FILE
 
 
 class Answer(StrEnum):
@@ -11,7 +11,7 @@ class Answer(StrEnum):
     NO = "no"
 
 
-SAFE_TOOLS = frozenset({TOOL_NAME})
+SAFE_TOOLS = frozenset({READ_FILE})
 
 DENIED_MESSAGE = "denied by the user"
 

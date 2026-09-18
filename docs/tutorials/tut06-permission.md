@@ -59,7 +59,7 @@ src/harness/
 +   ask.py                asks yes, always, or no
 ~   app.py                reads one echoed line
 ~   render.py             pauses the stream to ask, then resumes
-~   tests/                offline tests for asking, denying, and always
+~ tests/                  offline tests for asking, denying, and always
 ```
 
 ## In detail
@@ -95,20 +95,18 @@ just tutorial
 ```
 
 ```text
-harness · model muse-spark-1.3-contributor · session f77be8ae · /help for
+harness · model muse-spark-1.3-contributor · session d22f4335 · /help for
 commands
 > Create a file hello.txt here containing the word hello. Do not run any other
 tool afterwards.
-Creating hello.txt with the requested content.allow write_file content=hello path=hello.txt? [y]es/[a]lways/[n]o y
-
+Creating your hello.txt file.
+allow write_file content=hello path=hello.txt? [y]es/[a]lways/[n]o y
 → write_file content=hello path=hello.txt
-Done, hello.txt now contains hello.
+Done — hello.txt contains hello.
 > Now delete hello.txt with a shell command.
-Deleting hello.txt as requested.allow shell command=rm hello.txt? [y]es/[a]lways/[n]o n
+Deleting hello.txt as requested.
+allow shell command=rm hello.txt? [y]es/[a]lways/[n]o n
 Couldn't delete hello.txt — the shell command was denied.
-error: TypeError: Additional kwargs key created_at already exists in left dict
-and value has unsupported type <class 'float'>.
-
 > /exit
 ```
 
