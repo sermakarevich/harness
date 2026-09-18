@@ -33,4 +33,5 @@ def settings(monkeypatch):
     monkeypatch.delenv("HARNESS_BASE_URL", raising=False)
     monkeypatch.delenv("HARNESS_USER_AGENT", raising=False)
     monkeypatch.delenv("HARNESS_TIMEOUT_SECONDS", raising=False)
+    monkeypatch.delenv("HARNESS_SHELL_TIMEOUT_SECONDS", raising=False)
     return load_settings(env_file="/nonexistent/.env")

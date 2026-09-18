@@ -80,3 +80,75 @@ def test_run_turn_prints_tool_call_before_answer(settings, tmp_path):
     out = buf.getvalue()
     assert "→ read_file path=" in out
     assert out.index("→ read_file path=") < out.index("done")
+
+
+def test_run_turn_shortens_long_tool_arg(settings, tmp_path):
+    model = FakeToolChatModel(
+        messages=iter(
+            [
+                AIMessage(
+                    content="",
+                    tool_calls=[
+                        {
+                            "name": "write_file",
+                            "args": {"path": "note.txt", "content": "x" * 200},
+                            "id": "call-1",
+                            "type": "tool_call",
+                        }
+                    ],
+                ),
+                AIMessage(content="done"),
+            ]
+        )
+    )
+    buf = StringIO()
+    app = App(
+        settings,
+        console=Console(file=buf, width=200, force_terminal=False),
+        cwd=tmp_path,
+        model=model,
+    )
+    app.run_turn("write it")
+    line = next(line for line in buf.getvalue().splitlines() if "→ write_file" in line)
+    assert len(line) < 120
+    assert "…" in line
+
+
+def test_run_turn_shows_every_tool_call_of_one_reply(settings, tmp_path):
+    model = FakeToolChatModel(
+        messages=iter(
+            [
+                AIMessage(
+                    content="",
+                    tool_calls=[
+                        {
+                            "name": "write_file",
+                            "args": {"path": "a.txt", "content": "a"},
+                            "id": "call-1",
+                            "type": "tool_call",
+                        },
+                        {
+                            "name": "write_file",
+                            "args": {"path": "b.txt", "content": "b"},
+                            "id": "call-2",
+                            "type": "tool_call",
+                        },
+                    ],
+                ),
+                AIMessage(content="done"),
+            ]
+        )
+    )
+    buf = StringIO()
+    app = App(
+        settings,
+        console=Console(file=buf, width=200, force_terminal=False),
+        cwd=tmp_path,
+        model=model,
+    )
+    app.run_turn("write both")
+    out = buf.getvalue()
+    assert "→ write_file path=a.txt" in out
+    assert "→ write_file path=b.txt" in out
+    assert out.index("→ write_file path=a.txt") < out.index("done")
+    assert out.index("→ write_file path=b.txt") < out.index("done")

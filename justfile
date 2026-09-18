@@ -26,6 +26,7 @@ test:
 # Shows what this tutorial built
 tutorial: run
 
-# Pipes a file-reading request into the chat (uses your key; run sparingly)
+# Pipes a write, test, fix exchange into the chat, then removes the scratch files (uses your key; run sparingly)
 smoke:
-    printf 'Read the file README.md and tell me its first heading. Answer with the heading only.\n/exit\n' | uv run python -m harness
+    printf 'Write scratch_math.py with a function add(a, b) that on purpose returns a - b, and test_scratch_math.py with one test that add(2, 3) == 5. Then run pytest -q test_scratch_math.py and tell me the result in one line.\nNow fix the bug in scratch_math.py with the smallest possible edit, run the same pytest command again and tell me the result in one line.\n/exit\n' | uv run python -m harness
+    rm -f scratch_math.py test_scratch_math.py

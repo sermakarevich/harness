@@ -30,7 +30,7 @@ def build_graph(
     cwd: Path | None = None,
 ):
     system_prompt = build_system_prompt(settings, cwd)
-    tools = build_tools(cwd or Path.cwd())
+    tools = build_tools(cwd or Path.cwd(), settings.shell_timeout_seconds)
     bound = model.bind_tools(tools)
 
     def call_model(state: HarnessState) -> dict:
