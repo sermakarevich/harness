@@ -37,16 +37,21 @@ class StreamState:
         self.denied: set[str] = set()
 
 
+def end_line(console, state: StreamState) -> None:
+    if state.printed_text:
+        console.print()
+        state.printed_text = False
+
+
 def show_tool_call(console, message: ToolMessage, state: StreamState) -> None:
+    state.tools_shown = True
     if message.tool_call_id in state.denied:
         return
     calls = state.chunks.tool_calls if state.chunks is not None else []
     call = next((c for c in calls or [] if c.get("id") == message.tool_call_id), None)
     if call is None:
         return
-    if state.printed_text:
-        console.print()
-        state.printed_text = False
+    end_line(console, state)
     console.print(
         f"{TOOL_ARROW} {call_text(call.get('name'), call.get('args', {}))}",
         style="dim",
@@ -54,7 +59,6 @@ def show_tool_call(console, message: ToolMessage, state: StreamState) -> None:
         highlight=False,
         soft_wrap=True,
     )
-    state.tools_shown = True
 
 
 def render_event(console, message, meta: dict, state: StreamState) -> None:
@@ -91,6 +95,7 @@ def run_turn(app, text: str) -> None:
             pending = app.session.pending_request()
             if pending is None:
                 break
+            end_line(app.console, state)
             answer = ask_permission(app, call_text(pending["name"], pending["args"]))
             if answer == Answer.NO:
                 state.denied.add(pending["id"])

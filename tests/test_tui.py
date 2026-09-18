@@ -1,11 +1,12 @@
 from io import StringIO
 
-from langchain_core.messages import AIMessage
+from langchain_core.messages import AIMessage, AIMessageChunk, ToolMessage
 from rich.console import Console
 
 from harness.tools.permission import Answer
 from harness.tui.app import App
 from harness.tui.ask import answer_of
+from harness.tui.render import StreamState, render_event
 from tests.conftest import FakeToolChatModel
 
 
@@ -225,3 +226,71 @@ def test_answer_of_reads_first_letter():
     assert answer_of("N") is Answer.NO
     assert answer_of("") is Answer.NO
     assert answer_of("maybe") is Answer.NO
+
+
+def test_denied_call_keeps_turn_alive():
+    buf = StringIO()
+    console = Console(file=buf, width=80, force_terminal=False)
+    state = StreamState()
+    first = AIMessageChunk(
+        content="",
+        tool_calls=[
+            {
+                "name": "shell",
+                "args": {"command": "rm hello.txt"},
+                "id": "call-1",
+                "type": "tool_call",
+            }
+        ],
+        additional_kwargs={"created_at": 1.5},
+    )
+    render_event(console, first, {}, state)
+    state.denied.add("call-1")
+    render_event(
+        console,
+        ToolMessage(content="denied", name="shell", tool_call_id="call-1"),
+        {},
+        state,
+    )
+    second = AIMessageChunk(content="sorry", additional_kwargs={"created_at": 2.5})
+    render_event(console, second, {}, state)
+    assert "sorry" in buf.getvalue()
+
+
+def test_question_starts_on_fresh_line(settings, tmp_path):
+    buf = StringIO()
+    model = FakeToolChatModel(
+        messages=iter(
+            [
+                AIMessage(
+                    content="Creating your file.",
+                    tool_calls=[
+                        {
+                            "name": "write_file",
+                            "args": {"path": "note.txt", "content": "hello"},
+                            "id": "call-1",
+                            "type": "tool_call",
+                        }
+                    ],
+                ),
+                AIMessage(content="done"),
+            ]
+        )
+    )
+    app = App(
+        settings,
+        console=Console(file=buf, width=200, force_terminal=False),
+        cwd=tmp_path,
+        model=model,
+    )
+    held = []
+    replies = ["y"]
+
+    def read(prompt_text):
+        held.append(buf.getvalue())
+        buf.write(prompt_text + "\n")
+        return replies.pop(0)
+
+    app.read_line = read
+    app.run_turn("write it")
+    assert held and held[0].endswith("\n")
