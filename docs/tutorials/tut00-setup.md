@@ -1,116 +1,192 @@
 # Tutorial 0 — Setup
-Git tag: `tut00`. Run: `just tut00`.
 
-## What we are building
+After this tutorial the reader has a runnable, tested workbench and knows what the series builds.
 
-A harness is everything around the model that is not the model itself.
-It holds the loop that calls the model, the tools the model can use, the memory of past turns, and the rules that keep it safe.
-An LLM (large language model) is the text-generating model at the center: it reads text and writes the next piece of text.
-LangGraph is a Python library that describes an agent as a graph of steps with shared state passed between them.
-We build one harness piece by piece, one tutorial per piece, starting here with setup.
+## In short
 
-## What you need
+### The concepts
 
-- `uv` — the Python package and environment manager; it installs everything.
-- `just` — the task runner; every tutorial runs as one short `just` command.
-- An OpenCode Go key — the secret that lets our code call the model; it goes into `.env` below.
+An agent is a model plus a harness. The model is an LLM (large language model) that reads text and writes the next piece of text. The harness is
+everything around it: the loop that calls it, the tools it can run, the context it sees, and the rules it must follow. The harness decides most
+of the result: one team rose from Top 30 to Top 5 on Terminal-Bench 2.0 by changing only the harness around the same model, though that is one
+benchmark and a vendor-reported number (knowledge base: TheAnatomyOfAnAgentHarness). A second study measured a 6x swing on one benchmark from
+the harness alone (knowledge base: MetaHarness). One explainer calls the model "only half the story" and sets the rule this series follows: "Put
+rules in code, not wishes in prompts" (knowledge base: HowToBuildACustomAgentHarness). The cause is plain: the model sees only what the harness
+puts in its context and acts only through what the harness runs for it. The series mirrors that with one git tag and one `just tutNN` recipe per
+tutorial, offline tests, additive code, and one visible limitation fixed at a time. Read "In short" for the story and "In detail" to build it.
 
-## One tool for the environment
+### Scope
 
-One tool owns the environment, so every reader runs the same code.
-That tool is `uv`: `just setup` runs `uv sync`.
-`uv sync` reads `pyproject.toml` and `uv.lock` and installs the exact locked versions.
-A locked file means no surprise upgrades between machines.
-Run `just setup`.
+The finished harness grows into a tool-using loop with a permission gate, saved sessions, cost tracking, compaction, memory files, skills,
+sub-agents, and an evaluation suite. This tutorial builds only the workbench under all of that: settings, offline tests, the task runner, and the
+coding rules. No model call happens yet. Tutorial 1 makes one raw HTTP (Hypertext Transfer Protocol) call with no framework and shows the request is stateless.
 
-You should see lines like these at the end:
+### The problem
 
-```
-Resolved 57 packages in 20ms
-Checked 55 packages in 1ms
+```text
+$ uv run python -m harness
+/Users/sergii/git/harness-tutorial/.venv/bin/python3: No module named harness.__main__; 'harness' is a package and cannot be directly executed
 ```
 
-## The secret stays in .env
+### What changes
 
-A secret pasted into code ends up in git history, where every clone keeps it.
-So the key lives in `.env`, and `.env` is gitignored and never committed.
-Copy the example file with `cp .env.example .env` (it prints nothing).
-Then open `.env` and replace the placeholder with your real key.
-The code reads the key from the environment at startup and hides it from debug output:
+```text
++ .env.example: key placeholder + .gitignore: skipped files + .python-version: Python pin
++ AGENTS.md: coding rules + CLAUDE.md: shared instructions + README.md: project start
++ docs/dev/: goal, notes, method, template
++ docs/harnesses/: operations, harness notes, raw material
++ docs/tutorials/tut00-setup.md: this document + justfile: task runner + pyproject.toml: packages + uv.lock: locked versions
++ src/harness/__init__.py: package marker + src/harness/py.typed: typing marker + src/harness/config.py: settings
++ tests/__init__.py: package marker + tests/test_config.py: three offline tests
+```
 
-src/harness/config.py
+## In detail
+
+### The change, file by file
+
+**New file `src/harness/config.py`**
+
+Settings holds the defaults for the base URL, the model name, and the user agent, while `ENV_*` constants
+name the variables that override each field. Loading works in layers from weakest to strongest: code defaults,
+then a `.env` file loaded with `override=False`, then real variables in the surroundings. A real variable beats
+the file because deploys must win over local files without anyone editing them. The key is required, so an empty
+key fails fast with `ConfigError` instead of a late network error. The key field uses `repr=False`, which keeps
+it out of every printed object.
+
 ```python
-api_key: str = field(repr=False)
+"""Settings: where the model lives and the key that lets us in.
+
+Reads the key from the environment so it never leaks into logs. We also send
+our own app name with each request because the server blocks generic names.
+"""
+
+from __future__ import annotations
+
+import os
+from dataclasses import dataclass, field
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+ENV_API_KEY = "OPENCODE_API_KEY"
+ENV_BASE_URL = "HARNESS_BASE_URL"
+ENV_MODEL = "HARNESS_MODEL"
+ENV_USER_AGENT = "HARNESS_USER_AGENT"
+
+
+class ConfigError(RuntimeError):
+    """Raised when a required setting is missing."""
+
+
+@dataclass(frozen=True)
+class Settings:
+    api_key: str = field(repr=False)
+    base_url: str = "https://opencode.ai/zen/go/v1"
+    model: str = "muse-spark-1.3-contributor"
+    user_agent: str = "harness-dev/0.1"
+
+
+def load_settings(env_file: str | Path | None = None) -> Settings:
+    load_dotenv(env_file, override=False)
+    api_key = os.environ.get(ENV_API_KEY, "").strip()
+    if not api_key:
+        raise ConfigError(
+            "OPENCODE_API_KEY is not set. Copy .env.example to .env and add your OpenCode Go key."
+        )
+    return Settings(
+        api_key=api_key,
+        base_url=os.environ.get(ENV_BASE_URL, Settings.base_url),
+        model=os.environ.get(ENV_MODEL, Settings.model),
+        user_agent=os.environ.get(ENV_USER_AGENT, Settings.user_agent),
+    )
 ```
 
-`repr=False` keeps the key out of `repr()`, the text Python prints when it shows an object.
+**New file `tests/test_config.py`**
 
-## Tests run without network
+`test_load_settings_reads_key` proves the key loads from the surroundings while model and URL fall back to defaults.
+`test_missing_key_raises` proves an empty key fails fast with `ConfigError`.
+`test_repr_never_leaks_key` proves the key stays out of printed output.
 
-The three tests use a fake key and a missing file path, so they never touch the network.
-They prove the key loads from the environment, a missing key raises an error, and the key never appears in printed output.
-One of them:
-
-tests/test_config.py
 ```python
+import pytest
+
+from harness.config import ConfigError, Settings, load_settings
+
+
+def test_load_settings_reads_key(monkeypatch):
+    monkeypatch.setenv("OPENCODE_API_KEY", "test-key-123")
+    s = load_settings(env_file="/nonexistent/.env")
+    assert s.api_key == "test-key-123"
+    assert s.model == "muse-spark-1.3-contributor"
+    assert s.base_url.startswith("https://opencode.ai/zen/go")
+
+
+def test_missing_key_raises(monkeypatch):
+    monkeypatch.delenv("OPENCODE_API_KEY", raising=False)
+    with pytest.raises(ConfigError):
+        load_settings(env_file="/nonexistent/.env")
+
+
 def test_repr_never_leaks_key():
     s = Settings(api_key="super-secret")
     assert "super-secret" not in repr(s)
     assert "super-secret" not in str(s)
 ```
 
-Run `just test`.
+**New file `pyproject.toml`**
 
-You should see this last line:
+Only the pytest block matters here. The `slow` marker names the tests that need a network or a live model,
+and `addopts` excludes them, so later tutorials can add live-model tests while `just test` still runs offline
+with no key.
 
-```
-3 passed in 0.01s
-```
-
-## The tree
-
-```
-.env.example — placeholder key; copy it to .env
-.gitignore — keeps .env, caches, and virtualenvs out of git
-.python-version — pins the Python version for uv
-AGENTS.md — coding rules for this repo
-CLAUDE.md — pointer to the shared harness instructions
-README.md — what the project is and how to start
-justfile — short commands: setup, test, tut00
-pyproject.toml — package list and tool settings
-uv.lock — exact locked versions of every package
-docs/dev/GOAL.md — goal and plan of the tutorial
-docs/dev/NOTES.md — verified notes from the live model spike
-docs/dev/TUTORIAL_METHOD.md — how tutorials, tags, and diffs work
-docs/dev/_TEMPLATE.md — shape of every tutorial document
-docs/harnesses/OPERATIONS.md — the operations we are building toward
-docs/harnesses/hermes.md — what the hermes harness does
-docs/harnesses/opencode.md — what the opencode harness does
-docs/harnesses/pi.md — what the pi harness does
-docs/harnesses/_raw/hermes-inventory.md — raw notes on hermes
-docs/harnesses/_raw/opencode-inventory.md — raw notes on opencode
-docs/harnesses/_raw/pi-inventory.md — raw notes on pi
-src/harness/__init__.py — package marker with a short description
-src/harness/config.py — settings and key loading from .env
-src/harness/py.typed — marks the package as typed
-tests/__init__.py — marks the tests as a package
-tests/test_config.py — the three offline tests
+```toml
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-m 'not slow'"
+markers = ["slow: needs network or a live model; excluded by default"]
 ```
 
-## Run it
+**New file `justfile`**
+
+Tutorial 0 has no program to run, so its recipe chains the two checks: install the locked setup, then run
+the offline tests.
+
+```just
+tut00: setup test
+```
+
+### Run it
 
 ```bash
 git checkout tut00
 just tut00
 ```
 
-Last lines you should see:
-
+```text
+uv run pytest -q
+...                                                                      [100%]
+3 passed
 ```
-3 passed in 0.00s
-```
 
-## What is still missing
+### Tests
 
-Nothing here talks to a model yet.
-Tutorial 1 makes one raw call and prints `pong`.
+- `test_load_settings_reads_key`: proves the key loads from the surroundings while model and URL use defaults.
+- `test_missing_key_raises`: proves an empty key fails fast with `ConfigError`.
+- `test_repr_never_leaks_key`: proves the key never appears in printed output.
+
+### Under the hood
+
+The server rejects generic `User-Agent` values, so sending a named agent string is a transport requirement
+rather than decoration. That is why `Settings.user_agent` exists, as the `config.py` docstring notes.
+
+### Key takeaways
+
+- Agent plus harness: an agent is a model plus a harness, and the harness decides most of the result.
+- Series arc: the finished harness is a tool-using loop with a permission gate, saved sessions, cost tracking, compaction, memory, skills, sub-agents, and evaluation.
+- Series mechanics: each tutorial is one tag, one recipe, and offline tests, and each fixes one visible limitation; "In short" tells the story and "In detail" builds it.
+- Settings layering: defaults live in `Settings`, a `.env` file overrides them, and real variables override the file, while the key stays required and hidden from printed output.
+
+### What is still missing
+
+Nothing here talks to a model. Tutorial 1 makes one raw HTTP call with no framework and shows the request
+is stateless: everything the model knows must travel inside that single call.
