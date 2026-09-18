@@ -1,26 +1,10 @@
-from langchain_core.language_models.fake_chat_models import GenericFakeChatModel
-from langchain_core.messages import AIMessage, AIMessageChunk, HumanMessage, ToolMessage
-from langchain_core.outputs import ChatGenerationChunk
+from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 
 from harness.chat.graph import build_graph
 from harness.chat.session import Session
 from harness.chat.thread import thread_config
 from harness.model.client import new_session_id
-
-
-class FakeToolChatModel(GenericFakeChatModel):
-    def bind_tools(self, tools, **kwargs):
-        return self
-
-    def _stream(self, messages, stop=None, run_manager=None, **kwargs):
-        message = next(self.messages)
-        reply = message if isinstance(message, AIMessage) else AIMessage(content=message)
-        chunk = ChatGenerationChunk(
-            message=AIMessageChunk(content=reply.content, tool_calls=reply.tool_calls)
-        )
-        if run_manager:
-            run_manager.on_llm_new_token(reply.content, chunk=chunk)
-        yield chunk
+from tests.conftest import FakeToolChatModel
 
 
 def fake_model():

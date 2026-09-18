@@ -35,10 +35,6 @@ class App:
         """Send one user message and show the reply as it arrives."""
         render.run_turn(self, text)
 
-    def render_event(self, message, meta: dict) -> None:
-        """Show one piece of the reply as it arrives."""
-        render.render_event(self.console, message, meta, render.StreamState())
-
     def banner(self) -> None:
         self.console.print(
             f"[bold]harness[/bold] · model [cyan]{self.settings.model}[/cyan] · "
