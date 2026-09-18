@@ -1,103 +1,95 @@
 # Tutorial 1 — One raw model call
 
-After this tutorial you have talked to the model once and know what a call is.
+After this tutorial you have talked to the model twice and know why it forgot the first
+call by the second.
 
 ## In short
 
 ### The concepts
 
-- A model call is plain HTTP: one request, one reply. The secret key travels in
-  a header, so the harness owns the key and the model never sees it.
-- The request is stateless: nothing is kept between calls, so whatever the model
-  must know travels inside the request. "LLMs (large language models) are
-  stateless. Every call replays the entire conversation history. The harness
-  fakes memory." (knowledge base: AGENTIC_ENGINEERING_PATTERS). Treat the model
-  as a stateless compute unit and keep all state across turns outside it
-  (knowledge base: HarnessEngineering).
-- The reply is a list of typed blocks: `reasoning` first, then a `message` with
-  `output_text` parts. The harness decides which blocks you see.
-
-How the three harnesses in `docs/harnesses/OPERATIONS.md` make this call:
-
-- opencode routes every call through one service, so you get events back, not a string.
-- pi keeps a one-shot streamed call with no tool loop, used on its own only for summaries.
-- hermes-agent runs stateless calls through `run_oneshot`: a fresh list, no history kept.
+- A model call is plain HTTP. You send one request with a model name and a prompt, and you
+  get one reply back. Everything else around that exchange is the harness.
+  - opencode sends even the simplest call through one shared streaming service.
+  - pi keeps a one-shot streamed call with no tool loop, used on its own only for summaries.
+  - hermes-agent runs stateless one-off calls through `run_oneshot`, outside session history.
+- The key travels in a header. Your harness owns the key and adds it to every request, so
+  the model never sees it.
+- The request is stateless. Nothing is kept between calls, not even under the same session id.
+  Whatever the model must know has to travel inside the request. An LLM (large language model)
+  is stateless: "LLMs are stateless. Every call replays the entire conversation history. The
+  harness fakes memory." (knowledge base: AGENTIC_ENGINEERING_PATTERS). Treat the model as a
+  stateless compute unit and keep all state across turns outside it (knowledge base:
+  HarnessEngineering).
 
 ### Scope
 
-You do three things in this tutorial:
-
-1. You send one request with `httpx`.
+1. You send a request with `httpx` and the three headers the server requires.
 2. You read the typed blocks in the reply.
-3. You add the three headers the server requires:
-   - the key, so the server knows it is you calling
-   - the session id, for routing and cached work
-   - the user agent, naming your harness
+3. You send a second request and watch the model forget.
 
-Left out on purpose: any memory of earlier calls. Tutorial 2 adds it.
+You keep no memory anywhere yet. Tutorial 2 adds it.
 
 ### The problem
 
-Before this tutorial there is no script, so you get a missing file, not a reply:
-
 ```text
-$ uv run python scripts/raw_call.py
-.venv/bin/python3: can't open file 'scripts/raw_call.py': [Errno 2] No such file or
-directory
+$ uv run python -m harness
+.venv/bin/python3: No module named harness.__main__; 'harness' is a package and cannot be directly executed
 ```
+
+There is no entry point yet, so you cannot talk to the model at all.
 
 ### What changes
 
 ```text
-+ scripts/raw_call.py          one request, blocks, print
-+ tests/test_raw_call.py       block reading without the network
-~ src/harness/settings.toml    timeout default
-~ justfile                     run the script
+src/harness/
++   model/client.py     sends one prompt, returns the reply
++   model/text.py       reads blocks and plain text from a reply
++   __main__.py         sends two prompts and prints both replies
+tests/
++   test_model.py       offline tests for headers, ids, and reply reading
+~   settings.toml       timeout default
+~   justfile            tutorial recipe runs the harness
 ```
 
 ## In detail
 
 ### How it works
 
-You run the script and it loads your settings from the environment. It builds one
-request, which carries:
-
-- the model name and the input string
-- the key header, so the server knows it is you calling
-- the session id header, made fresh for this call
-- the user agent header, naming your harness
-
-The server answers with a list of blocks, and you print their kinds plus the joined text:
+You start the run and the harness makes one stable session id for the conversation. For each
+of the two prompts it sends one request with the model name, the prompt text, and three headers:
+the key, the session id, and a named user agent. The reply is a list of typed blocks, first
+`reasoning`, then a `message` holding `output_text` parts. The harness prints the prompt, the
+joined plain text, and the block kinds it saw. The second request carries only the second prompt,
+so the model cannot know the word from the first one; the session id only routes the call.
 
 ```text
 you -> harness -> HTTP -> model -> blocks -> text
 ```
 
-The printout shows the block kinds first and `pong` next. Nothing is saved: the session
-id is fresh on every run, so a follow-up call starts blank.
-
 ### Design decisions
 
-- **The harness makes the session id, not the server.** You get one stable id per
-  conversation, which the server uses for routing and prompt caching.
-- **Only `output_text` reaches you; reasoning stays inside.** The reasoning blocks are the
-  model's scratch work, not its answer, so the harness reads them and shows you the text.
-- **The timeout is a setting, not a fixed value.** A hung call would freeze the whole
-  harness, so the limit is yours to change in `.env`, not in code.
+- **The harness makes the session id, not the server.** One fresh id per run stays stable across
+  both calls, so you can trace the conversation without asking the server for anything.
+- **Only `output_text` reaches you; reasoning stays inside.** You see the answer while the
+  harness keeps the full block list, so private model notes never leak onto your screen.
+- **The timeout is a setting because a hung call would block your whole loop.** You can
+  raise or lower it from the environment without touching the code that sends the request.
 
 ### The excerpt that carries the idea
 
-**scripts/raw_call.py** joins only the text parts you show and skips the rest:
+**src/harness/model/client.py**
 
 ```python
-def text_of(response: dict) -> str:
-    """Join every text piece of the reply into one answer."""
-    return "".join(
-        part["text"]
-        for item in response.get("output", [])
-        for part in item.get("content", [])
-        if part.get("type") == PART_OUTPUT_TEXT
+def ask(settings: Settings, session_id: str, prompt: str) -> dict:
+    """Send one prompt to the model and return the parsed reply."""
+    response = httpx.post(
+        f"{settings.base_url}{RESPONSES_PATH}",
+        headers=headers(settings, session_id),
+        json={"model": settings.model, "input": prompt},
+        timeout=settings.timeout_seconds,
     )
+    response.raise_for_status()
+    return response.json()
 ```
 
 ### Run it
@@ -108,24 +100,30 @@ just tutorial
 ```
 
 ```text
+> Remember this word: pelican
+Got it! I'll remember the word: **pelican**.
 blocks: reasoning, message
-pong
+> Which word did I ask you to remember? Answer with the word only.
+You haven't asked me to remember a word yet.
+blocks: reasoning, message
 ```
+
+The second answer is the point of the tutorial: the model agreed to remember, then proved it
+keeps nothing between calls.
 
 ### Under the hood
 
-The server rejects a request without `x-opencode-session` with `MissingSessionID`, so
-you always send a fresh id. It also rejects a generic `User-Agent`, so you send your
-harness name instead.
+A request without `x-opencode-session` is rejected with `MissingSessionID`, and a generic
+`User-Agent` is rejected too. Both are server rules your harness already satisfies in code.
 
 ### Key takeaways
 
-- A model call is one plain HTTP request and one reply; everything else is the harness.
-- The key and the session id travel in headers the harness sets; the model never sees the key.
-- Every request is stateless: you resend what the model must know, and you pick the blocks.
+- A model call is plain HTTP: one request, one reply, with your key travelling in a header.
+- The request is stateless: nothing is kept between calls, so everything you want the model to
+  know has to travel inside the request.
+- The reply is a list of typed blocks, and the harness decides which blocks you see.
 
 ### What is still missing
 
-The model forgets everything the moment your call ends. Ask a follow-up and you get a
-blank stare: nothing carries over. Tutorial 2 stacks your messages into a list that is
-the memory.
+The model forgets everything after each call, so you cannot hold a conversation yet.
+Tutorial 2 stacks messages into a list that is the memory and asks the same two questions again.

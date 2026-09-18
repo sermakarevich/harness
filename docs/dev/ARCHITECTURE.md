@@ -1,6 +1,6 @@
 # Architecture: where each harness job lives
 
-How the code in `src/harness/` and `scripts/` maps to the 24 harness
+How the code in `src/harness/` maps to the 24 harness
 operations in `docs/harnesses/OPERATIONS.md`. Read the intro, the at-a-glance
 table, and the "Build order" section of that document first.
 
@@ -28,9 +28,9 @@ src/harness/tui/commands.py   slash commands (handle_command for /new, /help, /e
 src/harness/tui/render.py     one turn plus streamed reply rendering (run_turn, render_event)
 ```
 
-`scripts/raw_call.py` is tutorial 1: one raw HTTP call, no framework.
-`scripts/chat_list.py` is tutorial 2: a chat whose memory is a plain message list.
-`scripts/smoke_model.py` is the live check of the LangChain adapter (`just smoke`).
+Tutorial 1 wrote `model/client.py` as one raw HTTP call and tutorial 2 replaced it with the
+LangChain adapter. Tutorial 2 kept the conversation as a plain list in `chat/loop.py`, which
+tutorial 3 replaced with the graph. `just smoke` pipes a fixed exchange through `python -m harness`.
 
 ## Layers
 
@@ -62,7 +62,7 @@ hints in OPERATIONS.md).
 
 | # | Operation | Tier | Status | Where it lives / will plug in |
 |---|---|---|---|---|
-| 1 | Pure LLM call | 1 | done | `scripts/raw_call.py`, `model/client.py` |
+| 1 | Pure LLM call | 1 | done | `model/client.py` (raw `httpx` at `tut01`, LangChain since `tut02`) |
 | 2 | Streaming | 1 | done | `tui/render.py run_turn` + `stream_mode="messages"` |
 | 3 | Conversation state | 2 | done | `chat/state.py` + `InMemorySaver` in `chat/graph.py` |
 | 4 | System prompt assembly | 2 | partial | `chat/prompt.py` (static three lines today; tools and memory append here) |

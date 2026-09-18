@@ -6,6 +6,8 @@ provider, change only this file.
 
 from __future__ import annotations
 
+import uuid
+
 from langchain_core.language_models import BaseChatModel
 from langchain_openai import ChatOpenAI
 
@@ -13,6 +15,12 @@ from harness.config import Settings
 
 SESSION_HEADER = "x-opencode-session"
 USER_AGENT_HEADER = "User-Agent"
+SESSION_ID_PREFIX = "harness-"
+
+
+def new_session_id() -> str:
+    """Make a fresh session id for one run."""
+    return f"{SESSION_ID_PREFIX}{uuid.uuid4()}"
 
 
 def make_model(settings: Settings, session_id: str) -> BaseChatModel:

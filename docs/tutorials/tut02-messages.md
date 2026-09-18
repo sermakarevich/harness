@@ -1,91 +1,91 @@
 # Tutorial 2 — Messages stack into memory
 
-After this tutorial the model remembers what you said earlier in the same run, and you
-know exactly where that memory lives: one list your harness keeps and resends every turn.
+After this tutorial the model remembers what you said earlier in the same run, and you know
+exactly where that memory lives: in a list your harness keeps and resends every turn.
 
 ## In short
 
 ### The concepts
 
-- **The list is the memory.** A conversation is a list of messages with three roles:
-  - `system`: the standing order, always first
-  - `user`: what you type
-  - `assistant`: what the model answered before
-  The model keeps nothing; your harness keeps the list and resends all of it every turn:
-  "Every call replays the entire conversation history. The harness fakes memory."
-  (knowledge base: AGENTIC_ENGINEERING_PATTERS).
-  - opencode rebuilds the list fresh every turn from message parts in a local database.
-  - pi walks its branchable session tree down the active path before each call.
-  - hermes-agent copies stored history into a working list at the start of each turn.
-- **The system prompt is the standing order.** It sits first and shapes every answer. The
-  rulebook is the highest-leverage configuration point because it lands in the system
-  prompt every turn (knowledge base: OsmaniHarness). The payload is system text first,
-  then the full history, on every call (knowledge base: HarnessEngineeringCourse).
-  - opencode assembles the prompt fresh every turn from a template plus live facts.
-  - pi renders tools and guidelines into the prompt, with date and directory last.
-  - hermes-agent builds the prompt once per session and freezes it to reuse cached work.
-- **The adapter is the vendor seam.** It is the only code that knows the model's server.
-  Everything above it gets a model object and never sees a header or a URL, so swapping
-  the backend never touches the agent code (knowledge base: HarnessEngineeringCourse).
-  - opencode maps vendors to models in a catalog with per-model translation rules.
-  - pi merges its built-in model list with your files behind one model interface.
+- The list is the memory: "Every call replays the entire conversation history. The harness
+  fakes memory." You resend the list every turn (knowledge base: AGENTIC_ENGINEERING_PATTERS).
+  - opencode rebuilds model messages from stored parts on every turn.
+  - pi walks its session tree from leaf to root and converts the path for the provider.
+  - hermes-agent copies stored history into a working turn context each turn.
+- The system prompt is the standing order. It sits first and shapes every answer you get. The
+  rulebook is the highest-leverage point in the harness (knowledge base: OsmaniHarness).
+  - opencode assembles the prompt fresh every turn from a template plus environment facts.
+  - pi renders its tool list plus guidelines with the date and working directory last.
+  - hermes-agent builds the prompt once per session and freezes it for cache savings.
+- The adapter is the vendor seam. One `chat()` entry point hides the address and the key,
+  so swapping backends never touches your code (knowledge base: HarnessEngineeringCourse).
+  - opencode maps each vendor to its models with per-model normalization.
+  - pi keeps one model interface over four wire protocols.
   - hermes-agent keeps one global name-to-vendor map plus per-profile scoped maps.
 
 ### Scope
 
-1. You keep a list of messages and resend it every turn.
-2. You put a system prompt first.
-3. You reach the model through one adapter.
+1. You keep a list of messages and resend the whole list every turn.
+2. You put a system prompt first in that list.
+3. You reach the model through one adapter instead of raw HTTP.
+4. You ask the two tutorial 1 questions again and watch the model remember.
 
-Left out on purpose: streaming, saving the list, and a real terminal. Tutorial 3 adds them.
+Left out for now: streaming the answer, saving the list past the process, and a real terminal.
+Tutorial 3 adds all three.
 
 ### The problem
 
-Without a list, each question is a fresh call, and the exchange looks like this:
-
 ```text
 > Remember this word: pelican
-pelican noted.
+Got it — I'll remember the word **"pelican"**.
+blocks: reasoning, message
 > Which word did I ask you to remember? Answer with the word only.
-I do not know; I see only this one question.
+You haven't asked me to remember a word yet in this conversation.
+blocks: reasoning, message
 ```
+
+That is the tutorial 1 run: the second request carried only the second question.
 
 ### What changes
 
 ```text
-+ scripts/chat_list.py                 a chat that resends the list
-+ src/harness/chat/prompt.py           build the system prompt
-+ src/harness/chat/prompts/system.txt  the standing order
-+ src/harness/model/client.py          the one adapter
-+ src/harness/model/text.py            read text out of replies
-+ tests/                               offline checks for the above
+src/harness/
+~   model/client.py           LangChain adapter replaces the raw call
+~   model/text.py             reads answers from typed blocks
++   chat/loop.py              the message list that is the memory
++   chat/prompt.py            fills the system prompt file with date and directory
++   chat/prompts/system.txt   the standing order, as data
++   tui/app.py                line chat with a context count and /new
++   tui/commands.py           the slash commands
+~   __main__.py               starts the chat
+tests/                        offline tests for the list, prompt, and commands
 ```
 
 ## In detail
 
 ### How it works
 
-You start with a list of one: the system message. Each turn appends your line, sends the
-whole list, and appends the reply:
+You type the first question and the harness appends it behind the system message, then sends
+the whole list, system text first and history after (knowledge base: HarnessEngineeringCourse).
+The reply is appended too, so the list holds your question and the model's own answer. On the
+second turn the model sees all of it, including its own earlier answer, so the word comes back.
 
 ```text
 [system] -> [system, user] -> [system, user, assistant] -> ...
 ```
 
-On turn two the model sees the whole list, including its own earlier answer; that is why
-it repeats `pelican` back to you. The `context` count after each reply is the list length,
-so you watch it grow from 3 to 5. Tutorial 8 puts a price on that growth, and tutorial 10
-cuts it back. `/new` throws the list away and keeps only the system message, so the next
-question starts over at one.
+The `context: N messages` line makes this growth visible; later tutorials put a price on it (8)
+and cut it back (10). You type `/new` and the harness keeps only the system message, so the next
+question travels alone and the model forgets again. It is the same cause as tutorial 1, now under your control.
 
 ### Design decisions
 
-- **The harness owns the list, not the model or the server.** Nothing on the server
-  persists, so the list lives on your side. Later tutorials trim, save, and price it.
-- **The system prompt is a text file filled with the date and the working directory.**
-  The standing order is data, not code. Fresh facts on every run ground each answer.
-- **The adapter is the only place with vendor knowledge.** Headers and keys live there
-  and nowhere else. The chat takes a model object, so swapping backends never touches it.
+- **The harness owns the list, not the model or the server.** Later tutorials trim that list and
+  save it to disk, which is only possible because you hold it.
+- **The system prompt is a text file, not code.** It is filled with today's date and the working
+  directory, so the standing order stays data you can read and change without touching code.
+- **The adapter is the only place with vendor knowledge.** The model is swappable because nothing
+  above the adapter sees a header or a URL.
 
 ### Run it
 
@@ -96,33 +96,32 @@ just tutorial
 
 ```text
 > Remember this word: pelican
-Got it, I'll remember: pelican.
+Got it, I'll remember pelican.
 context: 3 messages
 > Which word did I ask you to remember? Answer with the word only.
 pelican
 context: 5 messages
 > /new
 new conversation
-context: 1 messages
 > Which word did I ask you to remember? Answer with the word only.
 You haven't asked me to remember a word.
 context: 3 messages
 ```
 
+`just tutorial` takes the same lines from your keyboard, and Ctrl-D leaves the chat.
+
 ### Under the hood
 
-The reply arrives as typed blocks (tutorial 1). The text helper joins only the text
-blocks, so the list holds answers, not reasoning.
+The reply still arrives as typed blocks, as in tutorial 1. The text reader joins only the text
+blocks, so the list holds answers and never reasoning.
 
 ### Key takeaways
 
-- The message list is the memory: your harness keeps it and resends all of it every turn.
-- The system prompt sits first and shapes every answer; rules set there land every turn.
-- One adapter hides the vendor, so the chat code never sees a header or a URL.
+- The message list is the memory: you resend it whole every turn.
+- The system prompt sits first and shapes every answer.
+- One adapter hides the vendor, so the model stays swappable.
 
 ### What is still missing
 
-The list lives in one Python variable and dies with the process, so a restart wipes the
-memory. The answer also arrives all at once, and there is still no terminal to talk in.
-Tutorial 3 gives the list a keeper, streams each answer as it arrives, and adds the
-terminal.
+The list lives in one variable and dies with the process, and each answer arrives all at once.
+Tutorial 3 gives the list a keeper and adds the terminal that streams the answer.

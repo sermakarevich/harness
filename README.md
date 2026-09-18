@@ -14,7 +14,10 @@ just run               # terminal chat
 ```
 
 Start with the tutorials below. `docs/harnesses/` holds background on how three
-existing harnesses run agents, cited from the tutorials.
+existing harnesses run agents, cited from the tutorials. The notes the tutorials cite as
+"knowledge base" live in the
+[agent harness topic](https://github.com/sermakarevich/knowlegde_base/tree/main/knowledge/structured_papers/agent_harness)
+of the author's knowledge base.
 
 ## How to follow the tutorials
 
@@ -37,9 +40,10 @@ just test                       # the tests for this tutorial, no network needed
 git diff tut00..tut01 --stat    # every file this tutorial added or changed
 ```
 
-Tutorials are additive: nothing under an older tag is rewritten later, so the diff
-between two neighbouring tags is exactly one concept. `git tag --list 'tut*'` shows how
-far the series goes. `git checkout main` returns to the latest code.
+Each tutorial adds one concept. A concept arrives in its simplest form and a later tutorial
+replaces it with the real one, so the diff between two neighbouring tags is one concept and
+nothing stays in the tree that the finished harness does not use. `git tag --list 'tut*'`
+shows how far the series goes. `git checkout main` returns to the latest code.
 
 You need `uv`, `just` and an OpenCode Go key in `.env` (see `.env.example`). Tutorials
 that call the model say so; everything else runs offline.

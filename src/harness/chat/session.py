@@ -9,9 +9,9 @@ from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.checkpoint.memory import InMemorySaver
 
 from harness.chat.graph import build_graph
-from harness.chat.thread import new_session_id, thread_config
+from harness.chat.thread import thread_config
 from harness.config import Settings
-from harness.model.client import make_model
+from harness.model.client import make_model, new_session_id
 
 
 @dataclass

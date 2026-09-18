@@ -24,7 +24,8 @@ picks it up.>
 ### The problem
 
 ```text
-<A real terminal exchange that fails or answers badly before this tutorial.>
+<A real terminal exchange that fails or answers badly before this tutorial, copied from a
+run at the tag before. One or two sentences under it say why it happens.>
 ```
 
 ### What changes
@@ -38,8 +39,8 @@ tests/
 +   test_tools.py
 ```
 
-<`+` is a new file, `~` a changed file. Name the files that carry the idea; the rest is
-`git diff tutMM..tutNN`.>
+<`+` is a new file, `~` a changed file, `-` a removed file. Name the files that carry the
+idea; the rest is `git diff tutMM..tutNN`.>
 
 ## In detail
 

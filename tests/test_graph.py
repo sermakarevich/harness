@@ -3,7 +3,8 @@ from langchain_core.messages import AIMessage, HumanMessage
 
 from harness.chat.graph import build_graph
 from harness.chat.session import Session
-from harness.chat.thread import new_session_id, thread_config
+from harness.chat.thread import thread_config
+from harness.model.client import new_session_id
 
 
 def fake_model():

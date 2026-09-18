@@ -55,6 +55,8 @@ class App:
             except (EOFError, KeyboardInterrupt):
                 self.console.print()
                 break
+            if not interactive:
+                self.console.print(line, markup=False, highlight=False)
             if not line.strip():
                 continue
             if line.startswith(commands.COMMAND_PREFIX):
