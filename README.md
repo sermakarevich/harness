@@ -52,8 +52,23 @@ that call the model say so; everything else runs offline.
 | 1 — One raw model call | `tut01` | [tut01-raw-call.md](docs/tutorials/tut01-raw-call.md) |
 | 2 — Messages stack into memory | `tut02` | [tut02-messages.md](docs/tutorials/tut02-messages.md) |
 | 3 — Graph, streaming, terminal | `tut03` | [tut03-graph.md](docs/tutorials/tut03-graph.md) |
+| 4 — Tools and the agent loop | `tut04` | planned |
+| 5 — File tools and the shell tool | `tut05` | planned |
+| 6 — Permission gate | `tut06` | planned |
+| 7 — Session persistence | `tut07` | planned |
+| 8 — Token accounting and cost | `tut08` | planned |
+| 9 — Tool output offloading | `tut09` | planned |
+| 10 — Context compaction | `tut10` | planned |
+| 11 — Memory files | `tut11` | planned |
+| 12 — Skills | `tut12` | planned |
+| 13 — Reliability and parallel tools | `tut13` | planned |
+| 14 — Planning and todos | `tut14` | planned |
+| 15 — Sub-agents | `tut15` | planned |
+| 16 — Outside tool servers, MCP | `tut16` | planned |
+| 17 — Evaluation | `tut17` | planned |
 
-More rows appear as tags are published. The full plan is in `docs/dev/TUTORIAL_METHOD.md`.
+A row says `planned` until its tag is published. The concept behind each row and the
+order of the story are in `docs/dev/TUTORIAL_METHOD.md`.
 
 ## For contributors
 
