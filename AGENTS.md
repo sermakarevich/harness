@@ -51,4 +51,10 @@ They bind humans, Claude Code, and fleet workers alike.
 
 - Python 3.12+, managed by `uv`; run everything through `uv run` or `just`.
 - The model is constructed only in `src/harness/model/client.py`.
+- Settings are read with dynaconf under the single prefix `HARNESS_`. Defaults live in
+  `src/harness/settings.toml`; code reads them through `Settings`, never from dynaconf directly.
+- `.env.example` lists every variable, uncommented, with its default. Nothing in it is a comment
+  except the one line that says where the key comes from.
 - Secrets live in `.env` and are never printed, logged, or committed.
+- Nothing ships that nothing uses: no marker files, no placeholder modules, no recipes kept
+  for older tutorials.

@@ -59,7 +59,7 @@ $ uv run python -m harness
 + pyproject.toml, uv.lock   packages, locked versions
 + src/harness/config.py     settings
 + src/harness/settings.toml  defaults
-+ tests/test_config.py      three offline tests
++ tests/test_config.py      offline tests
 + docs/                     tutorials, background on other harnesses, method
 ```
 
@@ -91,7 +91,7 @@ just tutorial
 ```
 
 ```text
-3 passed
+4 passed
 ```
 
 ### Under the hood
