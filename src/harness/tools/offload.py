@@ -18,11 +18,11 @@ def build_offload(root: Path, limit_characters: int, output_dir: str) -> Callabl
     def offload(text: str) -> str:
         if len(text) <= limit_characters:
             return text
-        digest = hashlib.sha256(text.encode()).hexdigest()[:DIGEST_LENGTH]
+        name = hashlib.sha256(text.encode()).hexdigest()[:DIGEST_LENGTH] + OUTPUT_SUFFIX
         folder = base / output_dir
         folder.mkdir(parents=True, exist_ok=True)
-        (folder / (digest + OUTPUT_SUFFIX)).write_text(text)
-        relative = (Path(output_dir) / (digest + OUTPUT_SUFFIX)).as_posix()
+        (folder / name).write_text(text)
+        relative = (Path(output_dir) / name).as_posix()
         return text[:limit_characters] + NOTICE.format(
             shown=limit_characters, total=len(text), path=relative
         )
