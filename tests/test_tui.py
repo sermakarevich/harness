@@ -1,11 +1,12 @@
 from io import StringIO
 
-from langchain_core.messages import AIMessage, AIMessageChunk, ToolMessage
+from langchain_core.messages import AIMessage, AIMessageChunk, HumanMessage, ToolMessage
 from rich.console import Console
 
 from harness.tools.permission import Answer
 from harness.tui.app import App
 from harness.tui.ask import answer_of
+from harness.tui.pick import NOTHING_SAVED
 from harness.tui.render import StreamState, render_event
 from tests.conftest import FakeToolChatModel
 
@@ -297,8 +298,6 @@ def test_question_starts_on_fresh_line(settings, tmp_path):
 
 
 def test_resume_with_nothing_saved(settings):
-    from harness.tui.pick import NOTHING_SAVED
-
     app, buf = make_app(settings)
     assert app.handle_command("/resume") is True
     assert NOTHING_SAVED in buf.getvalue()
@@ -315,8 +314,6 @@ def test_resume_lists_saved_conversation(settings):
 
 
 def test_resume_one_keeps_messages(settings):
-    from langchain_core.messages import HumanMessage
-
     app, buf = make_app(settings)
     app.run_turn("first hello")
     first_id = app.session.session_id

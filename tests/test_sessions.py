@@ -1,7 +1,7 @@
 from langchain_core.messages import AIMessage, HumanMessage
 
 from harness.chat.session import Session
-from harness.chat.sessions import saved_sessions
+from harness.chat.sessions import SavedSession, saved_sessions
 from harness.chat.store import open_store
 from harness.tui.pick import pick_session
 from tests.conftest import FakeToolChatModel
@@ -55,8 +55,6 @@ def test_conversation_survives_reopen(settings, tmp_path):
 
 
 def test_pick_session():
-    from harness.chat.sessions import SavedSession
-
     sessions = [
         SavedSession(session_id="a", started="t1", first_message="one"),
         SavedSession(session_id="b", started="t2", first_message="two"),

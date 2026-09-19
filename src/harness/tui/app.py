@@ -8,7 +8,7 @@ from prompt_toolkit.history import InMemoryHistory
 from rich.console import Console
 
 from harness.chat.session import Session
-from harness.chat.sessions import saved_sessions
+from harness.chat.sessions import saved_sessions, short_id
 from harness.chat.store import open_store
 from harness.config import Settings
 from harness.tui import commands, render
@@ -49,7 +49,7 @@ class App:
     def banner(self) -> None:
         self.console.print(
             f"[bold]harness[/bold] · model [cyan]{self.settings.model}[/cyan] · "
-            f"session [dim]{self.session.session_id[-8:]}[/dim] · {Command.HELP} for commands"
+            f"session [dim]{short_id(self.session.session_id)}[/dim] · {Command.HELP} for commands"
         )
 
     def read_line(self, prompt_text: str) -> str:

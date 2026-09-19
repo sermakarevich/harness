@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import re
 
+from harness.chat.sessions import short_id
+
 NOTHING_SAVED = "nothing saved yet"
 PREVIEW_WIDTH = 60
 
@@ -20,7 +22,7 @@ def show_sessions(console, sessions) -> None:
         return
     for number, saved in enumerate(sessions, start=1):
         console.print(
-            f"  {number} {saved.session_id[-8:]} {saved.started} "
+            f"  {number} {short_id(saved.session_id)} {saved.started} "
             f"{shorten_preview(saved.first_message)}",
             markup=False,
             highlight=False,

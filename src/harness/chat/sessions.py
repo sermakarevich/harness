@@ -7,6 +7,11 @@ from dataclasses import dataclass
 from langchain_core.messages import HumanMessage
 
 NO_MESSAGE = "(empty)"
+SHORT_ID_LENGTH = 8
+
+
+def short_id(session_id: str) -> str:
+    return session_id[-SHORT_ID_LENGTH:]
 
 
 @dataclass(frozen=True)
