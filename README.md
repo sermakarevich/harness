@@ -61,7 +61,7 @@ that call the model say so; everything else runs offline.
 | 7 — Session persistence | `tut07` | [tut07-persistence.md](docs/tutorials/tut07-persistence.md) |
 | 8 — Token accounting and cost | `tut08` | [tut08-cost.md](docs/tutorials/tut08-cost.md) |
 | 9 — Tool output offloading | `tut09` | [tut09-offload.md](docs/tutorials/tut09-offload.md) |
-| 10 — Context compaction | `tut10` | planned |
+| 10 — Context compaction | `tut10` | [tut10-compaction.md](docs/tutorials/tut10-compaction.md) |
 | 11 — Memory files | `tut11` | planned |
 | 12 — Skills | `tut12` | planned |
 | 13 — Reliability and parallel tools | `tut13` | planned |

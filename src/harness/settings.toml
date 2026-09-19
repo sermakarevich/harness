@@ -9,3 +9,5 @@ cached_input_price_per_million = 0.002
 output_price_per_million = 0.2
 tool_output_limit_characters = 2000
 tool_output_dir = ".harness/outputs"
+compact_at_tokens = 4000
+keep_recent_turns = 2

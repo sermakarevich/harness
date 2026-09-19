@@ -1,0 +1,6 @@
+You are condensing the earlier part of a terminal chat so the assistant that continues it stays on track.
+Summarise what a person taking over the conversation would need: what the user is trying to do, decisions already made, files and paths touched, commands run and how each ended, and anything still open or unanswered.
+Keep names, paths and numbers exactly as they appeared.
+Leave a fact out rather than guess at it.
+Keep the recap short, no more than about two hundred words.
+Drop a detail rather than pad the recap.

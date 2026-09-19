@@ -4,11 +4,12 @@ from io import StringIO
 from langchain_core.messages import AIMessage, AIMessageChunk, HumanMessage, ToolMessage
 from rich.console import Console
 
+from harness.chat.graph import COMPACT_NODE
 from harness.tools.permission import Answer
 from harness.tui.app import App
 from harness.tui.ask import answer_of
 from harness.tui.pick import NOTHING_SAVED
-from harness.tui.render import StreamState, render_event
+from harness.tui.render import COMPACT_NOTICE, StreamState, render_event
 from tests.conftest import FakeToolChatModel
 
 
@@ -373,3 +374,24 @@ def test_run_turn_prints_cost_line_and_total_grows(settings):
     totals = [float(found) for found in re.findall(r"total \$(\d+\.\d+)", buf.getvalue())]
     assert len(totals) == 2
     assert totals[1] > totals[0]
+
+
+def test_compact_chunk_prints_notice_not_summary():
+    buf = StringIO()
+    console = Console(file=buf, width=80, force_terminal=False)
+    state = StreamState(COMPACT_NOTICE.format(budget=4000))
+    render_event(
+        console,
+        AIMessageChunk(content="secret recap"),
+        {"langgraph_node": COMPACT_NODE},
+        state,
+    )
+    render_event(
+        console,
+        AIMessageChunk(content="secret recap"),
+        {"langgraph_node": COMPACT_NODE},
+        state,
+    )
+    out = buf.getvalue()
+    assert "summarised" in out
+    assert "secret recap" not in out

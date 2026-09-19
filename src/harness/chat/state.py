@@ -8,3 +8,4 @@ from langgraph.graph import MessagesState
 
 class HarnessState(MessagesState):
     always_allowed: Annotated[list[str], add]
+    carried_cost: Annotated[float, add]
