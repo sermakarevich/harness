@@ -1,5 +1,7 @@
 """Run the tools the model asked for, asking first when the policy says so."""
 
+from collections.abc import Callable
+
 from langchain_core.messages import ToolMessage
 from langgraph.types import interrupt
 
@@ -9,7 +11,7 @@ from harness.tools.permission import DENIED_MESSAGE, Answer, needs_approval
 UNKNOWN_MESSAGE = "unknown tool: {name}"
 
 
-def build_run_tools(tools: list):
+def build_run_tools(tools: list, offload: Callable[[str], str]):
     """Build the node that asks before risky calls and runs them after."""
     by_name = {tool.name: tool for tool in tools}
 
@@ -43,7 +45,7 @@ def build_run_tools(tools: list):
             else:
                 result = by_name[name].invoke(call["args"])
                 messages.append(
-                    ToolMessage(content=str(result), name=name, tool_call_id=call["id"])
+                    ToolMessage(content=offload(str(result)), name=name, tool_call_id=call["id"])
                 )
         already = set(state["always_allowed"])
         return {

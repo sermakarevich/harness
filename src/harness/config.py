@@ -34,6 +34,8 @@ class Settings:
     input_price_per_million: float = 0.1
     cached_input_price_per_million: float = 0.002
     output_price_per_million: float = 0.2
+    tool_output_limit_characters: int = 2000
+    tool_output_dir: str = ".harness/outputs"
 
 
 def load_settings(env_file: str | Path | None = None) -> Settings:
@@ -66,4 +68,6 @@ def load_settings(env_file: str | Path | None = None) -> Settings:
         input_price_per_million=settings.input_price_per_million,
         cached_input_price_per_million=settings.cached_input_price_per_million,
         output_price_per_million=settings.output_price_per_million,
+        tool_output_limit_characters=settings.tool_output_limit_characters,
+        tool_output_dir=settings.tool_output_dir,
     )

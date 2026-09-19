@@ -39,4 +39,6 @@ def settings(monkeypatch, tmp_path):
     monkeypatch.delenv("HARNESS_INPUT_PRICE_PER_MILLION", raising=False)
     monkeypatch.delenv("HARNESS_CACHED_INPUT_PRICE_PER_MILLION", raising=False)
     monkeypatch.delenv("HARNESS_OUTPUT_PRICE_PER_MILLION", raising=False)
+    monkeypatch.delenv("HARNESS_TOOL_OUTPUT_LIMIT_CHARACTERS", raising=False)
+    monkeypatch.delenv("HARNESS_TOOL_OUTPUT_DIR", raising=False)
     return load_settings(env_file="/nonexistent/.env")

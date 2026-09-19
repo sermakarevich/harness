@@ -26,8 +26,8 @@ test:
 # Shows what this tutorial built
 tutorial: run
 
-# Runs the harness twice: the second run resumes the first one's conversation (uses your key; run sparingly)
+# Runs the harness once and lists what spilled to disk (uses your key; run sparingly)
 smoke:
     rm -rf .harness
-    printf 'Remember the word banana. Reply with just: ok\n/exit\n' | uv run python -m harness
-    printf '/resume 1\nWhich word did I ask you to remember?\n/exit\n' | uv run python -m harness
+    printf 'Run the shell command \"seq 1 2000\" and then reply with just: done\ny\nWhat is 2 plus 2? Reply with just the number.\n/exit\n' | uv run python -m harness
+    ls .harness/outputs

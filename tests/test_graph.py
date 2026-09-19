@@ -169,3 +169,26 @@ def test_read_file_never_pauses(tmp_path, settings):
     assert graph.get_state(cfg).interrupts == ()
     msgs = graph.get_state(cfg).values["messages"]
     assert isinstance(msgs[-2], ToolMessage) and msgs[-2].content == "hello"
+
+
+def test_long_tool_result_is_offloaded_to_file(tmp_path, settings):
+    body = "x" * (settings.tool_output_limit_characters + 500)
+    (tmp_path / "big.txt").write_text(body)
+    model = write_call_model(
+        AIMessage(
+            content="",
+            tool_calls=[tool_call("read_file", {"path": "big.txt"})],
+        ),
+        AIMessage(content="done"),
+    )
+    graph = build_graph(model, settings, cwd=tmp_path)
+    cfg = thread_config("offload")
+    graph.invoke({"messages": [HumanMessage(content="read it")]}, cfg)
+    msgs = graph.get_state(cfg).values["messages"]
+    tool_msg = next(m for m in msgs if isinstance(m, ToolMessage))
+    assert len(tool_msg.content) < len(body)
+    assert str(len(body)) in tool_msg.content
+    spilled = list((tmp_path / settings.tool_output_dir).glob("*"))
+    assert len(spilled) == 1
+    assert spilled[0].read_text() == body
+    assert spilled[0].relative_to(tmp_path).as_posix() in tool_msg.content
