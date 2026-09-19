@@ -26,7 +26,8 @@ test:
 # Shows what this tutorial built
 tutorial: run
 
-# Pipes a request that writes a file and one that deletes it, allowing the first and refusing the second (uses your key; run sparingly)
+# Runs the harness twice: the second run resumes the first one's conversation (uses your key; run sparingly)
 smoke:
-    printf 'Create a file hello.txt here containing the word hello. Do not run any other tool afterwards.\ny\nNow delete hello.txt with a shell command.\nn\n/exit\n' | uv run python -m harness
-    rm -f hello.txt
+    rm -rf .harness
+    printf 'Remember the word banana. Reply with just: ok\n/exit\n' | uv run python -m harness
+    printf '/resume 1\nWhich word did I ask you to remember?\n/exit\n' | uv run python -m harness

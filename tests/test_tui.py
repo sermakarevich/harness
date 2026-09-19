@@ -1,11 +1,12 @@
 from io import StringIO
 
-from langchain_core.messages import AIMessage, AIMessageChunk, ToolMessage
+from langchain_core.messages import AIMessage, AIMessageChunk, HumanMessage, ToolMessage
 from rich.console import Console
 
 from harness.tools.permission import Answer
 from harness.tui.app import App
 from harness.tui.ask import answer_of
+from harness.tui.pick import NOTHING_SAVED
 from harness.tui.render import StreamState, render_event
 from tests.conftest import FakeToolChatModel
 
@@ -294,3 +295,40 @@ def test_question_starts_on_fresh_line(settings, tmp_path):
     app.read_line = read
     app.run_turn("write it")
     assert held and held[0].endswith("\n")
+
+
+def test_resume_with_nothing_saved(settings):
+    app, buf = make_app(settings)
+    assert app.handle_command("/resume") is True
+    assert NOTHING_SAVED in buf.getvalue()
+
+
+def test_resume_lists_saved_conversation(settings):
+    app, buf = make_app(settings)
+    app.run_turn("hello there")
+    buf.truncate(0)
+    buf.seek(0)
+    assert app.handle_command("/resume") is True
+    out = buf.getvalue()
+    assert "hello there" in out
+
+
+def test_resume_one_keeps_messages(settings):
+    app, buf = make_app(settings)
+    app.run_turn("first hello")
+    first_id = app.session.session_id
+    app.handle_command("/new")
+    assert app.session.session_id != first_id
+    assert app.handle_command("/resume 1") is True
+    assert app.session.session_id == first_id
+    state = app.session.graph.get_state(app.session.config)
+    texts = [m.content for m in state.values["messages"] if isinstance(m, HumanMessage)]
+    assert "first hello" in texts
+
+
+def test_resume_unknown_number_changes_nothing(settings):
+    app, buf = make_app(settings)
+    app.run_turn("hello there")
+    before = app.session.session_id
+    assert app.handle_command("/resume 99") is True
+    assert app.session.session_id == before

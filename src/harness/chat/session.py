@@ -22,6 +22,20 @@ class Session:
     config: dict
 
     @classmethod
+    def resume(
+        cls,
+        settings: Settings,
+        session_id: str,
+        checkpointer: BaseCheckpointSaver | None = None,
+        cwd: Path | None = None,
+        model=None,
+    ) -> Session:
+        """Continue a saved conversation."""
+        chosen = model or make_model(settings, session_id)
+        graph = build_graph(chosen, settings, checkpointer or InMemorySaver(), cwd)
+        return cls(settings, session_id, graph, thread_config(session_id))
+
+    @classmethod
     def start(
         cls,
         settings: Settings,
@@ -30,10 +44,7 @@ class Session:
         model=None,
     ) -> Session:
         """Start a fresh conversation."""
-        session_id = new_session_id()
-        model = model or make_model(settings, session_id)
-        graph = build_graph(model, settings, checkpointer or InMemorySaver(), cwd)
-        return cls(settings, session_id, graph, thread_config(session_id))
+        return cls.resume(settings, new_session_id(), checkpointer, cwd, model)
 
     def pending_request(self) -> dict | None:
         """Payload of the first waiting permission question, if any."""

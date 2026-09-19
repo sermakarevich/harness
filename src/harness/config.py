@@ -30,6 +30,7 @@ class Settings:
     user_agent: str
     timeout_seconds: int
     shell_timeout_seconds: int
+    sessions_db: str = ".harness/sessions.db"
 
 
 def load_settings(env_file: str | Path | None = None) -> Settings:
@@ -58,4 +59,5 @@ def load_settings(env_file: str | Path | None = None) -> Settings:
         user_agent=settings.user_agent,
         timeout_seconds=settings.timeout_seconds,
         shell_timeout_seconds=settings.shell_timeout_seconds,
+        sessions_db=settings.sessions_db,
     )

@@ -3,12 +3,13 @@
 import sys
 from pathlib import Path
 
-from langgraph.checkpoint.memory import InMemorySaver
 from prompt_toolkit import PromptSession
 from prompt_toolkit.history import InMemoryHistory
 from rich.console import Console
 
 from harness.chat.session import Session
+from harness.chat.sessions import saved_sessions, short_id
+from harness.chat.store import open_store
 from harness.config import Settings
 from harness.tui import commands, render
 from harness.tui.commands import Command
@@ -17,17 +18,26 @@ PROMPT = "> "
 
 
 class App:
-    def __init__(self, settings: Settings, console=None, cwd=None, model=None):
+    def __init__(self, settings: Settings, console=None, cwd=None, model=None, checkpointer=None):
         self.settings = settings
         self.console = console or Console()
         self.cwd = cwd or Path.cwd()
         self._model = model
         self._prompt = None
-        self.checkpointer = InMemorySaver()
+        self.checkpointer = checkpointer or open_store(self.settings.sessions_db)
         self.session = self._new_session()
 
     def _new_session(self) -> Session:
         return Session.start(self.settings, self.checkpointer, self.cwd, model=self._model)
+
+    def resume_session(self, session_id: str) -> None:
+        self.session = Session.resume(
+            self.settings, session_id, self.checkpointer, self.cwd, model=self._model
+        )
+
+    def saved(self, limit: int):
+        """Return recent saved conversations, newest first."""
+        return saved_sessions(self.checkpointer, limit)
 
     def handle_command(self, line: str) -> bool:
         return commands.handle_command(self, line)
@@ -39,7 +49,7 @@ class App:
     def banner(self) -> None:
         self.console.print(
             f"[bold]harness[/bold] · model [cyan]{self.settings.model}[/cyan] · "
-            f"session [dim]{self.session.session_id[-8:]}[/dim] · {Command.HELP} for commands"
+            f"session [dim]{short_id(self.session.session_id)}[/dim] · {Command.HELP} for commands"
         )
 
     def read_line(self, prompt_text: str) -> str:
