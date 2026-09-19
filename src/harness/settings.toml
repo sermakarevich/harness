@@ -3,3 +3,4 @@ model = "muse-spark-1.3-contributor"
 user_agent = "harness-dev/0.1"
 timeout_seconds = 60
 shell_timeout_seconds = 120
+sessions_db = ".harness/sessions.db"

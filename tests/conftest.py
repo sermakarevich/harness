@@ -26,8 +26,9 @@ class FakeToolChatModel(GenericFakeChatModel):
 
 
 @pytest.fixture
-def settings(monkeypatch):
+def settings(monkeypatch, tmp_path):
     monkeypatch.setenv("HARNESS_API_KEY", "x")
+    monkeypatch.setenv("HARNESS_SESSIONS_DB", str(tmp_path / "sessions.db"))
     monkeypatch.setenv("DOTENV_PATH_FOR_DYNACONF", "/nonexistent/.env")
     monkeypatch.delenv("HARNESS_MODEL", raising=False)
     monkeypatch.delenv("HARNESS_BASE_URL", raising=False)
