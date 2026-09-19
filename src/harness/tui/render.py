@@ -10,12 +10,14 @@ import re
 from langchain_core.messages import AIMessageChunk, HumanMessage, ToolMessage
 from langgraph.types import Command
 
+from harness.chat.usage import Usage, dollars, usage_of
 from harness.model.text import text_of
 from harness.tools.permission import Answer
 from harness.tui.ask import ask_permission
 
 TOOL_ARROW = "→"
 TOOL_ARG_WIDTH = 60
+PRICE_DECIMALS = 4
 
 
 def shorten(value: object) -> str:
@@ -76,12 +78,23 @@ def render_event(console, message, meta: dict, state: StreamState) -> None:
         show_tool_call(console, message, state)
 
 
+def cost_line(turn: Usage, total: Usage, turn_cost: float, total_cost: float) -> str:
+    """Text of the token and cost line shown after each turn."""
+    return (
+        f"in {turn.input_tokens} (cached {turn.cached_input_tokens})"
+        f" · out {turn.output_tokens} (thinking {turn.reasoning_tokens})"
+        f" · turn ${turn_cost:.{PRICE_DECIMALS}f}"
+        f" · total ${total_cost:.{PRICE_DECIMALS}f}"
+    )
+
+
 def run_turn(app, text: str) -> None:
     """Send one user message and show the reply as it arrives.
 
     Network errors show a message and the chat keeps going.
     """
     state = StreamState()
+    before = len(app.session.saved_messages())
     request: dict | Command = {"messages": [HumanMessage(content=text)]}
     try:
         while True:
@@ -100,6 +113,17 @@ def run_turn(app, text: str) -> None:
             if answer == Answer.NO:
                 state.denied.add(pending["id"])
             request = Command(resume=answer)
+        end_line(app.console, state)
+        messages = app.session.saved_messages()
+        turn = usage_of(messages[before:])
+        total = usage_of(messages)
+        app.console.print(
+            cost_line(turn, total, dollars(turn, app.settings), dollars(total, app.settings)),
+            style="dim",
+            markup=False,
+            highlight=False,
+            soft_wrap=True,
+        )
     except Exception as exc:
         app.console.print(f"\n[red]error:[/red] {type(exc).__name__}: {exc}")
     finally:

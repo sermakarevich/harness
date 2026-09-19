@@ -31,6 +31,9 @@ class Settings:
     timeout_seconds: int
     shell_timeout_seconds: int
     sessions_db: str = ".harness/sessions.db"
+    input_price_per_million: float = 0.1
+    cached_input_price_per_million: float = 0.002
+    output_price_per_million: float = 0.2
 
 
 def load_settings(env_file: str | Path | None = None) -> Settings:
@@ -60,4 +63,7 @@ def load_settings(env_file: str | Path | None = None) -> Settings:
         timeout_seconds=settings.timeout_seconds,
         shell_timeout_seconds=settings.shell_timeout_seconds,
         sessions_db=settings.sessions_db,
+        input_price_per_million=float(settings.input_price_per_million),
+        cached_input_price_per_million=float(settings.cached_input_price_per_million),
+        output_price_per_million=float(settings.output_price_per_million),
     )

@@ -17,8 +17,9 @@ class FakeToolChatModel(GenericFakeChatModel):
     def _stream(self, messages, stop=None, run_manager=None, **kwargs):
         message = next(self.messages)
         reply = message if isinstance(message, AIMessage) else AIMessage(content=message)
+        extra = {"usage_metadata": reply.usage_metadata} if reply.usage_metadata else {}
         chunk = ChatGenerationChunk(
-            message=AIMessageChunk(content=reply.content, tool_calls=reply.tool_calls)
+            message=AIMessageChunk(content=reply.content, tool_calls=reply.tool_calls, **extra)
         )
         if run_manager:
             run_manager.on_llm_new_token(reply.content, chunk=chunk)
@@ -35,4 +36,7 @@ def settings(monkeypatch, tmp_path):
     monkeypatch.delenv("HARNESS_USER_AGENT", raising=False)
     monkeypatch.delenv("HARNESS_TIMEOUT_SECONDS", raising=False)
     monkeypatch.delenv("HARNESS_SHELL_TIMEOUT_SECONDS", raising=False)
+    monkeypatch.delenv("HARNESS_INPUT_PRICE_PER_MILLION", raising=False)
+    monkeypatch.delenv("HARNESS_CACHED_INPUT_PRICE_PER_MILLION", raising=False)
+    monkeypatch.delenv("HARNESS_OUTPUT_PRICE_PER_MILLION", raising=False)
     return load_settings(env_file="/nonexistent/.env")
