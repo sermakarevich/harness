@@ -59,7 +59,7 @@ that call the model say so; everything else runs offline.
 | 5 — File tools and the shell tool | `tut05` | [tut05-file-shell.md](docs/tutorials/tut05-file-shell.md) |
 | 6 — Permission gate | `tut06` | [tut06-permission.md](docs/tutorials/tut06-permission.md) |
 | 7 — Session persistence | `tut07` | [tut07-persistence.md](docs/tutorials/tut07-persistence.md) |
-| 8 — Token accounting and cost | `tut08` | planned |
+| 8 — Token accounting and cost | `tut08` | [tut08-cost.md](docs/tutorials/tut08-cost.md) |
 | 9 — Tool output offloading | `tut09` | planned |
 | 10 — Context compaction | `tut10` | planned |
 | 11 — Memory files | `tut11` | planned |

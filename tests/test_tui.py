@@ -1,3 +1,4 @@
+import re
 from io import StringIO
 
 from langchain_core.messages import AIMessage, AIMessageChunk, HumanMessage, ToolMessage
@@ -332,3 +333,43 @@ def test_resume_unknown_number_changes_nothing(settings):
     before = app.session.session_id
     assert app.handle_command("/resume 99") is True
     assert app.session.session_id == before
+
+
+def cost_reply(content, input_tokens, cached, output_tokens, reasoning):
+    return AIMessage(
+        content=content,
+        usage_metadata={
+            "input_tokens": input_tokens,
+            "output_tokens": output_tokens,
+            "total_tokens": input_tokens + output_tokens,
+            "input_token_details": {"cache_read": cached},
+            "output_token_details": {"reasoning": reasoning},
+        },
+    )
+
+
+def test_run_turn_prints_cost_line_and_total_grows(settings):
+    model = FakeToolChatModel(
+        messages=iter(
+            [
+                cost_reply("pong", 1000, 100, 50, 5),
+                cost_reply("again", 2000, 200, 60, 6),
+            ]
+        )
+    )
+    buf = StringIO()
+    app = App(
+        settings,
+        console=Console(file=buf, width=80, force_terminal=False),
+        model=model,
+    )
+    app.read_line = lambda prompt_text: "y"
+    app.run_turn("ping")
+    first_out = buf.getvalue()
+    assert "1000" in first_out
+    assert "50" in first_out
+    assert "$" in first_out
+    app.run_turn("ping again")
+    totals = [float(found) for found in re.findall(r"total \$(\d+\.\d+)", buf.getvalue())]
+    assert len(totals) == 2
+    assert totals[1] > totals[0]

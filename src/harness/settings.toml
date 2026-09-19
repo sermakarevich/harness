@@ -4,3 +4,6 @@ user_agent = "harness-dev/0.1"
 timeout_seconds = 60
 shell_timeout_seconds = 120
 sessions_db = ".harness/sessions.db"
+input_price_per_million = 0.1
+cached_input_price_per_million = 0.002
+output_price_per_million = 0.2

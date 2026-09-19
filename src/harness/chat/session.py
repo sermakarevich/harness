@@ -46,6 +46,10 @@ class Session:
         """Start a fresh conversation."""
         return cls.resume(settings, new_session_id(), checkpointer, cwd, model)
 
+    def saved_messages(self) -> list:
+        """Messages the checkpointer holds for this conversation, if any."""
+        return list(self.graph.get_state(self.config).values.get("messages", []))
+
     def pending_request(self) -> dict | None:
         """Payload of the first waiting permission question, if any."""
         interrupts = self.graph.get_state(self.config).interrupts
