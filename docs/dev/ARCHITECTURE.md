@@ -12,18 +12,21 @@ The real tree, layer by layer from the top down:
 src/harness/__init__.py       package root
 src/harness/__main__.py       `just run` entry point: load settings, start the chat
 src/harness/config.py         settings and key loading from `.env`; key hidden from `repr`
-src/harness/tui/__init__.py   terminal layer: app, commands, render, ask
+src/harness/tui/__init__.py   terminal layer: app, commands, render, ask, pick
 src/harness/tui/app.py        terminal chat loop (App delegates to commands and render)
 src/harness/tui/ask.py        the permission question and its yes / always / no answers
-src/harness/tui/commands.py   slash commands (handle_command for /new, /help, /exit)
+src/harness/tui/commands.py   slash commands (handle_command for /new, /resume, /help, /exit)
+src/harness/tui/pick.py       the numbered list of saved conversations and the pick you type
 src/harness/tui/render.py     one turn plus streamed reply rendering (run_turn, render_event)
-src/harness/chat/__init__.py  conversation layer: graph, session, thread, prompt, state, tools node
+src/harness/chat/__init__.py  conversation layer: graph, session, thread, prompt, state, store
 src/harness/chat/graph.py     the agent loop as a graph (build_graph plus call_model)
 src/harness/chat/prompt.py    system prompt assembly (build_system_prompt)
 src/harness/chat/prompts/system.txt system prompt text with {today} and {cwd} slots
 src/harness/chat/run_tools.py the tools node: ask about every risky call, then run them
-src/harness/chat/session.py   one conversation id bound to its model and graph
+src/harness/chat/session.py   one conversation id bound to its model and graph (start, resume)
+src/harness/chat/sessions.py  reads saved conversations back as a list you can recognise
 src/harness/chat/state.py     conversation state (HarnessState); one field per harness job
+src/harness/chat/store.py     opens the SQLite file the conversations are saved in (open_store)
 src/harness/chat/thread.py    session ids (new_session_id) and thread config
 src/harness/tools/__init__.py tool layer: one file per tool plus the shared path and policy rules
 src/harness/tools/edit_file.py  replaces one exact piece of text in a file
@@ -55,7 +58,8 @@ a lower file never imports from a file above it.
 1. Keypress — the user types a line and the main loop in `App.run` (`src/harness/tui/app.py`) reads it.
 2. `run_turn` (`src/harness/tui/render.py`, via `App.run_turn`) wraps the text in a `HumanMessage` and calls `graph.stream`
    with the session config and `stream_mode="messages"`.
-3. The checkpointer loads the conversation's history by `thread_id` (`src/harness/chat/thread.py`).
+3. The checkpointer, a `SqliteSaver` opened by `src/harness/chat/store.py`, loads the conversation's
+   history from disk by `thread_id` (`src/harness/chat/thread.py`).
 4. `call_model` (`src/harness/chat/graph.py`) prepends the system prompt (`src/harness/chat/prompt.py`) and calls `model.invoke`.
 5. The `ChatOpenAI` built by `make_model` (`src/harness/model/client.py`) sends one HTTPS request to OpenCode
    Go with the `x-opencode-session` header.
@@ -67,6 +71,8 @@ a lower file never imports from a file above it.
    `src/harness/tui/ask.py`, and resumes the graph with your answer. Allowed calls run, denied
    calls come back as a tool message saying so, and the model is called again from step 4.
 9. The final message is appended to state (`src/harness/chat/state.py`) and saved under the `thread_id`.
+   Every step saves, so the conversation is on disk before the turn ends and `/resume` finds it
+   through `src/harness/chat/sessions.py` in the next run.
 10. If the call fails, `run_turn` prints the error and the loop continues.
 
 ## 3. Operations map
@@ -79,7 +85,7 @@ hints in OPERATIONS.md).
 |---|---|---|---|---|
 | 1 | Pure LLM call | 1 | done | `model/client.py` (raw `httpx` at `tut01`, LangChain since `tut02`) |
 | 2 | Streaming | 1 | done | `tui/render.py run_turn` + `stream_mode="messages"` |
-| 3 | Conversation state | 2 | done | `chat/state.py` + `InMemorySaver` in `chat/graph.py` |
+| 3 | Conversation state | 2 | done | `chat/state.py` + the checkpointer attached in `chat/graph.py` (in memory until `tut07`, on disk since) |
 | 4 | System prompt assembly | 2 | partial | `chat/prompt.py` (four static lines, one names the tools; memory appends here) |
 | 5 | Provider & model abstraction | 3 | partial | `make_model` in `model/client.py` is the single seam; no catalog yet |
 | 6 | Reliability | 4 | planned | `RetryPolicy` on `call_model` in `chat/graph.py` + `with_retry`/`with_fallbacks` on the model |
@@ -89,7 +95,7 @@ hints in OPERATIONS.md).
 | 10 | File tools | 2 | partial | `tools/read_file.py`, `write_file.py`, `edit_file.py` with path checks in `tools/paths.py` (`tut05`); no search, no output caps yet |
 | 11 | Shell execution | 2 | partial | `tools/shell.py` around `subprocess` with timeout and exit code (`tut05`); output not trimmed yet |
 | 12 | Permission / approval gate | 4 | done | `tools/permission.py` names the safe tools, `chat/run_tools.py` pauses with `interrupt()`, `tui/ask.py` asks (`tut06`) |
-| 13 | Session persistence | 3 | partial | In-memory only in `chat/graph.py`; swap `InMemorySaver` for `SqliteSaver` |
+| 13 | Session persistence | 3 | done | `SqliteSaver` from `chat/store.py`, listed by `chat/sessions.py`, picked in `tui/pick.py` via `/resume` (`tut07`) |
 | 14 | Snapshot & revert | 5 | planned | `get_state_history`/`update_state` on `chat/graph.py` + per-turn working-directory Snapshot |
 | 15 | Token accounting & cost | 3 | planned | `usage_metadata` + rate table against the model catalog |
 | 16 | Context overflow & compaction | 4 | planned | `trim_messages` + `RemoveMessage` compact node off `call_model` in `chat/graph.py` |
