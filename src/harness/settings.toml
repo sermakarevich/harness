@@ -7,3 +7,5 @@ sessions_db = ".harness/sessions.db"
 input_price_per_million = 0.1
 cached_input_price_per_million = 0.002
 output_price_per_million = 0.2
+tool_output_limit_characters = 2000
+tool_output_dir = ".harness/outputs"
