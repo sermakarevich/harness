@@ -18,7 +18,7 @@ src/harness/tui/ask.py        the permission question and its yes / always / no 
 src/harness/tui/commands.py   slash commands (handle_command for /new, /resume, /help, /exit)
 src/harness/tui/pick.py       the numbered list of saved conversations and the pick you type
 src/harness/tui/render.py     one turn plus streamed reply rendering (run_turn, render_event)
-src/harness/chat/__init__.py  conversation layer: graph, session, thread, prompt, state, store
+src/harness/chat/__init__.py  conversation layer: graph, session, prompt, state, store, usage
 src/harness/chat/graph.py     the agent loop as a graph (build_graph plus call_model)
 src/harness/chat/prompt.py    system prompt assembly (build_system_prompt)
 src/harness/chat/prompts/system.txt system prompt text with {today} and {cwd} slots
@@ -28,6 +28,7 @@ src/harness/chat/sessions.py  reads saved conversations back as a list you can r
 src/harness/chat/state.py     conversation state (HarnessState); one field per harness job
 src/harness/chat/store.py     opens the SQLite file the conversations are saved in (open_store)
 src/harness/chat/thread.py    session ids (new_session_id) and thread config
+src/harness/chat/usage.py     token counts of the saved replies and what they cost (dollars)
 src/harness/tools/__init__.py tool layer: one file per tool plus the shared path and policy rules
 src/harness/tools/edit_file.py  replaces one exact piece of text in a file
 src/harness/tools/paths.py    resolves every path under the working directory
@@ -72,7 +73,9 @@ a lower file never imports from a file above it.
    calls come back as a tool message saying so, and the model is called again from step 4.
 9. The final message is appended to state (`src/harness/chat/state.py`) and saved under the `thread_id`.
    Every step saves, so the conversation is on disk before the turn ends and `/resume` finds it
-   through `src/harness/chat/sessions.py` in the next run.
+   through `src/harness/chat/sessions.py` in the next run. The reply carries its token counts, so
+   `run_turn` prices this turn and the whole conversation with `src/harness/chat/usage.py` and
+   prints one dim line.
 10. If the call fails, `run_turn` prints the error and the loop continues.
 
 ## 3. Operations map
@@ -97,7 +100,7 @@ hints in OPERATIONS.md).
 | 12 | Permission / approval gate | 4 | done | `tools/permission.py` names the safe tools, `chat/run_tools.py` pauses with `interrupt()`, `tui/ask.py` asks (`tut06`) |
 | 13 | Session persistence | 3 | done | `SqliteSaver` from `chat/store.py`, listed by `chat/sessions.py`, picked in `tui/pick.py` via `/resume` (`tut07`) |
 | 14 | Snapshot & revert | 5 | planned | `get_state_history`/`update_state` on `chat/graph.py` + per-turn working-directory Snapshot |
-| 15 | Token accounting & cost | 3 | planned | `usage_metadata` + rate table against the model catalog |
+| 15 | Token accounting & cost | 3 | done | `chat/usage.py` adds up the `usage_metadata` of the saved replies and prices it with the rates in `settings.toml`; `tui/render.py` prints it (`tut08`) |
 | 16 | Context overflow & compaction | 4 | planned | `trim_messages` + `RemoveMessage` compact node off `call_model` in `chat/graph.py` |
 | 17 | Tool output offloading | 3 | planned | Cap, spill to disk, and return preview plus path inside tool functions |
 | 18 | Memory files | 3 | planned | `pathlib` loader feeding `build_system_prompt` in `chat/prompt.py` |
