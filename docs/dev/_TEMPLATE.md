@@ -11,9 +11,9 @@ every tutorial you still get the whole story.>
 
 <The two or three ideas this tutorial rests on, for an engineer who has not built an
 agent before. Say what the idea is, why harnesses need it, and what goes wrong without
-it. Lists, not long sentences. One analogy is allowed. One line each on how opencode, pi
-and hermes-agent handle it, from `docs/harnesses/OPERATIONS.md`, and one line citing a
-knowledge-base note when one applies.>
+it. Lists, not long sentences. One analogy is allowed. One line each on how the harnesses in
+`docs/harnesses/OPERATIONS.md` handle it, naming the ones that differ in an interesting way
+rather than all four every time, and one line citing a knowledge-base note when one applies.>
 
 ### Scope
 
