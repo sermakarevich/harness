@@ -53,7 +53,7 @@ is welcome. Name files in prose; do not quote them here.>
 ### Design decisions
 
 <Two or three, each about harness behaviour, each two sentences: the choice, and what it
-protects. Where the three harnesses in `docs/harnesses/` chose differently, say so.>
+protects. Where the four harnesses in `docs/harnesses/` chose differently, say so.>
 
 ### The excerpt that carries the idea
 
