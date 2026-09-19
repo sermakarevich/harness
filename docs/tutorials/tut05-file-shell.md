@@ -80,7 +80,7 @@ The loop is the one from `tut04-tools.md`: nothing in the graph changed, only th
 - **Exact text, not line numbers or a diff.** The model quotes text it just read but miscounts
   lines, so you ask for text itself; the exactly-once rule turns a vague match into a clear error.
 - **The exit code comes back every time.** The model cannot see your process, so a silent
-  failure would look like success; all four harnesses in OPERATIONS.md 11 report the exit code.
+  failure would look like success; all three harnesses in OPERATIONS.md 11 report the exit code.
 - **The timeout is a setting, not a literal.** A suite that needs three minutes is normal, so
   you change `.env` instead of code.
 
