@@ -19,9 +19,11 @@ src/harness/tui/commands.py   slash commands (handle_command for /new, /resume, 
 src/harness/tui/pick.py       the numbered list of saved conversations and the pick you type
 src/harness/tui/render.py     one turn plus streamed reply rendering (run_turn, render_event)
 src/harness/chat/__init__.py  conversation layer: graph, session, prompt, state, store, usage
+src/harness/chat/compact.py   swaps older turns for one summary once the conversation grows big
 src/harness/chat/graph.py     the agent loop as a graph (build_graph plus call_model)
 src/harness/chat/prompt.py    system prompt assembly (build_system_prompt)
 src/harness/chat/prompts/system.txt system prompt text with {today} and {cwd} slots
+src/harness/chat/prompts/summary.txt what to keep when the older turns are summarised
 src/harness/chat/run_tools.py the tools node: ask about every risky call, then run them
 src/harness/chat/session.py   one conversation id bound to its model and graph (start, resume)
 src/harness/chat/sessions.py  reads saved conversations back as a list you can recognise
@@ -62,24 +64,28 @@ a lower file never imports from a file above it.
    with the session config and `stream_mode="messages"`.
 3. The checkpointer, a `SqliteSaver` opened by `src/harness/chat/store.py`, loads the conversation's
    history from disk by `thread_id` (`src/harness/chat/thread.py`).
-4. `call_model` (`src/harness/chat/graph.py`) prepends the system prompt (`src/harness/chat/prompt.py`) and calls `model.invoke`.
-5. The `ChatOpenAI` built by `make_model` (`src/harness/model/client.py`) sends one HTTPS request to OpenCode
+4. Before the model is called, the edge out of `START` asks `src/harness/chat/compact.py`
+   how many input tokens the model reported on its last reply. Over the budget the turn goes
+   through the compaction node first, which summarises every turn but the newest few in one
+   call and puts the recap in their place; under it the turn goes straight on.
+5. `call_model` (`src/harness/chat/graph.py`) prepends the system prompt (`src/harness/chat/prompt.py`) and calls `model.invoke`.
+6. The `ChatOpenAI` built by `make_model` (`src/harness/model/client.py`) sends one HTTPS request to OpenCode
    Go with the `x-opencode-session` header.
-6. Token chunks stream back through `stream_mode="messages"` events.
-7. `render_event` (`src/harness/tui/render.py`) prints each assistant chunk as it arrives via `text_of` (`src/harness/model/text.py`).
-8. If the reply asks for a tool, the graph routes to `run_tools` (`src/harness/chat/run_tools.py`),
+7. Token chunks stream back through `stream_mode="messages"` events.
+8. `render_event` (`src/harness/tui/render.py`) prints each assistant chunk as it arrives via `text_of` (`src/harness/model/text.py`).
+9. If the reply asks for a tool, the graph routes to `run_tools` (`src/harness/chat/run_tools.py`),
    which pauses the turn with `interrupt()` for every call that `src/harness/tools/permission.py`
    does not list as safe. `run_turn` reads the waiting question from the saved state, asks it with
    `src/harness/tui/ask.py`, and resumes the graph with your answer. Allowed calls run and their
    results pass `src/harness/tools/offload.py`, which spills anything over the limit to a file and
    keeps a preview plus its path. Denied calls come back as a tool message saying so, and the
-   model is called again from step 4.
-9. The final message is appended to state (`src/harness/chat/state.py`) and saved under the `thread_id`.
+   model is called again from step 5.
+10. The final message is appended to state (`src/harness/chat/state.py`) and saved under the `thread_id`.
    Every step saves, so the conversation is on disk before the turn ends and `/resume` finds it
    through `src/harness/chat/sessions.py` in the next run. The reply carries its token counts, so
    `run_turn` prices this turn and the whole conversation with `src/harness/chat/usage.py` and
    prints one dim line.
-10. If the call fails, `run_turn` prints the error and the loop continues.
+11. If the call fails, `run_turn` prints the error and the loop continues.
 
 ## 3. Operations map
 
@@ -104,7 +110,7 @@ hints in OPERATIONS.md).
 | 13 | Session persistence | 3 | done | `SqliteSaver` from `chat/store.py`, listed by `chat/sessions.py`, picked in `tui/pick.py` via `/resume` (`tut07`) |
 | 14 | Snapshot & revert | 5 | planned | `get_state_history`/`update_state` on `chat/graph.py` + per-turn working-directory Snapshot |
 | 15 | Token accounting & cost | 3 | done | `chat/usage.py` adds up the `usage_metadata` of the saved replies and prices it with the rates in `settings.toml`; `tui/render.py` prints it (`tut08`) |
-| 16 | Context overflow & compaction | 4 | planned | `trim_messages` + `RemoveMessage` compact node off `call_model` in `chat/graph.py` |
+| 16 | Context overflow & compaction | 4 | done | `chat/compact.py` reads the last reply's input count; a conditional edge out of `START` in `chat/graph.py` sends the turn through a summary node that swaps every older turn for one recap (`tut10`) |
 | 17 | Tool output offloading | 3 | done | `tools/offload.py` caps every result where `chat/run_tools.py` turns it into a message, spills the rest to a file and hands back a preview plus the path (`tut09`) |
 | 18 | Memory files | 3 | planned | `pathlib` loader feeding `build_system_prompt` in `chat/prompt.py` |
 | 19 | Skills / progressive disclosure | 3 | planned | `list_skills`/`read_skill` tools plus skill-directory scan |
