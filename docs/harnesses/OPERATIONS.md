@@ -1,39 +1,39 @@
 # Harness operations — what a harness actually does
 
-> A harness is everything around the model that is not the model. This document lists the operations a harness performs, easiest first, and shows how three real harnesses implement each one.
+> A harness is everything around the model that is not the model. This document lists the operations a harness performs, easiest first, and shows how four real harnesses implement each one.
 
 ## How to read this
 
-Difficulty runs from Tier 1 (a few lines of code, no saved state) through Tier 2 (needs a loop or a data structure kept in memory), Tier 3 (needs saved data on disk, an outside process, or a fixed data contract), and Tier 4 (needs a policy decision, work happening at the same time, or a second model call to work), up to Tier 5 (changes the shape of the whole system and is hard to add later). opencode is a terminal coding agent written in TypeScript and built by SST. pi is a minimal, extension-driven terminal coding agent written in TypeScript and shipped as compiled JavaScript, built by Earendil Works. hermes-agent is a personal coding and operations agent from Nous Research that runs one shared core across a terminal program, messaging gateways, and desktop apps. MCP stands for Model Context Protocol, a standard for connecting outside tool servers at runtime.
+Difficulty runs from Tier 1 (a few lines of code, no saved state) through Tier 2 (needs a loop or a data structure kept in memory), Tier 3 (needs saved data on disk, an outside process, or a fixed data contract), and Tier 4 (needs a policy decision, work happening at the same time, or a second model call to work), up to Tier 5 (changes the shape of the whole system and is hard to add later). opencode is a terminal coding agent written in TypeScript and built by SST. pi is a minimal, extension-driven terminal coding agent written in TypeScript and shipped as compiled JavaScript, built by Earendil Works. hermes-agent is a personal coding and operations agent from Nous Research that runs one shared core across a terminal program, messaging gateways, and desktop apps. The DeepSeek Harness is an open-source coding and computer-use agent written in TypeScript and built by DeepSeek AI, assembled from many small plugins on the Cordis plugin framework rather than one core program. MCP stands for Model Context Protocol, a standard for connecting outside tool servers at runtime.
 
 ## The operations at a glance
 
-| # | Operation | Tier | opencode | pi | hermes |
-|---|---|---|---|---|---|
-| 1 | Pure LLM call | 1 | single streaming entry point | one-shot streamed summary call | stateless oneshot plus dispatcher |
-| 2 | Streaming | 1 | typed event stream consumer | token deltas as events | single-writer fan-out delivery |
-| 3 | Conversation state | 2 | database-backed message parts | branchable session message tree | staged turn context sidecar |
-| 4 | System prompt assembly | 2 | per-turn template plus environment | rendered tools plus guidelines prompt | once-per-session cached prompt |
-| 5 | Provider & model abstraction | 3 | catalog with per-model normalization | merged catalog four protocols | global plus scoped registries |
-| 6 | Reliability | 4 | stream-level retry with backoff | turn retries idle timeout fallback | classified errors jittered failover |
-| 7 | Tool definitions | 2 | declarative schemas auto-converted | seven schemas plus extension registration | self-registering files per toolset |
-| 8 | Agent loop | 2 | turn loop over streaming steps | prompt turn loop with hooks | bounded model-then-tools loop |
-| 9 | Parallel tool calls | 4 | concurrent dispatch by identifier | ordered preflight concurrent execution | batch planner thread pool |
-| 10 | File tools | 2 | scoped read write edit search | paged reads queued mutations | guarded tools terminal-backed filesystem |
-| 11 | Shell execution | 2 | parsed spawn tail-kept output | streamed spawn tree kill | multi-backend guarded redacted runner |
-| 12 | Permission / approval gate | 4 | ordered rules interactive replies | extension veto via events | layered floors model judge human |
-| 13 | Session persistence | 3 | sessions messages parts tables | versioned branchable message tree | append-only message flush |
-| 14 | Snapshot & revert | 5 | hidden repository commit restore | — | shadow store per-turn snapshots |
-| 15 | Token accounting & cost | 3 | per-turn usage exact pricing | per-message usage cost records | background writer session totals |
-| 16 | Context overflow & compaction | 4 | budget check summarize prune | cut-point summarize reload tail | prune-then-summarize multi-pass compressor |
-| 17 | Tool output offloading | 3 | spill-to-disk preview plus hints | tail-truncate spill full file | three-layer cap spill budget |
-| 18 | Memory files | 3 | global project instructions injected | walk-up files injected verbatim | frozen start snapshot capped recall |
-| 19 | Skills / progressive disclosure | 3 | names listed body on demand | name description prompt file read | name-only list view loads |
-| 20 | Sub-agents / delegation | 5 | child sessions depth-limited tool | — | fresh children summary only |
-| 21 | Planning & todo tracking | 4 | session todos plan agents | — | in-memory todos prompt plans |
-| 22 | MCP / dynamic external tools | 4 | namespaced adapted external tools | — | background loop vendored servers |
-| 23 | Hooks, plugins & events | 5 | global bus sequential hooks | extension bus veto patch | payload shell stream observers |
-| 24 | Background & concurrency | 5 | session jobs serialized runs | queued steering session swapping | tracked processes timer batch |
+| # | Operation | Tier | opencode | pi | hermes | deepseek |
+|---|---|---|---|---|---|---|
+| 1 | Pure LLM call | 1 | single streaming entry point | one-shot streamed summary call | stateless oneshot plus dispatcher | single-use prepared provider call |
+| 2 | Streaming | 1 | typed event stream consumer | token deltas as events | single-writer fan-out delivery | typed chunks folded in order |
+| 3 | Conversation state | 2 | database-backed message parts | branchable session message tree | staged turn context sidecar | append-only event log fold |
+| 4 | System prompt assembly | 2 | per-turn template plus environment | rendered tools plus guidelines prompt | once-per-session cached prompt | scoped sections sorted centrally |
+| 5 | Provider & model abstraction | 3 | catalog with per-model normalization | merged catalog four protocols | global plus scoped registries | adapter map per route |
+| 6 | Reliability | 4 | stream-level retry with backoff | turn retries idle timeout fallback | classified errors jittered failover | per-route retry with jitter |
+| 7 | Tool definitions | 2 | declarative schemas auto-converted | seven schemas plus extension registration | self-registering files per toolset | declared tools fixed pipeline |
+| 8 | Agent loop | 2 | turn loop over streaming steps | prompt turn loop with hooks | bounded model-then-tools loop | steps grouped into turns |
+| 9 | Parallel tool calls | 4 | concurrent dispatch by identifier | ordered preflight concurrent execution | batch planner thread pool | opt-in parallelism exclusive barriers |
+| 10 | File tools | 2 | scoped read write edit search | paged reads queued mutations | guarded tools terminal-backed filesystem | windowed reads intent guards |
+| 11 | Shell execution | 2 | parsed spawn tail-kept output | streamed spawn tree kill | multi-backend guarded redacted runner | fresh shells scrubbed sandboxed |
+| 12 | Permission / approval gate | 4 | ordered rules interactive replies | extension veto via events | layered floors model judge human | single service waterfall fail-closed |
+| 13 | Session persistence | 3 | sessions messages parts tables | versioned branchable message tree | append-only message flush | one handle write-behind batches |
+| 14 | Snapshot & revert | 5 | hidden repository commit restore | — | shadow store per-turn snapshots | event-range snapshots forked separately |
+| 15 | Token accounting & cost | 3 | per-turn usage exact pricing | per-message usage cost records | background writer session totals | detached token pressure replay |
+| 16 | Context overflow & compaction | 4 | budget check summarize prune | cut-point summarize reload tail | prune-then-summarize multi-pass compressor | pre-step checks pair-safe summary |
+| 17 | Tool output offloading | 3 | spill-to-disk preview plus hints | tail-truncate spill full file | three-layer cap spill budget | spilled files bounded preview |
+| 18 | Memory files | 3 | global project instructions injected | walk-up files injected verbatim | frozen start snapshot capped recall | loaded once reconciled later |
+| 19 | Skills / progressive disclosure | 3 | names listed body on demand | name description prompt file read | name-only list view loads | short catalog body on demand |
+| 20 | Sub-agents / delegation | 5 | child sessions depth-limited tool | — | fresh children summary only | named providers foreground background |
+| 21 | Planning & todo tracking | 4 | session todos plan agents | — | in-memory todos prompt plans | plan todos goals workflows |
+| 22 | MCP / dynamic external tools | 4 | namespaced adapted external tools | — | background loop vendored servers | attached servers qualified names |
+| 23 | Hooks, plugins & events | 5 | global bus sequential hooks | extension bus veto patch | payload shell stream observers | shared matching bridges sandboxed plugins |
+| 24 | Background & concurrency | 5 | session jobs serialized runs | queued steering session swapping | tracked processes timer batch | job contract durable reminders terminals |
 
 ## Operations in detail
 
@@ -43,13 +43,14 @@ Difficulty runs from Tier 1 (a few lines of code, no saved state) through Tier 2
 
 **What it is.** A Large Language Model (LLM, the artificial intelligence model that generates text) receives a list of messages and returns one text answer. There is no memory between calls and no tools for the model to use. This is the building block every other operation wraps.
 
-**How the three do it.**
+**How the four do it.**
 
 - **opencode:** every model call flows through one streaming service in `packages/opencode/src/session/llm.ts`, prepared by `packages/opencode/src/session/llm/request.ts`, so even the simplest call returns a stream of events rather than a single string.
 - **pi:** the primitive is a one-shot streamed call with no tool loop attached, wired in as `agent.streamFn` in `dist/core/agent-session.js` and used on its own only for summaries in `dist/core/compaction/compaction.js`.
 - **hermes-agent:** stateless calls go through `run_oneshot` in `agent/oneshot.py`, which builds a fresh message list and never touches session history, while the conversational non-streaming path dispatches on a worker thread in `agent/chat_completion_nonstream.py`.
+- **DeepSeek Harness:** each call is prepared once via `LlmRuntime.prepareCall` in `packages/llm/llm/src/index.ts`, binding one adapter generation to one provider route, then dispatched single-use through the `llm/stream` waterfall event.
 
-**Where they agree / differ.** All three funnel model calls through one shared entry point, but opencode and pi only expose streaming entry points while hermes-agent keeps a separate plain non-streaming path for one-off calls.
+**Where they agree / differ.** All four funnel model calls through one shared entry point, but opencode, pi, and the DeepSeek Harness expose only streaming entry points while hermes-agent keeps a separate plain non-streaming path for one-off calls; the DeepSeek Harness is the strictest of the three streaming designs, freezing the config at prepare time so one generation's settings cannot leak into another endpoint's call.
 
 **In LangGraph / Python**
 
@@ -81,13 +82,14 @@ graph = builder.compile()
 
 **What it is.** Instead of waiting for the full answer, the harness shows or forwards each piece of text the moment it arrives. The screen fills in word by word while the answer is still being generated. Underneath, the harness still collects the pieces into one final message.
 
-**How the three do it.**
+**How the four do it.**
 
 - **opencode:** both model runtimes are converted into one typed event stream in `packages/opencode/src/session/llm/ai-sdk.ts` and `packages/opencode/src/session/llm/native-runtime.ts`, consumed piece by piece by `packages/opencode/src/session/processor.ts`, which writes incremental updates as tokens arrive.
 - **pi:** arriving tokens update the in-progress message and are re-emitted as `message_update` events carrying text pieces from `dist/core/agent-session.js`, with shell output throttled to one display update per 100 milliseconds, purely as a display feed.
 - **hermes-agent:** output flows through a single-writer fence in `agent/stream_single_writer.py` so only one owner writes text fragments, fanned out to display callbacks by `agent/stream_delivery.py`, with a watchdog in `agent/chat_completion_stream_monitor.py` that kills streams silent past the timeout.
+- **DeepSeek Harness:** adapters emit typed `StreamChunk` frames declared in `packages/llm/llm/src/types.ts`, folded in order into content blocks by `BlockAssembler` in `packages/llm/llm/src/assembler.ts`, with usage recorded before the terminal finish.
 
-**Where they agree / differ.** All three treat streaming as an observation layer over one canonical stream, and all three converge on it: one stream, many watchers, never two writers.
+**Where they agree / differ.** All four treat streaming as an observation layer over one canonical stream with one writer and many watchers; the DeepSeek Harness makes the frame contract the most explicit, with indexed deltas, assembled blocks, and usage carried inside the stream itself.
 
 **In LangGraph / Python**
 
@@ -111,13 +113,14 @@ for chunk, metadata in graph.stream(
 
 **What it is.** The harness remembers what was said earlier in the conversation and sends the whole history back to the model with each new turn. This is what makes the model appear to remember things. The harness must convert its stored records into the message shape the model provider expects.
 
-**How the three do it.**
+**How the four do it.**
 
 - **opencode:** history lives durably in a small local file database (SQLite, a database stored in a single file on disk) as messages plus smaller fragments called parts, read with page-based queries in `packages/opencode/src/session/message-v2.ts` and rebuilt fresh into model messages every turn.
 - **pi:** history is a branchable session tree managed by `dist/core/session-manager.js`, where each entry points at a parent and the active path is walked from leaf to root, then converted for the provider by `convertToLlm()` in `dist/core/messages.js`.
 - **hermes-agent:** each turn starts with `build_turn_context` in `agent/turn_context.py`, which copies stored history into a working list and stamps new messages via `agent/message_metadata.py`, keeping a parallel provider-ready copy alongside the stored message so the stored view stays clean.
+- **DeepSeek Harness:** the conversation is an append-only log of typed events owned by `Session` in `packages/core/session/src/index.ts`, and model history is derived by folding only events that carry a surface marker defined in `packages/core/session/src/surface.ts`.
 
-**Where they agree / differ.** All three rebuild the model-facing message list from durable storage on every turn rather than keeping one cached list, and all three keep provider-specific quirks out of the stored records.
+**Where they agree / differ.** All four rebuild the model-facing message list from durable storage on every turn rather than keeping one cached list, and all four keep provider-specific quirks out of the stored records; the DeepSeek Harness states the idea most strongly, with the log as the only state and replace markers shadowing old ranges instead of editing them.
 
 **In LangGraph / Python**
 
@@ -143,13 +146,14 @@ graph.invoke({"messages": [{"role": "user", "content": "hi"}]}, config)
 
 **What it is.** Every conversation starts with a system prompt: background instructions that tell the model who it is, what tools it has, what directory it works in, and what day it is. The harness rebuilds this block regularly from static text plus live context. Getting this assembly right shapes everything the model does.
 
-**How the three do it.**
+**How the four do it.**
 
 - **opencode:** the prompt is assembled fresh every turn in `packages/opencode/src/session/system.ts`, picking a per-model template from `packages/opencode/src/session/prompt/default.txt` and combining it with environment facts, instruction files, and the skill listing.
 - **pi:** one function `buildSystemPrompt()` in `dist/core/system-prompt.js` renders the available-tools list plus a deduplicated guidelines section whose bullets adapt to the active tools, with project files appended inside marked blocks and the date and working directory always last.
 - **hermes-agent:** the prompt is built once per session by `agent/system_prompt.py` with helpers in `agent/prompt_builder.py` in three tiers (stable identity, workspace context, volatile skills and memory) and then frozen so the provider reuses its cached computation every turn.
+- **DeepSeek Harness:** plugins register named sections against the `SystemPrompt` service in `packages/core/system-prompt/src/index.ts`, sorted by a central numeric order before each model step, with time and file contributors such as `packages/context/time-context/src/index.ts` and a final edit pass via the `system-prompt/assemble` waterfall event.
 
-**Where they agree / differ.** opencode and pi rebuild the prompt every turn for freshness while hermes-agent freezes it per session for cache savings; that freshness-versus-cache-cost trade is the central design split.
+**Where they agree / differ.** opencode, pi, and the DeepSeek Harness rebuild the prompt before each turn or step for freshness while hermes-agent freezes it per session for cache savings; the DeepSeek Harness adds scoped registrations plus a central order table to keep per-agent prompts predictable, and that freshness-versus-cache-cost trade remains the central design split.
 
 **In LangGraph / Python**
 
@@ -175,13 +179,14 @@ def call_model(state: MyState):
 
 **What it is.** Different model vendors have different web addresses, login methods, message shapes, and prices. The harness hides all of that behind one interface so the rest of the code just says which model it wants. A catalog records each model's abilities, size limits, and cost per million input and output tokens.
 
-**How the three do it.**
+**How the four do it.**
 
 - **opencode:** the catalog in `packages/opencode/src/provider/provider.ts` maps each vendor to its models with abilities, limits, and cost, while `packages/opencode/src/provider/transform.ts` reshapes messages and settings per model so new vendors mostly mean new catalog data.
 - **pi:** `ModelRegistry` in `dist/core/model-registry.js` merges the built-in list with user files behind one model interface, supporting four wire protocols with compatibility flags, while `dist/core/model-resolver.js` parses `provider/id` references and resolves login credentials.
 - **hermes-agent:** `ProviderRegistry` in `agent/provider_registry.py` keeps one global name-to-vendor map plus per-profile scoped maps, with declarative vendor records in `agent/provider_base.py` and model-name translation in `agent/models_dev.py` backed by a 4-hour cache.
+- **DeepSeek Harness:** `LlmRuntime` in `packages/llm/llm/src/index.ts` holds adapters in a map keyed by provider route with all-or-nothing registration and atomic replace, while `packages/llm/llm-deepseek/src/adapter.ts` picks the DeepSeek message or chat-completions adapter from the connection protocol.
 
-**Where they agree / differ.** All three converged on the same shape: a registry mapping names to vendor records plus a translation layer per model, with user overrides winning over bundled entries.
+**Where they agree / differ.** All four converged on the same shape: a registry mapping names or routes to vendor records plus a translation layer per model; opencode, pi, and hermes-agent let user entries win over bundled ones, while the DeepSeek Harness stresses atomic all-or-nothing registration with a disposer and replace.
 
 **In LangGraph / Python**
 
@@ -205,13 +210,14 @@ model = get_model("assistant")
 
 **What it is.** Model calls fail: rate limits, overloaded servers, broken networks, expired logins. The harness sorts each failure into a kind, waits longer after each repeated failure, tries again a bounded number of times, and may switch to a backup model. Without this, one hiccup kills the whole session.
 
-**How the three do it.**
+**How the four do it.**
 
 - **opencode:** the whole stream is wrapped in a retry policy from `packages/opencode/src/session/retry.ts` applied in `packages/opencode/src/session/processor.ts`, retrying server and rate-limit errors with exponential waiting up to 5 attempts while error sorting lives in `packages/opencode/src/provider/error.ts`.
 - **pi:** turn-level retry is configured through settings and applied in `dist/core/agent-session.js` with 3 attempts and exponential waiting from a 2-second base, a 300-second network idle timeout via `dist/core/http-dispatcher.js`, and a fallback model pick in `dist/core/model-resolver.js` when a saved model no longer exists.
 - **hermes-agent:** failures are classified once into recovery hints in `agent/error_classifier.py`, waits come from randomized exponential waiting in `agent/retry_utils.py`, and the primary model cools down after rate-limit or billing errors via `agent/fallback_cooldown.py`.
+- **DeepSeek Harness:** each provider route owns a retry policy resolved in `packages/llm/llm/src/retry-policy.ts` and run by the retry plugin in `packages/llm/llm-retry/src/index.ts`, with exponential backoff, symmetric jitter, and a per-read idle watchdog that maps silent streams to timeout failures.
 
-**Where they agree / differ.** All three retry above the raw network client rather than inside it, and all three sort errors first and retry second; they differ on fallback, with pi and hermes-agent switching models and opencode only rerouting summaries to a cheaper model.
+**Where they agree / differ.** All four retry above the raw network client rather than inside it, and all four sort errors first and retry second; they differ on fallback, with pi and hermes-agent switching models, opencode only rerouting summaries to a cheaper model, and the DeepSeek Harness staying on the same provider route with no cross-provider fallback.
 
 **In LangGraph / Python**
 
@@ -241,13 +247,14 @@ builder.add_edge("call_model", END)
 
 **What it is.** Tools are the actions the model may request, such as reading a file or running a command. Each tool is declared with a name, a plain-language description, and a parameter schema written in JavaScript Object Notation (JSON, a text format for structured data) that says which arguments it takes. The harness sends these declarations with every model call so the model knows what it can ask for.
 
-**How the three do it.**
+**How the four do it.**
 
 - **opencode:** tools are declared with a define call in `packages/opencode/src/tool/tool.ts` pairing a name with a schema structure, collected by `packages/opencode/src/tool/registry.ts`, and converted into model-facing functions with JSON schemas by `SessionTools.resolve` in `packages/opencode/src/session/tools.ts`.
 - **pi:** seven built-in tools are assembled by `createCodingTools()` in `dist/core/tools/index.js` as schema objects wrapped by `wrapToolDefinition()` in `dist/core/tools/tool-definition-wrapper.js`, with custom tools added through extension registration calls managed with `dist/utils/tools-manager.js`.
 - **hermes-agent:** every file under `tools/` self-registers at import time by calling `register()` in `tools/registry.py` with name, description, schema, handler, and group, and `get_tool_definitions()` in `model_tools.py` resolves the enabled groups into model-ready declarations on every call.
+- **DeepSeek Harness:** tools are declared with `defineTool` in `packages/core/tools/src/index.ts` on the `ctx.tools` registry, and each call runs a fixed pipeline of argument parsing, `tools/pre-execute` guards, execution, `tools/post-execute`, and result finalizing.
 
-**Where they agree / differ.** All three keep a registry as the single source of truth for what the model may call, and all three let outside code add tools; hermes-agent's self-registering files are the most automatic variant of the same idea.
+**Where they agree / differ.** All four keep a registry as the single source of truth for what the model may call, and all four let outside code add tools; hermes-agent's self-registering files are the most automatic registration variant, while the DeepSeek Harness is the most explicit about the call pipeline every tool shares.
 
 **In LangGraph / Python**
 
@@ -275,13 +282,14 @@ node = ToolNode(tools)
 
 **What it is.** One model call rarely finishes the job. The harness runs a loop: send messages to the model, and if the model requests tool actions, execute them, append their results to the history, and call the model again. The loop stops when the model answers with no further tool requests or hits a step limit.
 
-**How the three do it.**
+**How the four do it.**
 
 - **opencode:** the outer loop in `packages/opencode/src/session/prompt.ts` creates an assistant message, resolves tools, and calls `process()` in `packages/opencode/src/session/processor.ts`, which streams one model step and returns continue, stop, or compact before the next turn begins.
 - **pi:** `AgentSession.prompt()` in `dist/core/agent-session.js` expands references, fires lifecycle events, then loops turns where each model response passes tool calls through before- and after-execution hooks until a turn ends with no calls.
 - **hermes-agent:** `run_conversation()` in `agent/conversation_loop.py` alternates model calls with tool rounds from `agent/turn_tool_round.py`, which validates, caps, and dedupes requested calls, stores the tool-call message before executing anything, then appends results and returns a continue, break, or return verdict.
+- **DeepSeek Harness:** `ReactLoopAgent` in `packages/core/agent-loop/src/agent.ts` groups cheap steps into durable turns, streaming one assistant reply per step and scheduling tool calls via `executeToolCalls`, with inbox targets controlling next-step versus next-turn injection.
 
-**Where they agree / differ.** All three loop at the turn level with explicit stop conditions and lifecycle markers around each turn; hermes-agent additionally stores the tool-call record before executing, so tools never run without a saved record.
+**Where they agree / differ.** All four loop at the turn level with explicit stop conditions and lifecycle markers around each turn; hermes-agent additionally stores the tool-call record before executing, so tools never run without a saved record, while the DeepSeek Harness names the smaller unit too, with steps as cheap iterations and turns as the durable unit the log records.
 
 **In LangGraph / Python**
 
@@ -308,13 +316,14 @@ graph = builder.compile(checkpointer=InMemorySaver())
 
 **What it is.** The model often requests several independent actions in one turn, such as reading three files. Running them at the same time is much faster than one after another. The harness must track each running call by an identifier, match each result to its request, and present results in a stable order so the model is never confused.
 
-**How the three do it.**
+**How the four do it.**
 
 - **opencode:** sibling calls from one step run concurrently through execution closures set up in `packages/opencode/src/session/llm.ts`, tracked per call identifier with deferred completion signals in `packages/opencode/src/session/processor.ts` and matched back by identifier on completion.
 - **pi:** sibling calls are checked one at a time in source order, then executed at the same time with interleaved progress events, while completion events fire in finish order but result messages are re-emitted in the original source order per `dist/core/agent-session.js`, with same-file edits serialized by `dist/core/tools/file-mutation-queue.js`.
 - **hermes-agent:** a planner in `agent/tool_dispatch_helpers.py` splits calls into ordered parallel and sequential segments (file writes to the same path become sequential barriers) and parallel segments run together in a daemon worker pool via `agent/tool_executor.py`.
+- **DeepSeek Harness:** the scheduler in `packages/core/agent-loop/src/tool-calls.ts` treats each call as exclusive unless its `isConcurrencySafe` check returns exactly true, running parallel calls in a bounded pool capped by `packages/core/agent-loop/src/constants.ts` while results and log events commit in original model order.
 
-**Where they agree / differ.** All three preserve the model's original call order in what the model sees even though execution finishes out of order, and all three serialize conflicting file writes; the planner that decides what may run together is explicit only in hermes-agent.
+**Where they agree / differ.** All four preserve the model's original call order in what the model sees even though execution finishes out of order, and all four serialize conflicting file writes; hermes-agent decides what may run together with an explicit batch planner, while the DeepSeek Harness inverts the default by treating every tool as an exclusive barrier unless it opts in as concurrency-safe.
 
 **In LangGraph / Python**
 
@@ -341,13 +350,14 @@ graph = builder.compile()
 
 **What it is.** The agent needs hands for the workspace: read a file or directory, write a new file, change part of a file, find files by name pattern, and search file contents for text. Each tool validates its arguments, resolves paths safely, and caps how much text comes back so one giant file cannot flood the conversation.
 
-**How the three do it.**
+**How the four do it.**
 
 - **opencode:** each file tool pairs a parameter schema with an execution function in its own file under `packages/opencode/src/tool/` (`read.ts`, `write.ts`, `edit.ts`, `glob.ts`, `grep.ts`), resolving absolute paths, asking permission, and returning bounded output with diagnostics.
 - **pi:** the `read` tool in `dist/core/tools/read.js` pages through large files by offset and limit, `write` in `dist/core/tools/write.js` replaces whole files, `edit` in `dist/core/tools/edit.js` applies targeted changes, and `grep`, `find`, and `ls` cover search and listing, with mutating tools serialized per file through `dist/core/tools/file-mutation-queue.js`.
 - **hermes-agent:** the model-facing tools are declared in `tools/file_tools.py` with guards and pagination, real filesystem input-output lives in `tools/file_operations.py` behind one terminal-backed implementation serving local and remote backends, and path resolution in `tools/file_tools_paths.py` anchors every relative path at the task's live working directory.
+- **DeepSeek Harness:** file work sits behind the `ctx.fs` seam in `packages/fs/fs/src/index.ts` with the local backend in `packages/fs/fs-local/src/index.ts`, offering windowed reads, single-slot write and edit intent guards, and ripgrep search spawned through `ctx.subprocess` in `packages/fs/tool-fs-search/src/index.ts`.
 
-**Where they agree / differ.** All three converged on the same tool family (paged read, whole write, targeted edit, name search, content search) with bounded reads and per-file write serialization; the shared trait is limits everywhere.
+**Where they agree / differ.** All four converged on the same tool family (paged read, whole write, targeted edit, name search, content search) with bounded reads and guarded writes; the shared trait is limits everywhere, with the DeepSeek Harness splitting the seam from the backend so sandboxing becomes an executor swap and enforcing read-before-write through observed state.
 
 **In LangGraph / Python**
 
@@ -375,13 +385,14 @@ node = ToolNode([read_file])
 
 **What it is.** Many tasks need real commands: run tests, install packages, check version-control status. The harness starts a child process in a shell, captures its standard output and error streams, enforces a timeout, and reports the exit code. Long output must be trimmed so it fits in the conversation.
 
-**How the three do it.**
+**How the four do it.**
 
 - **opencode:** commands go through `packages/opencode/src/tool/shell.ts` with prompt help from `packages/opencode/src/tool/shell/prompt.ts`, parsing the command text, asking permission, spawning with a 2-minute default timeout, and keeping the tail of over-long output with a spill file via `packages/opencode/src/tool/truncate.ts`.
 - **pi:** commands spawn through the configured shell with output streamed piece by piece into an accumulator in `dist/core/bash-executor.js`, created via `dist/core/tools/bash.js` with low-level spawning in `dist/core/exec.js`, killing the whole process tree on abort or timeout.
 - **hermes-agent:** shell commands run through `terminal_tool()` in `tools/terminal_tool.py` across local, container, and remote backends with pre-execution guards in `tools/terminal_tool_guards.py`, heredoc-aware analysis in `tools/shell_heredoc.py`, and finishing (color-code stripping, secret redaction, truncation with spill file) in `tools/terminal_tool_result.py`.
+- **DeepSeek Harness:** the `bash` tool in `packages/shell/tool-bash/src/index.ts` is a thin consumer of the `ctx.shell` seam in `packages/shell/shell/src/index.ts`, running each call in a fresh shell with a scrubbed environment and a sandbox executor in `packages/shell/bash-sandbox/src/index.ts` behind identical arguments.
 
-**Where they agree / differ.** All three stream output live, kill the full process tree on timeout or abort, and spill over-long output to a file; opencode keeps the tail while generic truncation elsewhere keeps the head, and hermes-agent layers the most guards (directory, background-operator, and self-restart checks).
+**Where they agree / differ.** All four stream output live, kill runaway commands on timeout or abort, and spill over-long output to a file; opencode keeps the tail while generic truncation elsewhere keeps the head, hermes-agent layers the most pre-execution guards, and the DeepSeek Harness adds a scrubbed environment plus a sandbox executor behind the same shell seam.
 
 **In LangGraph / Python**
 
@@ -408,13 +419,14 @@ def run(cmd: str) -> str:
 
 **What it is.** Some actions are risky: deleting files, running untrusted commands, sending data outside. Before such a call runs, the harness checks an ordered list of allow and deny rules, and if no rule matches it asks a human (or a policy) to approve once, approve always, or reject. The answer is recorded so repeats are handled consistently.
 
-**How the three do it.**
+**How the four do it.**
 
 - **opencode:** every tool asks through `Permission.ask()` in `packages/opencode/src/permission/index.ts`, evaluated against ordered allow and deny rules in `packages/opencode/src/permission/evaluate.ts` where the last match wins, blocking on a pending entry until a once, always, or reject reply arrives, with shell prefix logic in `packages/opencode/src/permission/arity.ts`.
 - **pi:** there is deliberately no built-in popup; the gate is the tool-call extension event fired from `dist/core/agent-session.js`, where any handler can veto with a reason or rewrite arguments in place, so every approval policy is user-written extension code.
 - **hermes-agent:** layered gates run before dispatch from `tools/approval.py`: unconditional blocks in `tools/approval_floors.py` fire first, a model judge in `tools/approval_smart.py` returns approve, deny, or escalate, then a human is asked via terminal, gateway, or plugin transport with human-only waiting time measured in `tools/approval_human_wait.py`.
+- **DeepSeek Harness:** one approval service on `ctx.approval` in `packages/interaction/user-approval/src/index.ts` runs a waterfall chain of answerers where the first answer wins, failing closed on rejected, cancelled, or unavailable outcomes, with sandbox mode and approval policy bundled into presets in `packages/interaction/permission-presets/src/index.ts`.
 
-**Where they agree / differ.** All three separate unconditional denies from ask-the-human cases, but the human step differs completely: built-in interactive replies in opencode, user-written extensions in pi, and a layered floor plus model judge plus human chain in hermes-agent.
+**Where they agree / differ.** All four separate unconditional denies from ask-the-human cases and fail closed on rejection, but the human step differs completely: built-in interactive replies in opencode, user-written extensions in pi, a layered floor plus model judge plus human chain in hermes-agent, and a single approval service with a waterfall of answerers in the DeepSeek Harness.
 
 **In LangGraph / Python**
 
