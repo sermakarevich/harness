@@ -1,30 +1,24 @@
 # Tutorial 9 — Tool output offloading
 
-After this tutorial one big tool output no longer lands in the conversation, and you can
-still get all of it when you need it.
+After this tutorial big tool outputs stay out of the conversation but within reach.
 
 ## In short
 
 ### The concepts
 
-- **One tool call can flood the context.** A command prints what it wants, and every character
-  stays in the conversation. The terminal shows the call line, never the output, so only the
-  cost line from tutorial 8 reveals it. That note lists offloading as one of four defences
-  against context rot, next to compaction, skills with progressive disclosure, and full
-  context resets (knowledge base: OsmaniHarness). All four harnesses cap inline text, spill
-  the full result to a file, and hand back a preview plus a path.
-- **Save it, then point at it.** Nothing is thrown away: the whole text goes to a file on disk
-  and the model gets the first part plus the path, so nothing is lost and most of it stays out
-  of the expensive context. Recent agent progress is moving work out of the model's context
-  into external storage it can inspect on demand, and managing the context budget is a harness
-  job (knowledge base: ExternalizationInLLMAgents). opencode shows a head preview and deletes
-  spills older than seven days; pi caps both lines and bytes.
-- **Caching buys money back, never space.** Below, the second turn reported 6179 input tokens
-  of which 6001 were cached, so the flood cost almost nothing and still filled the window.
-  Tutorial 8 could not fix this half of the bill, which is why a cap is a separate job from a
-  price. hermes-agent adds a per-turn budget across every result in the turn on top of its
-  per-result cap, and the DeepSeek Harness leaves a preview of both ends, offloads images down
-  a second path, and keeps the result inline when it has nowhere to spill.
+- **One tool call can flood the context.** A command prints what it wants; every character
+  stays in the conversation. The terminal shows the call, never the output, so only the cost
+  line from tutorial 8 reveals it. The OsmaniHarness note lists offloading among four defences
+  against context rot: compaction, skills with progressive disclosure, and full resets. All four
+  cap inline text and spill the rest to a file; hermes-agent budgets the whole turn on top.
+- **Save it, then point at it.** The whole text lands in a file; the model keeps the first part
+  plus the path, so nothing is lost and most stays out of context. Work leaves context for
+  storage it reads on demand, a harness job (knowledge base: ExternalizationInLLMAgents). opencode
+  previews the head and drops week-old spills, pi caps lines and bytes, and the DeepSeek Harness
+  previews both ends, spills images down a second path, and stays inline with nowhere to spill.
+- **Caching buys money back, never space.** Below, the second turn is almost entirely cached
+  input, so the flood cost almost nothing and still filled the window. Tutorial 8 could not
+  fix this half of the bill, which is why a cap is a separate job from a price.
 
 ### Scope
 
@@ -80,12 +74,11 @@ The cap sits on the road every result travels, so a later tool is bounded for fr
 
 ### Design decisions
 
-- **The cap sits in the tools node rather than inside each tool, because keeping the context
-  small is your job and a tool written next month gets it for free.** opencode and pi also cap
-  where a tool run ends, and hermes-agent puts a whole-turn budget above that.
-- **The spill file is named after the text it holds rather than after the call that produced
-  it, so the same output never lands on disk twice.** Nothing the model chose ends up in a
-  file name, which is the same care tutorial 5 took with paths.
+- **The cap sits in the tools node.** Keeping the context small is your job, and a tool written
+  next month gets it for free. opencode and pi also cap where a tool run ends, and hermes-agent
+  puts a whole-turn budget above that.
+- **The spill file is named after its text, not its call.** The same output never lands on
+  disk twice, and nothing the model chose ends up in a file name, as in tutorial 5's paths.
 - **The exit code moves to the front.** The end of a long output is what gets cut, and whether
   the command worked is the one thing you can never let the model lose.
 
@@ -120,7 +113,7 @@ ls .harness/outputs
 ### Under the hood
 
 The flood never reaches your screen: the terminal prints the call line, never the output, so
-at tutorial 8 the only sign of those 8893 characters was the cost line. Caching made the
+at tutorial 8 the only sign of the flood was the cost line. Caching made the
 second turn nearly free without giving the window back: cached tokens are cheap, not absent.
 
 ### Key takeaways
