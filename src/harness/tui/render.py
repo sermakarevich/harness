@@ -10,6 +10,7 @@ import re
 from langchain_core.messages import AIMessageChunk, HumanMessage, ToolMessage
 from langgraph.types import Command
 
+from harness.chat.graph import COMPACT_NODE
 from harness.chat.usage import Usage, dollars, usage_of
 from harness.model.text import text_of
 from harness.tools.permission import Answer
@@ -18,6 +19,7 @@ from harness.tui.ask import ask_permission
 TOOL_ARROW = "→"
 TOOL_ARG_WIDTH = 60
 PRICE_DECIMALS = 4
+COMPACT_NOTICE = "Context over {budget} input tokens; older turns summarised."
 
 
 def shorten(value: object) -> str:
@@ -32,11 +34,13 @@ def call_text(name: str, args: dict) -> str:
 
 
 class StreamState:
-    def __init__(self) -> None:
+    def __init__(self, compact_notice: str = "") -> None:
         self.chunks: AIMessageChunk | None = None
         self.printed_text = False
         self.tools_shown = False
         self.denied: set[str] = set()
+        self.compact_notice = compact_notice
+        self.compact_shown = False
 
 
 def end_line(console, state: StreamState) -> None:
@@ -66,6 +70,17 @@ def show_tool_call(console, message: ToolMessage, state: StreamState) -> None:
 def render_event(console, message, meta: dict, state: StreamState) -> None:
     """Show one piece of the reply as it arrives."""
     if isinstance(message, AIMessageChunk):
+        if (meta or {}).get("langgraph_node") == COMPACT_NODE:
+            if not state.compact_shown and state.compact_notice:
+                console.print(
+                    state.compact_notice,
+                    style="dim",
+                    markup=False,
+                    highlight=False,
+                    soft_wrap=True,
+                )
+                state.compact_shown = True
+            return
         if state.tools_shown:
             state.chunks = None
             state.tools_shown = False
@@ -93,8 +108,8 @@ def run_turn(app, text: str) -> None:
 
     Network errors show a message and the chat keeps going.
     """
-    state = StreamState()
-    before = len(app.session.saved_messages())
+    state = StreamState(COMPACT_NOTICE.format(budget=app.settings.compact_at_tokens))
+    before_ids = {message.id for message in app.session.saved_messages()}
     request: dict | Command = {"messages": [HumanMessage(content=text)]}
     try:
         while True:
@@ -115,10 +130,11 @@ def run_turn(app, text: str) -> None:
             request = Command(resume=answer)
         end_line(app.console, state)
         messages = app.session.saved_messages()
-        turn = usage_of(messages[before:])
+        turn = usage_of([message for message in messages if message.id not in before_ids])
         total = usage_of(messages)
+        total_cost = dollars(total, app.settings) + app.session.carried_cost()
         app.console.print(
-            cost_line(turn, total, dollars(turn, app.settings), dollars(total, app.settings)),
+            cost_line(turn, total, dollars(turn, app.settings), total_cost),
             style="dim",
             markup=False,
             highlight=False,

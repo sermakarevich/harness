@@ -192,3 +192,48 @@ def test_long_tool_result_is_offloaded_to_file(tmp_path, settings):
     assert len(spilled) == 1
     assert spilled[0].read_text() == body
     assert spilled[0].relative_to(tmp_path).as_posix() in tool_msg.content
+
+
+def usage_answer(content, input_tokens):
+    return AIMessage(
+        content=content,
+        usage_metadata={
+            "input_tokens": input_tokens,
+            "output_tokens": 10,
+            "total_tokens": input_tokens + 10,
+        },
+    )
+
+
+def test_over_budget_conversation_is_summarised(settings):
+    model = write_call_model(
+        usage_answer("one", 100),
+        usage_answer("two", settings.compact_at_tokens + 1000),
+        usage_answer("summary", 50),
+        usage_answer("three", 60),
+    )
+    graph = build_graph(model, settings)
+    cfg = thread_config("compact-yes")
+    graph.invoke({"messages": [HumanMessage(content="first")]}, cfg)
+    graph.invoke({"messages": [HumanMessage(content="second")]}, cfg)
+    before = [m.content for m in graph.get_state(cfg).values["messages"]]
+    graph.invoke({"messages": [HumanMessage(content="third")]}, cfg)
+    after = [m.content for m in graph.get_state(cfg).values["messages"]]
+    assert len(after) < len(before) + 2
+    assert "first" not in after
+    assert "summary" in after
+
+
+def test_under_budget_conversation_is_kept_whole(settings):
+    model = write_call_model(
+        usage_answer("one", 100),
+        usage_answer("two", 200),
+        usage_answer("three", 300),
+    )
+    graph = build_graph(model, settings)
+    cfg = thread_config("compact-no")
+    graph.invoke({"messages": [HumanMessage(content="first")]}, cfg)
+    graph.invoke({"messages": [HumanMessage(content="second")]}, cfg)
+    graph.invoke({"messages": [HumanMessage(content="third")]}, cfg)
+    contents = [m.content for m in graph.get_state(cfg).values["messages"]]
+    assert contents == ["first", "one", "second", "two", "third", "three"]

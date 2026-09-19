@@ -13,8 +13,13 @@ from harness.config import Settings
 
 PROMPTS_DIR = Path(__file__).parent / "prompts"
 SYSTEM_PROMPT_FILE = "system.txt"
+SUMMARY_PROMPT_FILE = "summary.txt"
 
 
 def build_system_prompt(settings: Settings, cwd: Path | None = None) -> str:
     template = (PROMPTS_DIR / SYSTEM_PROMPT_FILE).read_text().strip()
     return template.format(today=date.today().isoformat(), cwd=cwd or Path.cwd())
+
+
+def build_summary_prompt() -> str:
+    return (PROMPTS_DIR / SUMMARY_PROMPT_FILE).read_text().strip()

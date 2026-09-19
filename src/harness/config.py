@@ -36,6 +36,8 @@ class Settings:
     output_price_per_million: float = 0.2
     tool_output_limit_characters: int = 2000
     tool_output_dir: str = ".harness/outputs"
+    compact_at_tokens: int = 4000
+    keep_recent_turns: int = 2
 
 
 def load_settings(env_file: str | Path | None = None) -> Settings:
@@ -70,4 +72,6 @@ def load_settings(env_file: str | Path | None = None) -> Settings:
         output_price_per_million=settings.output_price_per_million,
         tool_output_limit_characters=settings.tool_output_limit_characters,
         tool_output_dir=settings.tool_output_dir,
+        compact_at_tokens=settings.compact_at_tokens,
+        keep_recent_turns=settings.keep_recent_turns,
     )

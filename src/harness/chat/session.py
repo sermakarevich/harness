@@ -50,6 +50,10 @@ class Session:
         """Messages the checkpointer holds for this conversation, if any."""
         return list(self.graph.get_state(self.config).values.get("messages", []))
 
+    def carried_cost(self) -> float:
+        """Money already spent on turns that compaction has summarised away."""
+        return float(self.graph.get_state(self.config).values.get("carried_cost", 0.0) or 0.0)
+
     def pending_request(self) -> dict | None:
         """Payload of the first waiting permission question, if any."""
         interrupts = self.graph.get_state(self.config).interrupts
