@@ -15,11 +15,11 @@ older turns with a summary instead of carrying all of them for ever.
   pi triggers at the window minus a 16384-token reserve; opencode summarises the older head
   and blanks old tool outputs; hermes-agent prunes results first, then summarises the
   middle; the DeepSeek Harness keeps a priced recent tail.
-- **What survives matters more than how much you cut.** The note
-  ContextCompressionInteractionCosts found compression raised retrieval calls in all six
-  comparisons with no change in completion; fabricated content raised re-querying by 57
-  percent, and a fact-preserving summary stayed near-lossless where deletion tripled it. The
-  prompt asks for names, paths, numbers, decisions and open questions, and never to guess.
+- **What survives matters more than how much you cut.** Checking only that the agent finished
+  hides the bill, because it pays that bill re-asking for what you threw away: compression
+  raised retrieval calls in all six comparisons while completion never moved, fabricated
+  content raised re-querying by 57 percent, and a fact-preserving summary stayed near-lossless
+  where plain deletion tripled it (knowledge base: ContextCompressionInteractionCosts).
 
 ### Scope
 
@@ -31,30 +31,19 @@ Left out: pruning results first, a second pass, recovery after a refusal, on-dem
 
 ### The problem
 
+Three shell commands ran first, each printing two thousand lines. The conversation the model
+read grew from 3069 to 5829 to 8600 input tokens, and then one trivial question, the last turn
+of the run, still cost this much:
+
 ```text
-> Run the shell command "seq 1 2000" and then reply with just: done
-→ shell command=seq 1 2000
-done
-in 3069 (cached 994) · out 186 (thinking 103) · turn $0.0002 · total $0.0002
-
-> Run the shell command "seq 2001 4000" and then reply with just: done
-→ shell command=seq 2001 4000
-done
-in 5829 (cached 4194) · out 109 (thinking 24) · turn $0.0002 · total $0.0004
-
-> Run the shell command "seq 4001 6000" and then reply with just: done
-→ shell command=seq 4001 6000
-done
-in 8600 (cached 7138) · out 104 (thinking 19) · turn $0.0002 · total $0.0006
-
 > What is 2 plus 2? Reply with just the number.
 4
 in 5005 (cached 4849) · out 81 (thinking 70) · turn $0.0000 · total $0.0007
 ```
 
-Tutorial 9 capped each single result, but three capped results still pile up. A turn with
-a tool makes two model calls, so its `in` sums both and the last line measures the chat.
-The same question costs 2224 input tokens in a fresh session.
+Tutorial 9 capped each single result, but three capped results still pile up and never leave.
+The same question costs 2224 input tokens in a fresh session. A turn that runs a tool makes two
+model calls, so its `in` sums both and only the last line measures the conversation.
 
 ### What changes
 
@@ -104,25 +93,10 @@ git checkout tut10
 just tutorial
 ```
 
-`just smoke` runs the same three shell commands and the same question as the problem above,
-and then one more question after the compaction.
+`just smoke` runs those same three shell commands, the same question, and one more question
+after it. Here are its last two turns:
 
 ```text
-> Run the shell command "seq 1 2000" and then reply with just: done
-→ shell command=seq 1 2000
-done
-in 3114 (cached 994) · out 208 (thinking 125) · turn $0.0003 · total $0.0003
-
-> Run the shell command "seq 2001 4000" and then reply with just: done
-→ shell command=seq 2001 4000
-done
-in 5898 (cached 4224) · out 112 (thinking 27) · turn $0.0002 · total $0.0004
-
-> Run the shell command "seq 4001 6000" and then reply with just: done
-→ shell command=seq 4001 6000
-done
-in 8667 (cached 7208) · out 104 (thinking 19) · turn $0.0002 · total $0.0006
-
 > What is 2 plus 2? Reply with just the number.
 Context over 4000 input tokens; older turns summarised.
 4
@@ -133,7 +107,7 @@ in 5817 (cached 1459) · out 707 (thinking 40) · turn $0.0007 · total $0.0013
 in 3025 (cached 2929) · out 26 (thinking 15) · turn $0.0000 · total $0.0013
 ```
 
-The fourth turn compacts, so it pays for the summary plus the answer and its `in` is the
+The fourth turn compacts, so it pays for the summary as well as the answer and its `in` is the
 largest of the run. The fifth turn is the payoff: `in 3025` against the `5005` above, and the
 notice prints once. The total never falls, because you carry what you spent.
 
