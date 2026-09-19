@@ -8,16 +8,16 @@ After this tutorial, closing the terminal no longer loses the conversation.
 
 - **Checkpoints move from memory to disk.** Tutorial 3 keyed the conversation by
   thread id, but the checkpointer died with it. Swapping in SQLite is small: the
-  graph never knew where its state was kept
-  (knowledge base: TheAnatomyOfAnAgentHarness). opencode and hermes-agent use a
-  local database, pi uses line-delimited files.
+  graph never knew where its state was kept (knowledge base:
+  TheAnatomyOfAnAgentHarness). opencode and hermes-agent keep sessions in a local
+  database, while pi and the DeepSeek Harness keep them in line-delimited JSON files.
 - **The thread id becomes a session name.** The id that loads the conversation
   is the one the banner prints and the one you type after `/resume`. opencode
   re-reads its rows, pi walks a branchable tree, hermes-agent builds views.
 - **List, pick, continue.** You see recent conversations with the time and the
   first thing you said, which you recognise (knowledge base: BuildingLongRunningAgenticAISystems).
-  Always answers and waiting questions return too. Each step saves, as in
-  all four harnesses, so a mid-turn kill still resumes.
+  Each step saves, as in all four harnesses, so a mid-turn kill still resumes. The
+  DeepSeek Harness repairs a kill-cut tail by appending the missing closers, not by truncating it.
 
 ### Scope
 
