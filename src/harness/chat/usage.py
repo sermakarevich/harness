@@ -39,9 +39,9 @@ def usage_of(messages: list) -> Usage:
 
 
 def dollars(usage: Usage, settings: Settings) -> float:
-    full_rate = usage.input_tokens - usage.cached_input_tokens
+    full_price_tokens = usage.input_tokens - usage.cached_input_tokens
     return (
-        full_rate * settings.input_price_per_million
+        full_price_tokens * settings.input_price_per_million
         + usage.cached_input_tokens * settings.cached_input_price_per_million
         + usage.output_tokens * settings.output_price_per_million
     ) / TOKENS_PER_MILLION

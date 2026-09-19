@@ -63,7 +63,7 @@ def load_settings(env_file: str | Path | None = None) -> Settings:
         timeout_seconds=settings.timeout_seconds,
         shell_timeout_seconds=settings.shell_timeout_seconds,
         sessions_db=settings.sessions_db,
-        input_price_per_million=float(settings.input_price_per_million),
-        cached_input_price_per_million=float(settings.cached_input_price_per_million),
-        output_price_per_million=float(settings.output_price_per_million),
+        input_price_per_million=settings.input_price_per_million,
+        cached_input_price_per_million=settings.cached_input_price_per_million,
+        output_price_per_million=settings.output_price_per_million,
     )
