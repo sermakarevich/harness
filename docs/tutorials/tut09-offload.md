@@ -12,10 +12,11 @@ After this tutorial big tool outputs stay out of the conversation but within rea
   against context rot: compaction, skills with progressive disclosure, and full resets. All four
   cap inline text and spill the rest to a file; hermes-agent budgets the whole turn on top.
 - **Save it, then point at it.** The whole text lands in a file; the model keeps the first part
-  plus the path, so nothing is lost and most stays out of context. Work leaves context for
-  storage it reads on demand, a harness job (knowledge base: ExternalizationInLLMAgents). opencode
-  previews the head and drops week-old spills, pi caps lines and bytes, and the DeepSeek Harness
-  previews both ends, spills images down a second path, and stays inline with nowhere to spill.
+  plus the path, so nothing is lost and most stays out of context. Moving work out of context into
+  storage the model reads on demand is a harness job (knowledge base: ExternalizationInLLMAgents).
+  opencode previews the head and drops week-old spills, pi caps lines and bytes, and the DeepSeek
+  Harness previews both ends, spills images down a second path, and keeps the result inline when
+  it has nowhere to spill.
 - **Caching buys money back, never space.** Below, the second turn is almost entirely cached
   input, so the flood cost almost nothing and still filled the window. Tutorial 8 could not
   fix this half of the bill, which is why a cap is a separate job from a price.
