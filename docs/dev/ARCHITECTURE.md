@@ -31,6 +31,7 @@ src/harness/chat/thread.py    session ids (new_session_id) and thread config
 src/harness/chat/usage.py     token counts of the saved replies and what they cost (dollars)
 src/harness/tools/__init__.py tool layer: one file per tool plus the shared path and policy rules
 src/harness/tools/edit_file.py  replaces one exact piece of text in a file
+src/harness/tools/offload.py  spills an over-long tool result to a file and previews it
 src/harness/tools/paths.py    resolves every path under the working directory
 src/harness/tools/permission.py which tool names run without a question
 src/harness/tools/read_file.py  reads one file
@@ -69,8 +70,10 @@ a lower file never imports from a file above it.
 8. If the reply asks for a tool, the graph routes to `run_tools` (`src/harness/chat/run_tools.py`),
    which pauses the turn with `interrupt()` for every call that `src/harness/tools/permission.py`
    does not list as safe. `run_turn` reads the waiting question from the saved state, asks it with
-   `src/harness/tui/ask.py`, and resumes the graph with your answer. Allowed calls run, denied
-   calls come back as a tool message saying so, and the model is called again from step 4.
+   `src/harness/tui/ask.py`, and resumes the graph with your answer. Allowed calls run and their
+   results pass `src/harness/tools/offload.py`, which spills anything over the limit to a file and
+   keeps a preview plus its path. Denied calls come back as a tool message saying so, and the
+   model is called again from step 4.
 9. The final message is appended to state (`src/harness/chat/state.py`) and saved under the `thread_id`.
    Every step saves, so the conversation is on disk before the turn ends and `/resume` finds it
    through `src/harness/chat/sessions.py` in the next run. The reply carries its token counts, so
@@ -102,7 +105,7 @@ hints in OPERATIONS.md).
 | 14 | Snapshot & revert | 5 | planned | `get_state_history`/`update_state` on `chat/graph.py` + per-turn working-directory Snapshot |
 | 15 | Token accounting & cost | 3 | done | `chat/usage.py` adds up the `usage_metadata` of the saved replies and prices it with the rates in `settings.toml`; `tui/render.py` prints it (`tut08`) |
 | 16 | Context overflow & compaction | 4 | planned | `trim_messages` + `RemoveMessage` compact node off `call_model` in `chat/graph.py` |
-| 17 | Tool output offloading | 3 | planned | Cap, spill to disk, and return preview plus path inside tool functions |
+| 17 | Tool output offloading | 3 | done | `tools/offload.py` caps every result where `chat/run_tools.py` turns it into a message, spills the rest to a file and hands back a preview plus the path (`tut09`) |
 | 18 | Memory files | 3 | planned | `pathlib` loader feeding `build_system_prompt` in `chat/prompt.py` |
 | 19 | Skills / progressive disclosure | 3 | planned | `list_skills`/`read_skill` tools plus skill-directory scan |
 | 20 | Sub-agents / delegation | 5 | planned | Child subgraph with own thread id (`chat/thread.py`), fanned out with `Send` |
