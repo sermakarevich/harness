@@ -80,8 +80,9 @@ back with it.
   for the same reason.
 - **The rates live in settings, not in the code.** A provider changes prices without asking you,
   so you keep them where you can change them too. A wrong number that is quiet is worse than none.
-- **Cached input is priced apart from fresh input, not folded in.** On this model the difference
-  is fifty-fold. Folding it in would make a long conversation look far more expensive than it is.
+- **Cached input is priced apart from fresh input, not folded in.** On this model the
+  difference is fifty-fold. Some providers also charge to write the cache; this one reports
+  only reads, so three rates are all you need here.
 
 ### Run it
 
