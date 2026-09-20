@@ -26,6 +26,7 @@ src/harness/chat/prompt.py    system prompt assembly (build_system_prompt)
 src/harness/chat/prompts/system.txt system prompt text with {today} and {cwd} slots
 src/harness/chat/prompts/summary.txt what to keep when the older turns are summarised
 src/harness/chat/prompts/memory.txt how to treat the instruction files the prompt carries
+src/harness/chat/prompts/skills.txt how to treat the skills the prompt lists by name
 src/harness/chat/run_tools.py the tools node: ask about every risky call, then run them
 src/harness/chat/session.py   one conversation id bound to its model and graph (start, resume)
 src/harness/chat/sessions.py  reads saved conversations back as a list you can recognise
@@ -39,8 +40,10 @@ src/harness/tools/offload.py  spills an over-long tool result to a file and prev
 src/harness/tools/paths.py    resolves every path under the working directory
 src/harness/tools/permission.py which tool names run without a question
 src/harness/tools/read_file.py  reads one file
+src/harness/tools/read_skill.py loads one skill's full instructions by name
 src/harness/tools/registry.py lists the tools the model may call
 src/harness/tools/shell.py    runs one command with a timeout
+src/harness/tools/skills.py   the skill folders on disk and how each one describes itself
 src/harness/tools/write_file.py creates or overwrites one file
 src/harness/model/__init__.py model layer: client plus text helper
 src/harness/model/client.py   the single seam where a model object is built (make_model)
@@ -49,7 +52,9 @@ src/harness/model/text.py     plain-text reader for model replies (text_of)
 
 Tutorial 1 wrote `model/client.py` as one raw HTTP call and tutorial 2 replaced it with the
 LangChain adapter. Tutorial 2 kept the conversation as a plain list in `chat/loop.py`, which
-tutorial 3 replaced with the graph. `just smoke` pipes a fixed exchange through `python -m harness`.
+tutorial 3 replaced with the graph. The `skills/` folder at the repository root sits outside
+`src/`: one directory per skill, each holding a `SKILL.md`. `just smoke` pipes a fixed exchange
+through `python -m harness`.
 
 ## Layers
 
@@ -72,7 +77,8 @@ a lower file never imports from a file above it.
    call and puts the recap in their place; under it the turn goes straight on.
 5. `call_model` (`src/harness/chat/graph.py`) prepends the system prompt
    (`src/harness/chat/prompt.py`), which carries the instruction files that
-   `src/harness/chat/memory.py` found when the session started, and calls `model.invoke`.
+   `src/harness/chat/memory.py` found when the session started and one line per skill that
+   `src/harness/tools/skills.py` found, and calls `model.invoke`.
 6. The `ChatOpenAI` built by `make_model` (`src/harness/model/client.py`) sends one HTTPS request to OpenCode
    Go with the `x-opencode-session` header.
 7. Token chunks stream back through `stream_mode="messages"` events.
@@ -102,7 +108,7 @@ hints in OPERATIONS.md).
 | 1 | Pure LLM call | 1 | done | `model/client.py` (raw `httpx` at `tut01`, LangChain since `tut02`) |
 | 2 | Streaming | 1 | done | `tui/render.py run_turn` + `stream_mode="messages"` |
 | 3 | Conversation state | 2 | done | `chat/state.py` + the checkpointer attached in `chat/graph.py` (in memory until `tut07`, on disk since) |
-| 4 | System prompt assembly | 2 | partial | `chat/prompt.py` fills `system.txt` with today and the working directory, then appends the notes from `chat/memory.py` (`tut11`); the skills index appends here next |
+| 4 | System prompt assembly | 2 | partial | `chat/prompt.py` fills `system.txt` with today and the working directory, then appends the notes from `chat/memory.py` (`tut11`) and the skills index from `tools/skills.py` (`tut12`); no per-model templates yet |
 | 5 | Provider & model abstraction | 3 | partial | `make_model` in `model/client.py` is the single seam; no catalog yet |
 | 6 | Reliability | 4 | planned | `RetryPolicy` on `call_model` in `chat/graph.py` + `with_retry`/`with_fallbacks` on the model |
 | 7 | Tool definitions | 2 | done | `@tool` functions in `tools/`, listed in `tools/registry.py`, bound via `bind_tools` (`tut04`) |
@@ -117,7 +123,7 @@ hints in OPERATIONS.md).
 | 16 | Context overflow & compaction | 4 | done | `chat/compact.py` reads the last reply's input count; a conditional edge out of `START` in `chat/graph.py` sends the turn through a summary node that swaps every older turn for one recap (`tut10`) |
 | 17 | Tool output offloading | 3 | done | `tools/offload.py` caps every result where `chat/run_tools.py` turns it into a message, spills the rest to a file and hands back a preview plus the path (`tut09`) |
 | 18 | Memory files | 3 | done | `chat/memory.py` walks up from the working directory taking the first `AGENTS.md` or `CLAUDE.md` in each folder; `chat/prompt.py` pastes them into the system prompt, nearest last (`tut11`) |
-| 19 | Skills / progressive disclosure | 3 | planned | `list_skills`/`read_skill` tools plus skill-directory scan |
+| 19 | Skills / progressive disclosure | 3 | done | `tools/skills.py` reads one line from each `skills/*/SKILL.md`, `chat/prompt.py` puts that index in the system prompt, and `tools/read_skill.py` loads a body only when the model asks (`tut12`) |
 | 20 | Sub-agents / delegation | 5 | planned | Child subgraph with own thread id (`chat/thread.py`), fanned out with `Send` |
 | 21 | Planning & todo tracking | 4 | planned | Extra state field in `chat/state.py` plus `interrupt()` plan gate |
 | 22 | MCP / dynamic external tools | 4 | planned | `MultiServerMCPClient` adapted into the `tools` node in `chat/graph.py` |
