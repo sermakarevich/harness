@@ -29,4 +29,4 @@ tutorial: run
 # Runs the harness once to show this tutorial (uses your key; run sparingly)
 smoke:
     rm -rf .harness
-    printf 'Without using any tools: what should I name a file for small shared helper functions in this project? Reply with the file name only.\n/exit\n' | uv run python -m harness
+    printf 'What is 2 plus 2? Reply with just the number.\nDo not run shell commands. Write the commit message for adding the skills loader. Reply with the message only.\n/exit\n' | uv run python -m harness

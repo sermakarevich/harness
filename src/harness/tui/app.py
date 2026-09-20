@@ -12,11 +12,13 @@ from harness.chat.session import Session
 from harness.chat.sessions import saved_sessions, short_id
 from harness.chat.store import open_store
 from harness.config import Settings
+from harness.tools.skills import skill_names
 from harness.tui import commands, render
 from harness.tui.commands import Command
 
 PROMPT = "> "
 MEMORY_LINE = "memory: {names}"
+SKILLS_LINE = "skills: {names}"
 
 
 class App:
@@ -57,6 +59,9 @@ class App:
         if paths:
             names = ", ".join(short_path(path, self.cwd) for path in paths)
             self.console.print(f"[dim]{MEMORY_LINE.format(names=names)}[/dim]")
+        skills = skill_names(self.cwd, self.settings.skills_dir)
+        if skills:
+            self.console.print(f"[dim]{SKILLS_LINE.format(names=', '.join(skills))}[/dim]")
 
     def read_line(self, prompt_text: str) -> str:
         """Read one line, echoing it when the input is not a terminal."""

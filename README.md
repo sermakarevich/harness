@@ -63,7 +63,7 @@ that call the model say so; everything else runs offline.
 | 9 — Tool output offloading | `tut09` | [tut09-offload.md](docs/tutorials/tut09-offload.md) |
 | 10 — Context compaction | `tut10` | [tut10-compaction.md](docs/tutorials/tut10-compaction.md) |
 | 11 — Memory files | `tut11` | [tut11-memory.md](docs/tutorials/tut11-memory.md) |
-| 12 — Skills | `tut12` | planned |
+| 12 — Skills | `tut12` | [tut12-skills.md](docs/tutorials/tut12-skills.md) |
 | 13 — Reliability and parallel tools | `tut13` | planned |
 | 14 — Planning and todos | `tut14` | planned |
 | 15 — Sub-agents | `tut15` | planned |

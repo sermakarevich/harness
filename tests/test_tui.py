@@ -390,6 +390,24 @@ def test_banner_names_note_it_found(settings, tmp_path):
     assert "AGENTS.md" in buf.getvalue()
 
 
+def test_banner_names_skills_it_found(settings, tmp_path):
+    skill = tmp_path / "skills" / "commit-message"
+    skill.mkdir(parents=True)
+    (skill / "SKILL.md").write_text(
+        "---\ndescription: The house format for a commit message.\n---\n\n# Commit messages\n"
+    )
+    model = FakeToolChatModel(messages=iter([AIMessage(content="pong")]))
+    buf = StringIO()
+    app = App(
+        settings,
+        console=Console(file=buf, width=80, force_terminal=False),
+        cwd=tmp_path,
+        model=model,
+    )
+    app.banner()
+    assert "commit-message" in buf.getvalue()
+
+
 def test_compact_chunk_prints_notice_not_summary():
     buf = StringIO()
     console = Console(file=buf, width=80, force_terminal=False)

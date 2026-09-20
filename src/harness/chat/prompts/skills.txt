@@ -1,0 +1,6 @@
+The skills below are extra instructions you can load when the work calls for them.
+Each line gives a skill name and what the skill is for. The full text is not here.
+When a listed skill matches the work you are asked to do, load it with the read_skill tool
+before you answer, then follow what it says.
+
+{skills}

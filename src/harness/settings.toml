@@ -12,3 +12,4 @@ tool_output_dir = ".harness/outputs"
 compact_at_tokens = 4000
 keep_recent_turns = 2
 memory_file_names = ["AGENTS.md", "CLAUDE.md"]
+skills_dir = "skills"
