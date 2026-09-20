@@ -21,9 +21,11 @@ src/harness/tui/render.py     one turn plus streamed reply rendering (run_turn, 
 src/harness/chat/__init__.py  conversation layer: graph, session, prompt, state, store, usage
 src/harness/chat/compact.py   swaps older turns for one summary once the conversation grows big
 src/harness/chat/graph.py     the agent loop as a graph (build_graph plus call_model)
+src/harness/chat/memory.py    the instruction files found above the working directory
 src/harness/chat/prompt.py    system prompt assembly (build_system_prompt)
 src/harness/chat/prompts/system.txt system prompt text with {today} and {cwd} slots
 src/harness/chat/prompts/summary.txt what to keep when the older turns are summarised
+src/harness/chat/prompts/memory.txt how to treat the instruction files the prompt carries
 src/harness/chat/run_tools.py the tools node: ask about every risky call, then run them
 src/harness/chat/session.py   one conversation id bound to its model and graph (start, resume)
 src/harness/chat/sessions.py  reads saved conversations back as a list you can recognise
@@ -68,7 +70,9 @@ a lower file never imports from a file above it.
    how many input tokens the model reported on its last reply. Over the budget the turn goes
    through the compaction node first, which summarises every turn but the newest few in one
    call and puts the recap in their place; under it the turn goes straight on.
-5. `call_model` (`src/harness/chat/graph.py`) prepends the system prompt (`src/harness/chat/prompt.py`) and calls `model.invoke`.
+5. `call_model` (`src/harness/chat/graph.py`) prepends the system prompt
+   (`src/harness/chat/prompt.py`), which carries the instruction files that
+   `src/harness/chat/memory.py` found when the session started, and calls `model.invoke`.
 6. The `ChatOpenAI` built by `make_model` (`src/harness/model/client.py`) sends one HTTPS request to OpenCode
    Go with the `x-opencode-session` header.
 7. Token chunks stream back through `stream_mode="messages"` events.
@@ -98,7 +102,7 @@ hints in OPERATIONS.md).
 | 1 | Pure LLM call | 1 | done | `model/client.py` (raw `httpx` at `tut01`, LangChain since `tut02`) |
 | 2 | Streaming | 1 | done | `tui/render.py run_turn` + `stream_mode="messages"` |
 | 3 | Conversation state | 2 | done | `chat/state.py` + the checkpointer attached in `chat/graph.py` (in memory until `tut07`, on disk since) |
-| 4 | System prompt assembly | 2 | partial | `chat/prompt.py` (four static lines, one names the tools; memory appends here) |
+| 4 | System prompt assembly | 2 | partial | `chat/prompt.py` fills `system.txt` with today and the working directory, then appends the notes from `chat/memory.py` (`tut11`); the skills index appends here next |
 | 5 | Provider & model abstraction | 3 | partial | `make_model` in `model/client.py` is the single seam; no catalog yet |
 | 6 | Reliability | 4 | planned | `RetryPolicy` on `call_model` in `chat/graph.py` + `with_retry`/`with_fallbacks` on the model |
 | 7 | Tool definitions | 2 | done | `@tool` functions in `tools/`, listed in `tools/registry.py`, bound via `bind_tools` (`tut04`) |
@@ -112,7 +116,7 @@ hints in OPERATIONS.md).
 | 15 | Token accounting & cost | 3 | done | `chat/usage.py` adds up the `usage_metadata` of the saved replies and prices it with the rates in `settings.toml`; `tui/render.py` prints it (`tut08`) |
 | 16 | Context overflow & compaction | 4 | done | `chat/compact.py` reads the last reply's input count; a conditional edge out of `START` in `chat/graph.py` sends the turn through a summary node that swaps every older turn for one recap (`tut10`) |
 | 17 | Tool output offloading | 3 | done | `tools/offload.py` caps every result where `chat/run_tools.py` turns it into a message, spills the rest to a file and hands back a preview plus the path (`tut09`) |
-| 18 | Memory files | 3 | planned | `pathlib` loader feeding `build_system_prompt` in `chat/prompt.py` |
+| 18 | Memory files | 3 | done | `chat/memory.py` walks up from the working directory taking the first `AGENTS.md` or `CLAUDE.md` in each folder; `chat/prompt.py` pastes them into the system prompt, nearest last (`tut11`) |
 | 19 | Skills / progressive disclosure | 3 | planned | `list_skills`/`read_skill` tools plus skill-directory scan |
 | 20 | Sub-agents / delegation | 5 | planned | Child subgraph with own thread id (`chat/thread.py`), fanned out with `Send` |
 | 21 | Planning & todo tracking | 4 | planned | Extra state field in `chat/state.py` plus `interrupt()` plan gate |
