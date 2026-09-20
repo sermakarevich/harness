@@ -13,12 +13,14 @@ from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.prebuilt import tools_condition
+from langgraph.types import RetryPolicy
 
 from harness.chat.compact import build_compact, over_budget
 from harness.chat.prompt import build_summary_prompt, build_system_prompt
 from harness.chat.run_tools import build_run_tools
 from harness.chat.state import HarnessState
 from harness.config import Settings
+from harness.model.retry import should_retry
 from harness.tools.offload import build_offload
 from harness.tools.registry import build_tools
 
@@ -50,9 +52,18 @@ def build_graph(
         return MODEL_NODE
 
     builder = StateGraph(HarnessState)
-    builder.add_node(MODEL_NODE, call_model)
-    builder.add_node(TOOLS_NODE, build_run_tools(tools, offload))
-    builder.add_node(COMPACT_NODE, build_compact(model, build_summary_prompt(), settings))
+    retry = RetryPolicy(
+        initial_interval=settings.retry_initial_seconds,
+        backoff_factor=settings.retry_backoff_factor,
+        max_attempts=settings.retry_attempts,
+        jitter=True,
+        retry_on=should_retry,
+    )
+    builder.add_node(MODEL_NODE, call_model, retry_policy=retry)
+    builder.add_node(TOOLS_NODE, build_run_tools(tools, offload, settings.max_parallel_tools))
+    builder.add_node(
+        COMPACT_NODE, build_compact(model, build_summary_prompt(), settings), retry_policy=retry
+    )
     builder.add_conditional_edges(START, route_start)
     builder.add_edge(COMPACT_NODE, MODEL_NODE)
     builder.add_conditional_edges(MODEL_NODE, tools_condition, {TOOLS_NODE: TOOLS_NODE, END: END})

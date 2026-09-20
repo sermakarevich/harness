@@ -11,13 +11,14 @@ from harness.tools.paths import MISSING_MESSAGE, OUTSIDE_MESSAGE, resolve_inside
 NOT_FOUND_MESSAGE = "old_text not found in {path}"
 AMBIGUOUS_MESSAGE = "old_text appears {count} times in {path}; include more surrounding text"
 EDITED_MESSAGE = "edited {path}"
+TOOL_NAME = "edit_file"
 
 
 def edit_file_tool(cwd: Path):
     """Build the file-editing tool for one working directory."""
     root = cwd.resolve()
 
-    @tool
+    @tool(TOOL_NAME)
     def edit_file(path: str, old_text: str, new_text: str) -> str:
         """Replace one exact occurrence of `old_text` with `new_text` in a file.
 
