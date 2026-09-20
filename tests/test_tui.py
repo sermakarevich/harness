@@ -376,6 +376,20 @@ def test_run_turn_prints_cost_line_and_total_grows(settings):
     assert totals[1] > totals[0]
 
 
+def test_banner_names_note_it_found(settings, tmp_path):
+    (tmp_path / "AGENTS.md").write_text("standing rules")
+    model = FakeToolChatModel(messages=iter([AIMessage(content="pong")]))
+    buf = StringIO()
+    app = App(
+        settings,
+        console=Console(file=buf, width=80, force_terminal=False),
+        cwd=tmp_path,
+        model=model,
+    )
+    app.banner()
+    assert "AGENTS.md" in buf.getvalue()
+
+
 def test_compact_chunk_prints_notice_not_summary():
     buf = StringIO()
     console = Console(file=buf, width=80, force_terminal=False)

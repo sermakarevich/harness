@@ -43,4 +43,5 @@ def settings(monkeypatch, tmp_path):
     monkeypatch.delenv("HARNESS_TOOL_OUTPUT_DIR", raising=False)
     monkeypatch.delenv("HARNESS_COMPACT_AT_TOKENS", raising=False)
     monkeypatch.delenv("HARNESS_KEEP_RECENT_TURNS", raising=False)
+    monkeypatch.delenv("HARNESS_MEMORY_FILE_NAMES", raising=False)
     return load_settings(env_file="/nonexistent/.env")

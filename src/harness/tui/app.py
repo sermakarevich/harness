@@ -7,6 +7,7 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.history import InMemoryHistory
 from rich.console import Console
 
+from harness.chat.memory import memory_paths, short_path
 from harness.chat.session import Session
 from harness.chat.sessions import saved_sessions, short_id
 from harness.chat.store import open_store
@@ -15,6 +16,7 @@ from harness.tui import commands, render
 from harness.tui.commands import Command
 
 PROMPT = "> "
+MEMORY_LINE = "memory: {names}"
 
 
 class App:
@@ -51,6 +53,10 @@ class App:
             f"[bold]harness[/bold] · model [cyan]{self.settings.model}[/cyan] · "
             f"session [dim]{short_id(self.session.session_id)}[/dim] · {Command.HELP} for commands"
         )
+        paths = memory_paths(self.cwd, self.settings.memory_file_names)
+        if paths:
+            names = ", ".join(short_path(path, self.cwd) for path in paths)
+            self.console.print(f"[dim]{MEMORY_LINE.format(names=names)}[/dim]")
 
     def read_line(self, prompt_text: str) -> str:
         """Read one line, echoing it when the input is not a terminal."""
