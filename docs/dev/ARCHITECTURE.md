@@ -27,6 +27,7 @@ src/harness/chat/prompts/system.txt system prompt text with {today} and {cwd} sl
 src/harness/chat/prompts/summary.txt what to keep when the older turns are summarised
 src/harness/chat/prompts/memory.txt how to treat the instruction files the prompt carries
 src/harness/chat/prompts/skills.txt how to treat the skills the prompt lists by name
+src/harness/chat/prompts/todos.txt  how to keep the task list, and the list as it stands
 src/harness/chat/run_tools.py the tools node: ask about every risky call, then run each batch
 src/harness/chat/session.py   one conversation id bound to its model and graph (start, resume)
 src/harness/chat/sessions.py  reads saved conversations back as a list you can recognise
@@ -45,6 +46,7 @@ src/harness/tools/read_skill.py loads one skill's full instructions by name
 src/harness/tools/registry.py lists the tools the model may call
 src/harness/tools/shell.py    runs one command with a timeout
 src/harness/tools/skills.py   the skill folders on disk and how each one describes itself
+src/harness/tools/todos.py    the task list, its one rule, and the tool that replaces it whole
 src/harness/tools/write_file.py creates or overwrites one file
 src/harness/model/__init__.py model layer: client, retry rule and text helper
 src/harness/model/client.py   the single seam where a model object is built (make_model)
@@ -80,7 +82,9 @@ a lower file never imports from a file above it.
 5. `call_model` (`src/harness/chat/graph.py`) prepends the system prompt
    (`src/harness/chat/prompt.py`), which carries the instruction files that
    `src/harness/chat/memory.py` found when the session started and one line per skill that
-   `src/harness/tools/skills.py` found, and calls `model.invoke`.
+   `src/harness/tools/skills.py` found, and calls `model.invoke`. It also puts the task
+   list the harness holds (`src/harness/tools/todos.py`, kept in `src/harness/chat/state.py`)
+   under the system prompt, so the model sees the list on every call.
 6. The `ChatOpenAI` built by `make_model` (`src/harness/model/client.py`) sends one HTTPS request to OpenCode
    Go with the `x-opencode-session` header.
 7. Token chunks stream back through `stream_mode="messages"` events.
@@ -92,7 +96,8 @@ a lower file never imports from a file above it.
    into batches by `src/harness/tools/concurrency.py` and each batch runs at once; the results
    pass `src/harness/tools/offload.py`, which spills anything over the limit to a file and
    keeps a preview plus its path. Denied calls come back as a tool message saying so, and the
-   model is called again from step 5.
+   model is called again from step 5. A `write_todos` call is cleaned and put back into state
+   as the whole new list, replacing the one before it.
 10. The final message is appended to state (`src/harness/chat/state.py`) and saved under the `thread_id`.
    Every step saves, so the conversation is on disk before the turn ends and `/resume` finds it
    through `src/harness/chat/sessions.py` in the next run. The reply carries its token counts, so
@@ -128,7 +133,7 @@ hints in OPERATIONS.md).
 | 18 | Memory files | 3 | done | `chat/memory.py` walks up from the working directory taking the first `AGENTS.md` or `CLAUDE.md` in each folder; `chat/prompt.py` pastes them into the system prompt, nearest last (`tut11`) |
 | 19 | Skills / progressive disclosure | 3 | done | `tools/skills.py` reads one line from each `skills/*/SKILL.md`, `chat/prompt.py` puts that index in the system prompt, and `tools/read_skill.py` loads a body only when the model asks (`tut12`) |
 | 20 | Sub-agents / delegation | 5 | planned | Child subgraph with own thread id (`chat/thread.py`), fanned out with `Send` |
-| 21 | Planning & todo tracking | 4 | planned | Extra state field in `chat/state.py` plus `interrupt()` plan gate |
+| 21 | Planning & todo tracking | 4 | partial | `tools/todos.py` holds the list and the `write_todos` tool that replaces it whole; `chat/state.py` keeps it beside the messages and `chat/graph.py` puts it under the system prompt on every call (`tut14`); no plan mode or approval gate yet |
 | 22 | MCP / dynamic external tools | 4 | planned | `MultiServerMCPClient` adapted into the `tools` node in `chat/graph.py` |
 | 23 | Hooks, plugins & events | 5 | planned | Wrapper nodes around `call_model` in `chat/graph.py` first; a bus only when plugins need it |
 | 24 | Background & concurrency | 5 | planned | One thread per job with its own `thread_id` (`chat/thread.py`); ids already run in parallel |
