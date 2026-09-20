@@ -28,9 +28,5 @@ tutorial: run
 
 # Runs the harness once to show this tutorial (uses your key; run sparingly)
 smoke:
-    rm -rf .harness
-    printf 'Use the shell tool three times in this one turn, as three separate calls: sleep 5, sleep 5, sleep 5. Do not combine them into one command. Then reply done.\na\n/exit\n' | uv run python -m harness
-
-# Shows the retry path against a closed port (no server, no cost)
-retries:
-    printf 'What is 2 plus 2? Reply with just the number.\n/exit\n' | HARNESS_BASE_URL=http://127.0.0.1:1 uv run python -m harness
+    rm -rf .harness notes.txt
+    printf 'Create notes.txt with the three lines alpha, beta and gamma, then read it back and tell me how many lines it has. Plan the work first.\na\n/exit\n' | uv run python -m harness

@@ -16,7 +16,7 @@ from langgraph.prebuilt import tools_condition
 from langgraph.types import RetryPolicy
 
 from harness.chat.compact import build_compact, over_budget
-from harness.chat.prompt import build_summary_prompt, build_system_prompt
+from harness.chat.prompt import build_summary_prompt, build_system_prompt, build_todos_prompt
 from harness.chat.run_tools import build_run_tools
 from harness.chat.state import HarnessState
 from harness.config import Settings
@@ -42,7 +42,11 @@ def build_graph(
     offload = build_offload(root, settings.tool_output_limit_characters, settings.tool_output_dir)
 
     def call_model(state: HarnessState) -> dict:
-        messages = [SystemMessage(content=system_prompt), *state["messages"]]
+        todos_prompt = build_todos_prompt(state.get("todos") or [])
+        messages = [
+            SystemMessage(content=f"{system_prompt}\n\n{todos_prompt}"),
+            *state["messages"],
+        ]
         response = bound.invoke(messages)
         return {"messages": [response]}
 

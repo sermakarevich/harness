@@ -1,0 +1,7 @@
+Keep one short task list for any job of more than one step. Write the whole list every
+time with the write_todos tool, one item per line, as status: what the step is, where
+status is todo, doing or done. Only one item may be doing. Move an item to doing when
+you start it and to done the moment it is finished. Do not write the list into your
+reply, because the list below is what the harness holds right now.
+
+{todos}

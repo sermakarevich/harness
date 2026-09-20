@@ -14,6 +14,7 @@ from harness.chat.graph import COMPACT_NODE
 from harness.chat.usage import Usage, dollars, usage_of
 from harness.model.text import text_of
 from harness.tools.permission import Answer
+from harness.tools.todos import TOOL_NAME as WRITE_TODOS
 from harness.tui.ask import ask_permission
 
 TOOL_ARROW = "→"
@@ -52,6 +53,16 @@ def end_line(console, state: StreamState) -> None:
 def show_tool_call(console, message: ToolMessage, state: StreamState) -> None:
     state.tools_shown = True
     if message.tool_call_id in state.denied:
+        return
+    if message.name == WRITE_TODOS:
+        end_line(console, state)
+        console.print(
+            message.content,
+            style="dim",
+            markup=False,
+            highlight=False,
+            soft_wrap=True,
+        )
         return
     calls = state.chunks.tool_calls if state.chunks is not None else []
     call = next((c for c in calls or [] if c.get("id") == message.tool_call_id), None)

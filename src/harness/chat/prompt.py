@@ -12,12 +12,14 @@ from pathlib import Path
 from harness.chat.memory import build_notes
 from harness.config import Settings
 from harness.tools.skills import skill_index
+from harness.tools.todos import EMPTY_TODOS, Todo, todo_lines
 
 PROMPTS_DIR = Path(__file__).parent / "prompts"
 SYSTEM_PROMPT_FILE = "system.txt"
 SUMMARY_PROMPT_FILE = "summary.txt"
 MEMORY_PROMPT_FILE = "memory.txt"
 SKILLS_PROMPT_FILE = "skills.txt"
+TODOS_PROMPT_FILE = "todos.txt"
 
 
 def build_system_prompt(settings: Settings, cwd: Path | None = None) -> str:
@@ -38,3 +40,9 @@ def build_system_prompt(settings: Settings, cwd: Path | None = None) -> str:
 
 def build_summary_prompt() -> str:
     return (PROMPTS_DIR / SUMMARY_PROMPT_FILE).read_text().strip()
+
+
+def build_todos_prompt(todos: list[Todo]) -> str:
+    """Frame the stored task list for the model."""
+    framing = (PROMPTS_DIR / TODOS_PROMPT_FILE).read_text().strip()
+    return framing.format(todos=todo_lines(todos) or EMPTY_TODOS)

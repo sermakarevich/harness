@@ -6,6 +6,8 @@ from rich.console import Console
 
 from harness.chat.graph import COMPACT_NODE
 from harness.tools.permission import Answer
+from harness.tools.todos import TOOL_NAME as WRITE_TODOS
+from harness.tools.todos import clean_todos, todo_lines
 from harness.tui.app import App
 from harness.tui.ask import answer_of
 from harness.tui.pick import NOTHING_SAVED
@@ -427,3 +429,42 @@ def test_compact_chunk_prints_notice_not_summary():
     out = buf.getvalue()
     assert "summarised" in out
     assert "secret recap" not in out
+
+
+def show_message(console, state, name, args, content, call_id="call-1"):
+    render_event(
+        console,
+        AIMessageChunk(
+            content="",
+            tool_calls=[{"name": name, "args": args, "id": call_id, "type": "tool_call"}],
+        ),
+        {},
+        state,
+    )
+    render_event(console, ToolMessage(content=content, name=name, tool_call_id=call_id), {}, state)
+
+
+def test_write_todos_message_prints_list_without_arrow():
+    rendered = todo_lines(clean_todos("todo: write it\ndoing: read it"))
+    buf = StringIO()
+    show_message(
+        Console(file=buf, width=80, force_terminal=False),
+        StreamState(),
+        WRITE_TODOS,
+        {"items": "todo: write it\ndoing: read it"},
+        rendered,
+    )
+    out = buf.getvalue()
+    assert "☐ write it" in out
+    assert "◐ read it" in out
+    assert "→" not in out
+
+    plain = StringIO()
+    show_message(
+        Console(file=plain, width=80, force_terminal=False),
+        StreamState(),
+        "read_file",
+        {"path": "note.txt"},
+        "hello",
+    )
+    assert "→ read_file path=note.txt" in plain.getvalue()
