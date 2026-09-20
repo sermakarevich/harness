@@ -15,8 +15,8 @@ just run               # terminal chat
 
 `docs/harnesses/` holds background on how four existing harnesses run agents,
 cited from the tutorials. The notes the tutorials cite as "knowledge base" live in the
-[agent harness topic](https://github.com/sermakarevich/knowlegde_base/tree/main/knowledge/structured_papers/agent_harness)
-of the author's knowledge base.
+[agent harness topic](https://github.com/sermakarevich/ai_knowledge_wiki/tree/master/knowledge_base/agent_harness)
+of the author's knowledge base, with a few in neighbouring topics of the same wiki.
 
 ## How to follow the tutorials
 
