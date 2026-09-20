@@ -27,7 +27,7 @@ src/harness/chat/prompts/system.txt system prompt text with {today} and {cwd} sl
 src/harness/chat/prompts/summary.txt what to keep when the older turns are summarised
 src/harness/chat/prompts/memory.txt how to treat the instruction files the prompt carries
 src/harness/chat/prompts/skills.txt how to treat the skills the prompt lists by name
-src/harness/chat/run_tools.py the tools node: ask about every risky call, then run them
+src/harness/chat/run_tools.py the tools node: ask about every risky call, then run each batch
 src/harness/chat/session.py   one conversation id bound to its model and graph (start, resume)
 src/harness/chat/sessions.py  reads saved conversations back as a list you can recognise
 src/harness/chat/state.py     conversation state (HarnessState); one field per harness job
@@ -35,6 +35,7 @@ src/harness/chat/store.py     opens the SQLite file the conversations are saved 
 src/harness/chat/thread.py    session ids (new_session_id) and thread config
 src/harness/chat/usage.py     token counts of the saved replies and what they cost (dollars)
 src/harness/tools/__init__.py tool layer: one file per tool plus the shared path and policy rules
+src/harness/tools/concurrency.py groups a turn's calls into batches that may run together
 src/harness/tools/edit_file.py  replaces one exact piece of text in a file
 src/harness/tools/offload.py  spills an over-long tool result to a file and previews it
 src/harness/tools/paths.py    resolves every path under the working directory
@@ -45,8 +46,9 @@ src/harness/tools/registry.py lists the tools the model may call
 src/harness/tools/shell.py    runs one command with a timeout
 src/harness/tools/skills.py   the skill folders on disk and how each one describes itself
 src/harness/tools/write_file.py creates or overwrites one file
-src/harness/model/__init__.py model layer: client plus text helper
+src/harness/model/__init__.py model layer: client, retry rule and text helper
 src/harness/model/client.py   the single seam where a model object is built (make_model)
+src/harness/model/retry.py    which model call failures are worth another try (should_retry)
 src/harness/model/text.py     plain-text reader for model replies (text_of)
 ```
 
@@ -86,8 +88,9 @@ a lower file never imports from a file above it.
 9. If the reply asks for a tool, the graph routes to `run_tools` (`src/harness/chat/run_tools.py`),
    which pauses the turn with `interrupt()` for every call that `src/harness/tools/permission.py`
    does not list as safe. `run_turn` reads the waiting question from the saved state, asks it with
-   `src/harness/tui/ask.py`, and resumes the graph with your answer. Allowed calls run and their
-   results pass `src/harness/tools/offload.py`, which spills anything over the limit to a file and
+   `src/harness/tui/ask.py`, and resumes the graph with your answer. Allowed calls are grouped
+   into batches by `src/harness/tools/concurrency.py` and each batch runs at once; the results
+   pass `src/harness/tools/offload.py`, which spills anything over the limit to a file and
    keeps a preview plus its path. Denied calls come back as a tool message saying so, and the
    model is called again from step 5.
 10. The final message is appended to state (`src/harness/chat/state.py`) and saved under the `thread_id`.
@@ -110,10 +113,10 @@ hints in OPERATIONS.md).
 | 3 | Conversation state | 2 | done | `chat/state.py` + the checkpointer attached in `chat/graph.py` (in memory until `tut07`, on disk since) |
 | 4 | System prompt assembly | 2 | partial | `chat/prompt.py` fills `system.txt` with today and the working directory, then appends the notes from `chat/memory.py` (`tut11`) and the skills index from `tools/skills.py` (`tut12`); no per-model templates yet |
 | 5 | Provider & model abstraction | 3 | partial | `make_model` in `model/client.py` is the single seam; no catalog yet |
-| 6 | Reliability | 4 | planned | `RetryPolicy` on `call_model` in `chat/graph.py` + `with_retry`/`with_fallbacks` on the model |
+| 6 | Reliability | 4 | done | `model/retry.py` sorts a failure, a `RetryPolicy` on the model and compaction nodes in `chat/graph.py` waits and tries again, and `model/client.py` turns the vendor client's own retrying off (`tut13`); no fallback model yet |
 | 7 | Tool definitions | 2 | done | `@tool` functions in `tools/`, listed in `tools/registry.py`, bound via `bind_tools` (`tut04`) |
 | 8 | Agent loop | 2 | done | `tools` node + conditional edge (`tools_condition`) in `chat/graph.py` (`tut04`) |
-| 9 | Parallel tool calls | 4 | planned | `ToolNode` runs siblings concurrently; `Send` fan-out for custom work |
+| 9 | Parallel tool calls | 4 | done | `tools/concurrency.py` groups a turn's calls into batches, a writing call alone; `chat/run_tools.py` runs each batch in a thread pool and returns the results in the model's order (`tut13`) |
 | 10 | File tools | 2 | partial | `tools/read_file.py`, `write_file.py`, `edit_file.py` with path checks in `tools/paths.py` (`tut05`); no search, no output caps yet |
 | 11 | Shell execution | 2 | partial | `tools/shell.py` around `subprocess` with timeout and exit code (`tut05`); output not trimmed yet |
 | 12 | Permission / approval gate | 4 | done | `tools/permission.py` names the safe tools, `chat/run_tools.py` pauses with `interrupt()`, `tui/ask.py` asks (`tut06`) |
