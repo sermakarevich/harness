@@ -9,13 +9,14 @@ from langchain_core.tools import tool
 from harness.tools.paths import OUTSIDE_MESSAGE, resolve_inside
 
 WRITTEN_MESSAGE = "wrote {path}"
+TOOL_NAME = "write_file"
 
 
 def write_file_tool(cwd: Path):
     """Build the file-writing tool for one working directory."""
     root = cwd.resolve()
 
-    @tool
+    @tool(TOOL_NAME)
     def write_file(path: str, content: str) -> str:
         """Create or overwrite a text file with the given content.
 

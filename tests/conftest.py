@@ -45,4 +45,8 @@ def settings(monkeypatch, tmp_path):
     monkeypatch.delenv("HARNESS_KEEP_RECENT_TURNS", raising=False)
     monkeypatch.delenv("HARNESS_MEMORY_FILE_NAMES", raising=False)
     monkeypatch.delenv("HARNESS_SKILLS_DIR", raising=False)
+    monkeypatch.delenv("HARNESS_RETRY_ATTEMPTS", raising=False)
+    monkeypatch.delenv("HARNESS_RETRY_INITIAL_SECONDS", raising=False)
+    monkeypatch.delenv("HARNESS_RETRY_BACKOFF_FACTOR", raising=False)
+    monkeypatch.delenv("HARNESS_MAX_PARALLEL_TOOLS", raising=False)
     return load_settings(env_file="/nonexistent/.env")

@@ -1,9 +1,27 @@
 """The file-reading tool stays inside the working directory."""
 
+import threading
+import time
+
+from langchain_core.messages import AIMessage
+from langchain_core.tools import tool
+
+from harness.chat.run_tools import build_run_tools
 from harness.tools.edit_file import edit_file_tool
 from harness.tools.read_file import read_file_tool
 from harness.tools.shell import shell_tool
 from harness.tools.write_file import write_file_tool
+
+
+def tool_state(*calls):
+    return {
+        "messages": [AIMessage(content="", tool_calls=list(calls))],
+        "always_allowed": [],
+    }
+
+
+def named_call(name, args, call_id):
+    return {"name": name, "args": args, "id": call_id, "type": "tool_call"}
 
 
 def test_reads_file_inside_cwd(tmp_path):
@@ -98,3 +116,48 @@ def test_shell_timeout_returns_timeout_message(tmp_path):
     assert shell_tool(tmp_path, 1).invoke({"command": "sleep 5"}) == (
         "command timed out after 1 seconds"
     )
+
+
+def test_three_calls_run_together(settings):
+    barrier = threading.Barrier(3)
+
+    @tool("read_file")
+    def gated() -> str:
+        """Wait until all three calls have started."""
+        barrier.wait(timeout=5)
+        return "ok"
+
+    node = build_run_tools([gated], lambda text: text, settings.max_parallel_tools)
+    state = tool_state(
+        named_call("read_file", {}, "call-1"),
+        named_call("read_file", {}, "call-2"),
+        named_call("read_file", {}, "call-3"),
+    )
+    result = node(state)
+    assert [message.content for message in result["messages"]] == ["ok", "ok", "ok"]
+
+
+def test_messages_come_back_in_model_order(settings):
+    @tool("read_file")
+    def delayed(pause: float) -> str:
+        """Reply after a pause."""
+        time.sleep(pause)
+        return f"waited {pause}"
+
+    node = build_run_tools([delayed], lambda text: text, settings.max_parallel_tools)
+    state = tool_state(
+        named_call("read_file", {"pause": 0.3}, "call-1"),
+        named_call("read_file", {"pause": 0.0}, "call-2"),
+        named_call("read_file", {"pause": 0.1}, "call-3"),
+    )
+    result = node(state)
+    assert [message.tool_call_id for message in result["messages"]] == [
+        "call-1",
+        "call-2",
+        "call-3",
+    ]
+    assert [message.content for message in result["messages"]] == [
+        "waited 0.3",
+        "waited 0.0",
+        "waited 0.1",
+    ]

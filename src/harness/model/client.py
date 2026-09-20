@@ -16,6 +16,7 @@ from harness.config import Settings
 SESSION_HEADER = "x-opencode-session"
 USER_AGENT_HEADER = "User-Agent"
 SESSION_ID_PREFIX = "harness-"
+CLIENT_MAX_RETRIES = 0
 
 
 def new_session_id() -> str:
@@ -30,6 +31,7 @@ def make_model(settings: Settings, session_id: str) -> BaseChatModel:
         api_key=settings.api_key,
         base_url=settings.base_url,
         timeout=settings.timeout_seconds,
+        max_retries=CLIENT_MAX_RETRIES,
         use_responses_api=True,
         default_headers={
             SESSION_HEADER: session_id,

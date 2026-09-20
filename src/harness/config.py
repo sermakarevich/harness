@@ -40,6 +40,10 @@ class Settings:
     keep_recent_turns: int = 2
     memory_file_names: tuple[str, ...] = ("AGENTS.md", "CLAUDE.md")
     skills_dir: str = "skills"
+    retry_attempts: int = 3
+    retry_initial_seconds: float = 1.0
+    retry_backoff_factor: float = 2.0
+    max_parallel_tools: int = 4
 
 
 def load_settings(env_file: str | Path | None = None) -> Settings:
@@ -78,4 +82,8 @@ def load_settings(env_file: str | Path | None = None) -> Settings:
         keep_recent_turns=settings.keep_recent_turns,
         memory_file_names=tuple(settings.memory_file_names),
         skills_dir=settings.skills_dir,
+        retry_attempts=settings.retry_attempts,
+        retry_initial_seconds=settings.retry_initial_seconds,
+        retry_backoff_factor=settings.retry_backoff_factor,
+        max_parallel_tools=settings.max_parallel_tools,
     )
