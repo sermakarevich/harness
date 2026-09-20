@@ -20,6 +20,7 @@ SUMMARY_PROMPT_FILE = "summary.txt"
 MEMORY_PROMPT_FILE = "memory.txt"
 SKILLS_PROMPT_FILE = "skills.txt"
 TODOS_PROMPT_FILE = "todos.txt"
+HELPER_PROMPT_FILE = "helper.txt"
 
 
 def build_system_prompt(settings: Settings, cwd: Path | None = None) -> str:
@@ -46,3 +47,9 @@ def build_todos_prompt(todos: list[Todo]) -> str:
     """Frame the stored task list for the model."""
     framing = (PROMPTS_DIR / TODOS_PROMPT_FILE).read_text().strip()
     return framing.format(todos=todo_lines(todos) or EMPTY_TODOS)
+
+
+def build_helper_prompt(job: str) -> str:
+    """Frame one job as the first message a helper sees."""
+    framing = (PROMPTS_DIR / HELPER_PROMPT_FILE).read_text().strip()
+    return framing.format(job=job)

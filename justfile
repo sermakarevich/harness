@@ -28,5 +28,5 @@ tutorial: run
 
 # Runs the harness once to show this tutorial (uses your key; run sparingly)
 smoke:
-    rm -rf .harness notes.txt
-    printf 'Create notes.txt with the three lines alpha, beta and gamma, then read it back and tell me how many lines it has. Plan the work first.\na\n/exit\n' | uv run python -m harness
+    rm -rf .harness
+    printf 'Ask a helper to read src/harness/tools/permission.py and src/harness/tools/registry.py and tell me in one sentence which tool calls never need a permission question.\na\n/exit\n' | uv run python -m harness

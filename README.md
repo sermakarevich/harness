@@ -66,7 +66,7 @@ that call the model say so; everything else runs offline.
 | 12 — Skills | `tut12` | [tut12-skills.md](docs/tutorials/tut12-skills.md) |
 | 13 — Reliability and parallel tools | `tut13` | [tut13-reliability.md](docs/tutorials/tut13-reliability.md) |
 | 14 — Planning and todos | `tut14` | [tut14-planning.md](docs/tutorials/tut14-planning.md) |
-| 15 — Sub-agents | `tut15` | planned |
+| 15 — Sub-agents | `tut15` | [tut15-subagents.md](docs/tutorials/tut15-subagents.md) |
 | 16 — Outside tool servers, MCP | `tut16` | planned |
 | 17 — Evaluation | `tut17` | planned |
 

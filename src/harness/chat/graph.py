@@ -16,11 +16,13 @@ from langgraph.prebuilt import tools_condition
 from langgraph.types import RetryPolicy
 
 from harness.chat.compact import build_compact, over_budget
+from harness.chat.helper import build_helper_runner, helper_tools
 from harness.chat.prompt import build_summary_prompt, build_system_prompt, build_todos_prompt
 from harness.chat.run_tools import build_run_tools
 from harness.chat.state import HarnessState
 from harness.config import Settings
 from harness.model.retry import should_retry
+from harness.tools.ask_helper import ask_helper_tool
 from harness.tools.offload import build_offload
 from harness.tools.registry import build_tools
 
@@ -34,10 +36,16 @@ def build_graph(
     settings: Settings,
     checkpointer: BaseCheckpointSaver | None = None,
     cwd: Path | None = None,
+    helper: bool = False,
 ):
     root = cwd or Path.cwd()
     system_prompt = build_system_prompt(settings, root)
     tools = build_tools(root, settings.shell_timeout_seconds, settings.skills_dir)
+    if helper:
+        tools = helper_tools(tools)
+    else:
+        child = build_graph(model, settings, cwd=root, helper=True)
+        tools = [*tools, ask_helper_tool(build_helper_runner(child))]
     bound = model.bind_tools(tools)
     offload = build_offload(root, settings.tool_output_limit_characters, settings.tool_output_dir)
 
@@ -72,4 +80,5 @@ def build_graph(
     builder.add_edge(COMPACT_NODE, MODEL_NODE)
     builder.add_conditional_edges(MODEL_NODE, tools_condition, {TOOLS_NODE: TOOLS_NODE, END: END})
     builder.add_edge(TOOLS_NODE, MODEL_NODE)
-    return builder.compile(checkpointer=checkpointer or InMemorySaver())
+    saver = None if helper else (checkpointer or InMemorySaver())
+    return builder.compile(checkpointer=saver)
