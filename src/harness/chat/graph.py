@@ -35,7 +35,7 @@ def build_graph(
 ):
     root = cwd or Path.cwd()
     system_prompt = build_system_prompt(settings, root)
-    tools = build_tools(root, settings.shell_timeout_seconds)
+    tools = build_tools(root, settings.shell_timeout_seconds, settings.skills_dir)
     bound = model.bind_tools(tools)
     offload = build_offload(root, settings.tool_output_limit_characters, settings.tool_output_dir)
 
