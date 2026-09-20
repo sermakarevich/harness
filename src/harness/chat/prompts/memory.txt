@@ -1,0 +1,5 @@
+The notes below come from instruction files found in the working directory and the directories above it.
+They are standing instructions from the user. Follow them without being asked again.
+When two notes disagree, the later one wins because it comes from a directory nearer the work.
+
+{notes}

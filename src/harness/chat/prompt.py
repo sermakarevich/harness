@@ -9,16 +9,24 @@ from __future__ import annotations
 from datetime import date
 from pathlib import Path
 
+from harness.chat.memory import build_notes
 from harness.config import Settings
 
 PROMPTS_DIR = Path(__file__).parent / "prompts"
 SYSTEM_PROMPT_FILE = "system.txt"
 SUMMARY_PROMPT_FILE = "summary.txt"
+MEMORY_PROMPT_FILE = "memory.txt"
 
 
 def build_system_prompt(settings: Settings, cwd: Path | None = None) -> str:
     template = (PROMPTS_DIR / SYSTEM_PROMPT_FILE).read_text().strip()
-    return template.format(today=date.today().isoformat(), cwd=cwd or Path.cwd())
+    root = cwd or Path.cwd()
+    base = template.format(today=date.today().isoformat(), cwd=root)
+    notes = build_notes(root, settings.memory_file_names)
+    if not notes:
+        return base
+    framing = (PROMPTS_DIR / MEMORY_PROMPT_FILE).read_text().strip()
+    return f"{base}\n\n{framing.format(notes=notes)}"
 
 
 def build_summary_prompt() -> str:
