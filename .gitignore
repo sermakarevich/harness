@@ -18,3 +18,6 @@ dist/
 
 # Saved conversations live there
 .harness/
+
+# The smoke demonstration writes it
+notes.txt

@@ -9,6 +9,7 @@ from langgraph.types import interrupt
 from harness.chat.state import HarnessState
 from harness.tools.concurrency import batch_calls
 from harness.tools.permission import DENIED_MESSAGE, Answer, needs_approval
+from harness.tools.todos import todos_of
 
 UNKNOWN_MESSAGE = "unknown tool: {name}"
 
@@ -49,9 +50,13 @@ def build_run_tools(tools: list, offload: Callable[[str], str], max_parallel: in
             with ThreadPoolExecutor(max_workers=workers) as pool:
                 messages.extend(pool.map(run_one, batch))
         already = set(state["always_allowed"])
-        return {
+        result = {
             "messages": messages,
             "always_allowed": [name for name in allowed if name not in already],
         }
+        todos = todos_of(calls)
+        if todos is not None:
+            result["todos"] = todos
+        return result
 
     return run_tools
