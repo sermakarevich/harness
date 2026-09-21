@@ -7,17 +7,17 @@ exactly where that memory lives: in a list your harness keeps and resends every 
 
 ### The concepts
 
-- The list is the memory. In tutorial 1 the 2nd request carried only the 2nd question and the
-  model forgot. Here you resend the whole list every turn, so the model remembers
+- **The list is the memory.** In tutorial 1 the second request carried only the second question
+  and the model forgot. Here you resend the whole list every turn, so the model remembers
   (knowledge base: AGENTIC_ENGINEERING_PATTERS).
-- The list grows without bound. Each turn adds more messages. The price is counted in
+- **The list grows without bound.** Each turn adds more messages. The price is counted in
   tutorial 8 and the cut comes in tutorial 10. `/new` keeps the system prompt only, so the model
   forgets again.
-- The system prompt is the standing order. It sits first and shapes every answer you get. The
+- **The system prompt is the standing order.** It sits first and shapes every answer you get. The
   rulebook is the highest-leverage point in the harness (knowledge base: OsmaniHarness).
   - opencode assembles the prompt fresh every turn from a template plus environment facts.
   - hermes-agent builds the prompt once per session and freezes it for cache savings.
-- The adapter is the vendor seam. One `chat()` entry point hides the address and the key,
+- **The adapter is the vendor seam.** One `chat()` entry point hides the address and the key,
   so swapping backends never touches your code (knowledge base: HarnessEngineeringCourse).
 
 ### Scope

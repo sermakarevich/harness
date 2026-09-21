@@ -7,19 +7,20 @@ call by the second.
 
 ### The concepts
 
-- The tutorial 0 scaffold made no call. This chapter sends two prompts over plain HTTP.
-- A model call is plain HTTP. You send one request with a model name and a prompt, and you
+- **The tutorial 0 scaffold made no call.** This chapter sends two prompts over plain HTTP.
+- **A model call is plain HTTP.** You send one request with a model name and a prompt, and you
   get one reply back. Everything else around that exchange is the harness.
   - opencode sends even the simplest call through one shared streaming service.
   - pi keeps a one-shot streamed call with no tool loop, used on its own only for summaries.
   - hermes-agent runs stateless one-off calls through `run_oneshot`, outside session history.
-- The key travels in a header. Your harness adds it to every request. The model never sees it.
-- The request is stateless. Nothing is kept between calls, not even under the same session id.
+- **The key travels in a header.** Your harness adds it to every request. The model never sees it.
+- **The request is stateless.** Nothing is kept between calls, not even under the same session id.
   Whatever the model must know has to travel inside the request. An LLM (large language model) is
   stateless: "LLMs are stateless. Every call replays the entire conversation history. The harness
   fakes memory." (knowledge base: AGENTIC_ENGINEERING_PATTERS). Treat the model as a stateless
   compute unit and keep all state across turns outside it (knowledge base: HarnessEngineering).
-- The same session id does not save you. A missing header or generic user-agent is a hard reject.
+- **The same session id does not save you.** A missing header or generic user-agent is a hard
+  reject.
 
 ### Scope
 
