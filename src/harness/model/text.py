@@ -19,9 +19,7 @@ TEXT_KEY = "text"
 TYPE_KEY = "type"
 
 
-def text_of(message: BaseMessage) -> str:
-    """Join the text pieces of a reply together."""
-    content = message.content
+def join_text(content) -> str:
     if isinstance(content, str):
         return content
     parts: list[str] = []
@@ -34,3 +32,8 @@ def text_of(message: BaseMessage) -> str:
         ):
             parts.append(block.get(TEXT_KEY, ""))
     return "".join(parts)
+
+
+def text_of(message: BaseMessage) -> str:
+    """Join the text pieces of a reply together."""
+    return join_text(message.content)

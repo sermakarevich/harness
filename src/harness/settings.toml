@@ -17,3 +17,8 @@ retry_attempts = 3
 retry_initial_seconds = 1.0
 retry_backoff_factor = 2.0
 max_parallel_tools = 4
+
+[[tool_servers]]
+name = "time"
+command = "uvx"
+args = ["mcp-server-time"]

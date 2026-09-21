@@ -23,6 +23,13 @@ class ConfigError(RuntimeError):
 
 
 @dataclass(frozen=True)
+class ToolServer:
+    name: str
+    command: str
+    args: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class Settings:
     api_key: str = field(repr=False)
     base_url: str
@@ -44,6 +51,7 @@ class Settings:
     retry_initial_seconds: float = 1.0
     retry_backoff_factor: float = 2.0
     max_parallel_tools: int = 4
+    tool_servers: tuple[ToolServer, ...] = ()
 
 
 def load_settings(env_file: str | Path | None = None) -> Settings:
@@ -86,4 +94,12 @@ def load_settings(env_file: str | Path | None = None) -> Settings:
         retry_initial_seconds=settings.retry_initial_seconds,
         retry_backoff_factor=settings.retry_backoff_factor,
         max_parallel_tools=settings.max_parallel_tools,
+        tool_servers=tuple(
+            ToolServer(
+                name=entry["name"],
+                command=entry["command"],
+                args=tuple(entry.get("args", ())),
+            )
+            for entry in settings.get("tool_servers", ())
+        ),
     )

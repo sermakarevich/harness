@@ -25,6 +25,7 @@ from harness.model.retry import should_retry
 from harness.tools.ask_helper import ask_helper_tool
 from harness.tools.offload import build_offload
 from harness.tools.registry import build_tools
+from harness.tools.servers import build_server_tools
 
 MODEL_NODE = "call_model"
 TOOLS_NODE = "tools"
@@ -45,7 +46,11 @@ def build_graph(
         tools = helper_tools(tools)
     else:
         child = build_graph(model, settings, cwd=root, helper=True)
-        tools = [*tools, ask_helper_tool(build_helper_runner(child))]
+        tools = [
+            *tools,
+            ask_helper_tool(build_helper_runner(child)),
+            *build_server_tools(settings.tool_servers),
+        ]
     bound = model.bind_tools(tools)
     offload = build_offload(root, settings.tool_output_limit_characters, settings.tool_output_dir)
 
