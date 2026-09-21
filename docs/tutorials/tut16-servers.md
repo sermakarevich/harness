@@ -1,15 +1,21 @@
 # Tutorial 16 — Outside tool servers
 
-After this tutorial the harness can use tools it did not write, borrowed at
-start-up from a program running beside it.
+After this tutorial the harness can use tools it did not write, borrowed at start-up from
+a program running beside it.
 
 ## In short
 
 ### The concepts
 
+- **You name the servers, the harness borrows their tools.** You name each outside server in the
+  settings file, the harness starts each one and asks it for its tools, renames each tool after its
+  server, and the loop you already have runs them like its own. Three of the four harnesses in
+  `docs/harnesses/OPERATIONS.md` borrow tools this way: opencode puts the server name in front of
+  every tool name, hermes-agent keeps one long-lived connection per server and gives a failing one
+  a cooldown before trying again, and pi has none.
 - **An outside tool server is a second program that offers tools.** Not a library and not a
   plugin: a separate program the harness starts, talks to through the pipes of a child
-  child process, and asks one question before anything else: what tools do you have?
+  process, and asks one question before anything else: what tools do you have?
   Each answer becomes a tool in the same list the loop from tutorial 4 already runs.
   The Model Context Protocol (MCP) is the agreement both sides follow, so the harness
   needs no code written for that server (knowledge base: AI_Harness_Engineering).
@@ -23,7 +29,16 @@ start-up from a program running beside it.
   tool with a free hand was talked into deleting a database table, and a breach needs
   three things together: private data, text from outside, and a way to send something
   back out. So every borrowed tool stays off the no-question list from tutorial 6, and
-  the harness asks you before each call. (knowledge base: BuildTimeVsRuntimeDevTools)
+  the harness asks you before each call (knowledge base: BuildTimeVsRuntimeDevTools).
+- **Tutorial 15 shared jobs, but every tool was written here.** Tutorial 15 let the model hand a job
+  to a helper, but every tool either of them could call was one this project wrote; this chapter is
+  the first time the harness runs a tool nobody here wrote.
+- **Two traps the code guards against.** Two servers can offer a tool of the same name, and the
+  dictionary the loop builds keeps only the later one: running one demo server under two names gave
+  four tools called `add`, `shout`, `add`, `shout` and two surviving entries, so every tool is
+  renamed after its server. One server whose command does not exist fails the whole listing in
+  about 0.01 seconds and returns no tools at all, so each server gets its own connection and its
+  own `try`.
 
 ### Scope
 
@@ -36,6 +51,8 @@ between calls, retries and cooldowns for a server that dies mid-run, a line in t
 the servers that answered, and any way for a helper from tutorial 15 to use a borrowed tool.
 
 ### The problem
+
+A real run at tutorial 15, before this chapter's code, shows what the model reaches for:
 
 ```text
 > What time is it in Tokyo right now?
@@ -75,25 +92,25 @@ src/harness/
 4. Each one is wrapped in an ordinary tool, so the loop makes the call it always made.
 5. The model sees them beside `read_file` and asks for one by name.
 6. The harness asks you first, because a borrowed tool is not on the no-question list, then runs
-it and puts the text it returns into the tool result.
+   it and puts the text it returns into the tool result.
 
 Each server gets its own connection, so a server that is not there costs only its own tools;
 and the borrowed tools go to your conversation only, never to a helper from tutorial 15,
-because a helper may use only tools that need no question. pi stands alone in leaving it out.
+because a helper may use only tools that need no question.
 
 ### Design decisions
 
 - **One connection per server.** Measured: a list holding one working server and one whose
-command does not exist failed the whole listing in about 0.01 seconds and returned no tools at
-all. One `try` per server turns that into losing one server's tools. hermes-agent goes further,
-giving a failing server a growing cooldown so a dead one never stalls a turn.
+  command does not exist failed the whole listing in about 0.01 seconds and returned no tools at
+  all. One `try` per server turns that into losing one server's tools. hermes-agent goes further,
+  giving a failing server a growing cooldown so a dead one never stalls a turn.
 - **Every tool is renamed after its server.** Remote names arrive raw. Running the same server
-under two names gave four tools whose names were `add`, `shout`, `add`, `shout`, and the
-dictionary the loop builds from them kept two: the second server quietly replaced the first.
-opencode namespaces every key as the server name plus the tool name for the same reason.
+  under two names gave four tools whose names were `add`, `shout`, `add`, `shout`, and the
+  dictionary the loop builds from them kept two: the second server quietly replaced the first.
+  opencode namespaces every key as the server name plus the tool name for the same reason.
 - **The remote tool is wrapped, not adopted.** It answers only to an asynchronous call, which the
-loop from tutorial 13 does not make; the wrapper makes that call and hands back plain text. That
-is why nothing else changed: not the permission rule, not the tool-running node, not the registry.
+  loop from tutorial 13 does not make; the wrapper makes that call and hands back plain text. That
+  is why nothing else changed: not the permission rule, not the tool-running node, not the registry.
 
 ### The excerpt that carries the idea
 
