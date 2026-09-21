@@ -7,15 +7,17 @@ streams its answers and survives a failed call.
 
 ### The concepts
 - **One graph node is one turn.** You send a message; one node prefixes the system prompt and
-  answers. The reply joins the thread. opencode, pi and hermes-agent all rebuild the model's
-  messages from stored history on every turn.
-- **A checkpointer keeps the list per thread id.** You name a thread and it loads the list for
-  the turn. The model is a stateless compute unit; its memory is this external list (knowledge
-  base: HarnessEngineering). opencode keeps it in a local database, pi in line-delimited files,
-  hermes-agent in an append-only log.
-- **Tokens arrive one by one, so you print them as they come.** You stream each token instead
-  of waiting for the whole answer (knowledge base: HarnessEngineeringCourse). All three
-  harnesses turn arriving tokens into display events.
+  answers. The reply joins the thread. One node now leaves room for tut04 tool-node edges. The
+  graph library owns the repetition instead of hand-written loop code. opencode, pi and
+  hermes-agent all rebuild the model's messages from stored history on every turn.
+- **A checkpointer keeps the list per thread id.** In tut02 the list was a variable; the
+  checkpointer replaces it. You name a thread and it loads the list. The model is a stateless
+  compute unit; its memory is this external list (knowledge base: HarnessEngineering). opencode
+  keeps it in a local database, pi in line-delimited files, hermes-agent in an append-only log.
+- **Tokens arrive one by one, so you print them as they come.** In tut02 replies arrived in one
+  block; you stream each token instead (knowledge base: HarnessEngineeringCourse). All three
+  harnesses turn arriving tokens into display events. A failed call keeps the chat, but
+  a restart still loses the list, fixed in tut07.
 
 ### Scope
 1. You move the turn into a LangGraph graph with a single node.
