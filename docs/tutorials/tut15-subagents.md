@@ -101,7 +101,8 @@ left-hand one except the one line that came back.
 
 ### The excerpt that carries the idea
 
-everything a helper knows about its own situation is one file, `chat/prompts/helper.txt`.
+Everything a helper knows about its own situation is one file, `chat/prompts/helper.txt`:
+
 ```text
 You are a helper. You were given one job and you cannot see the conversation it came from.
 Do the job with the tools you have, then answer in a few sentences. Your last message is the
@@ -109,7 +110,8 @@ only thing that goes back, so put the answer in it; nothing else you write is ke
 
 The job: {job}
 ```
-{job} is the sentence the model wrote when it called the tool, and there is no system
+
+`{job}` is the sentence the model wrote when it called the tool, and there is no system
 prompt from your conversation, no earlier turn and no way to ask you anything.
 
 ### Run it
