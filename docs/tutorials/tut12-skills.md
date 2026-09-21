@@ -7,10 +7,11 @@ a skill puts one line in front of the model and keeps the rest on disk until it 
 
 ### The concepts
 
-- **Some instructions are needed sometimes, not always.** Tutorial 11 put notes in the prompt,
-  where you pay for every word on every call. That price fits a rule the model must never break,
-  not a paper you need once a week. A skill keeps one line up front and loads the rest only when
-  the model asks. All four harnesses agree: name and description first, body on demand.
+- **Some instructions are needed sometimes, not always.** Tutorial 11 put notes in the prompt, where
+  you pay for every word on every call. That price fits a rule the model must never break, not a
+  paper you need once a week. A skill keeps one line up front and loads the rest only when the model
+  asks. All four harnesses agree: name and description first, body on demand. In this chapter we
+  index each SKILL.md name-plus-description in the prompt and load the body via one tool call.
 - **A skill keeps the model on the rails; it rarely teaches a fact.** Across 528 matched
   runs, skills beat a memory from the same attempts by 6.06 points, and judges credited
   procedure in 65.7 percent of cases against 4.5 for knowledge (knowledge base:
