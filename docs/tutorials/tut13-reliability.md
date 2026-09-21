@@ -7,6 +7,8 @@ once take about as long as the slowest one.
 
 ### The concepts
 
+- You sort model-call errors, retry transient kinds with backoff, and batch calls with writes alone.
+- After tutorial 12 where one failed call ends the turn and sleep calls run one after another.
 - **Calls fail, and whose fault it is decides what to do.** A rate limit, an overloaded server,
   a dropped connection and a refused key all arrive as one exception, and only some pass on the
   next try. The catalogue counts 41 ways a run breaks, 36 the model's and 5 not, and judges
