@@ -1,0 +1,21 @@
+[[tasks]]
+name = "word"
+prompt = "Reply with exactly the word: ready"
+expect = "ready"
+
+[[tasks]]
+name = "arithmetic"
+prompt = "What is 17 times 3? Answer with the number only."
+expect = "51"
+
+[[tasks]]
+name = "count_files"
+prompt = "How many files ending in .txt are in this folder? Answer with the number only."
+expect = "3"
+files = { "one.txt" = "one", "two.txt" = "two", "three.txt" = "three", "notes.md" = "notes" }
+
+[[tasks]]
+name = "read_file"
+prompt = "What single word is inside colour.txt? Answer with the word only."
+expect = "blue"
+files = { "colour.txt" = "blue" }

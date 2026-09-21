@@ -51,6 +51,7 @@ class Settings:
     retry_initial_seconds: float = 1.0
     retry_backoff_factor: float = 2.0
     max_parallel_tools: int = 4
+    eval_repeats: int = 3
     tool_servers: tuple[ToolServer, ...] = ()
 
 
@@ -94,6 +95,7 @@ def load_settings(env_file: str | Path | None = None) -> Settings:
         retry_initial_seconds=settings.retry_initial_seconds,
         retry_backoff_factor=settings.retry_backoff_factor,
         max_parallel_tools=settings.max_parallel_tools,
+        eval_repeats=settings.eval_repeats,
         tool_servers=tuple(
             ToolServer(
                 name=entry["name"],
