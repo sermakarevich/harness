@@ -47,6 +47,7 @@ src/harness/tools/permission.py which tool names run without a question
 src/harness/tools/read_file.py  reads one file
 src/harness/tools/read_skill.py loads one skill's full instructions by name
 src/harness/tools/registry.py lists the tools the model may call
+src/harness/tools/servers.py  borrows tools from outside servers and adapts them into local ones
 src/harness/tools/shell.py    runs one command with a timeout
 src/harness/tools/skills.py   the skill folders on disk and how each one describes itself
 src/harness/tools/todos.py    the task list, its one rule, and the tool that replaces it whole
@@ -87,7 +88,9 @@ a lower file never imports from a file above it.
    `src/harness/chat/memory.py` found when the session started and one line per skill that
    `src/harness/tools/skills.py` found, and calls `model.invoke`. It also puts the task
    list the harness holds (`src/harness/tools/todos.py`, kept in `src/harness/chat/state.py`)
-   under the system prompt, so the model sees the list on every call.
+   under the system prompt, so the model sees the list on every call. The tool list also holds
+   the tools borrowed at start-up from the servers named in `src/harness/settings.toml`, each
+   renamed after its server by `src/harness/tools/servers.py`.
 6. The `ChatOpenAI` built by `make_model` (`src/harness/model/client.py`) sends one HTTPS request to OpenCode
    Go with the `x-opencode-session` header.
 7. Token chunks stream back through `stream_mode="messages"` events.
@@ -104,7 +107,11 @@ a lower file never imports from a file above it.
    graph that `src/harness/chat/graph.py` builds from the same code, with only the tools
    `src/harness/tools/permission.py` lets through without a question and with nothing saved.
    Only that graph's last message comes back as the tool result, so nothing the helper read
-   reaches this conversation.
+   reaches this conversation. A borrowed tool runs exactly like a local one, because
+   `src/harness/tools/servers.py` wrapped it at start-up so the same synchronous call works
+   and the text it returns becomes the tool result. It gets the same permission question as
+   any other tool that is not on the safe list, and a server that does not answer costs only
+   its own tools.
 10. The final message is appended to state (`src/harness/chat/state.py`) and saved under the `thread_id`.
    Every step saves, so the conversation is on disk before the turn ends and `/resume` finds it
    through `src/harness/chat/sessions.py` in the next run. The reply carries its token counts, so
@@ -141,7 +148,7 @@ hints in OPERATIONS.md).
 | 19 | Skills / progressive disclosure | 3 | done | `tools/skills.py` reads one line from each `skills/*/SKILL.md`, `chat/prompt.py` puts that index in the system prompt, and `tools/read_skill.py` loads a body only when the model asks (`tut12`) |
 | 20 | Sub-agents / delegation | 5 | partial | `tools/ask_helper.py` hands one job to a helper that `chat/graph.py` builds from the same code with only the tools that need no question and no saved conversation; `chat/helper.py` frames the job with `chat/prompts/helper.txt` and hands back the helper's last message (`tut15`); no parallel or background helpers, and nothing counts what a helper spends |
 | 21 | Planning & todo tracking | 4 | partial | `tools/todos.py` holds the list and the `write_todos` tool that replaces it whole; `chat/state.py` keeps it beside the messages and `chat/graph.py` puts it under the system prompt on every call (`tut14`); no plan mode or approval gate yet |
-| 22 | MCP / dynamic external tools | 4 | planned | `MultiServerMCPClient` adapted into the `tools` node in `chat/graph.py` |
+| 22 | MCP / dynamic external tools | 4 | partial | `tools/servers.py` connects to each server named in `settings.toml` with its own `MultiServerMCPClient`, one server at a time, and skips a server that does not answer; each remote tool is renamed `server_tool` and wrapped in a `StructuredTool` so the existing `chat/run_tools.py` can call it without change, and `chat/graph.py` adds them to the parent's tool list only, never to a helper's (`tut16`); no servers reached over HyperText Transfer Protocol (HTTP), no connection kept alive between calls, no retry or cooldown for a server that dies mid-run, and nothing is printed when a server is skipped |
 | 23 | Hooks, plugins & events | 5 | planned | Wrapper nodes around `call_model` in `chat/graph.py` first; a bus only when plugins need it |
 | 24 | Background & concurrency | 5 | planned | One thread per job with its own `thread_id` (`chat/thread.py`); ids already run in parallel |
 
