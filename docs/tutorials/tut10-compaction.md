@@ -8,18 +8,18 @@ older turns with a summary instead of carrying all of them for ever.
 ### The concepts
 
 - **The list only grows, and the window has an end.** Every turn joins the list and the whole
-  list is resent, so you pay for all of it on every call. All four harnesses converged on
-  summarise-the-middle, protect-the-tail, never split a tool pair, and prune output first.
+  list is resent, so you pay for all of it on every call. Tutorial 9 bounds one result; this
+  bounds the whole list.
 - **Summarise the old, keep the recent, never cut a turn in half.** Over budget your older
   turns become one short recap while the newest stay untouched, cut only at a turn start.
-  pi triggers at the window minus a 16384-token reserve; opencode summarises the older head
-  and blanks old tool outputs; hermes-agent prunes results first, then summarises the
-  middle; the DeepSeek Harness keeps a priced recent tail.
-- **What survives matters more than how much you cut.** Checking only that the agent finished
-  hides the bill, because it pays that bill re-asking for what you threw away: compression
-  raised retrieval calls in all six comparisons while completion never moved, fabricated
-  content raised re-querying by 57 percent, and a fact-preserving summary stayed near-lossless
-  where plain deletion tripled it (knowledge base: ContextCompressionInteractionCosts).
+  pi triggers at the window minus a reserve; opencode blanks old tool outputs instead.
+- **What survives matters more than how much you cut.** You measure by the input count on the
+  last reply, not a turn sum. The dropped cost stays carried beside the messages. Checking
+  only that the agent finished hides the bill, because it pays that bill re-asking for what you
+  threw away: compression raised retrieval calls in all six comparisons while completion never
+  moved, fabricated content raised re-querying by 57 percent, and a fact-preserving summary
+  stayed near-lossless where plain deletion tripled it (knowledge base:
+  ContextCompressionInteractionCosts).
 
 ### Scope
 
