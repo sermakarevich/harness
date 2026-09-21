@@ -7,19 +7,16 @@ until you allow it.
 
 ### The concepts
 
-- **One short list says what needs no question.** Reading is safe; writing and running
-  are not, so everything else waits for your answer, including tools added later
-  (knowledge base: APracticalGuideToBuildingAgents). opencode checks ordered rules, pi leaves
-  the veto to extensions, hermes-agent layers floors with a judge and a human.
-- **The turn pauses and resumes around your answer.** The tool node asks first, then
-  freezes the turn; your answer resumes it from its first line. Over-asking stalls you and
-  under-asking deletes files, so a rule decides, not the model's mood (knowledge base:
-  ModelOrHarnessFailureTaxonomy, OsmaniHarness). opencode blocks, pi fires a veto event,
-  hermes-agent asks a human.
+- **You add a human yes-or-no gate before side effects.** Reading is safe. Writing
+  and running are not, so everything else waits for your answer, with default ask on unknown
+  tools added later (knowledge base: APracticalGuideToBuildingAgents). opencode checks ordered
+  rules, pi fires a veto event.
+- **This gate wraps the tut05 tools.** The tool node checks before it runs, then
+  freezes the turn. Your answer resumes it from its first line, so a resumed node must
+  not run the tool twice (knowledge base: ModelOrHarnessFailureTaxonomy, OsmaniHarness).
 - **A no is text the model reads, not a crash.** The refused call still gets a
-  tool message saying it was denied, and the model answers from there, so the
-  loop never breaks (knowledge base: HarnessEngineeringCourse). opencode records
-  a reject reply, pi returns a veto reason, hermes-agent returns deny.
+  tool message saying it was denied. The model answers from there, so the
+  loop never breaks (knowledge base: HarnessEngineeringCourse).
 
 ### Scope
 
