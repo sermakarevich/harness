@@ -7,6 +7,8 @@ conversation, and everything the helper reads stays out of yours.
 
 ### The concepts
 
+- **You hand one job over and get one answer back.** You add one tool that hands over one job
+  and brings back one answer.
 - **A sub-agent is the same agent, started again.** Not a function and not a second model: the
   loop from tutorial 4 with its own empty message list, its own turns and its own tool calls.
   The parent's single tool call is the whole life of the child. The call starts it, it runs
@@ -23,6 +25,12 @@ conversation, and everything the helper reads stays out of yours.
   the tools a helper may use. That keeps a helper read-only, and because asking for a helper
   needs a question, a helper cannot ask for one, with no counter anywhere. opencode reaches
   the same limit of one by walking the parent chain on every call.
+- **Tutorial 14 kept everything in the conversation.** The model answered correctly, but both
+  files sat in it for good and every later turn paid again; nothing the model read could be
+  kept out, and the only tool for that was tutorial 10's summary, which throws the detail away.
+- **Two traps the code guards against.** It cannot ask for a helper of its own, so the depth
+  limit needs no counter; the helper's own model calls are counted nowhere, so the cost line
+  under a delegated turn reads lower than the turn really cost.
 
 ### Scope
 
