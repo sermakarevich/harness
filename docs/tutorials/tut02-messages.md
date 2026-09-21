@@ -7,21 +7,18 @@ exactly where that memory lives: in a list your harness keeps and resends every 
 
 ### The concepts
 
-- The list is the memory: "Every call replays the entire conversation history. The harness
-  fakes memory." You resend the list every turn (knowledge base: AGENTIC_ENGINEERING_PATTERS).
-  - opencode rebuilds model messages from stored parts on every turn.
-  - pi walks its session tree from leaf to root and converts the path for the provider.
-  - hermes-agent copies stored history into a working turn context each turn.
+- The list is the memory. In tut01 the 2nd request carried only the 2nd question and the
+  model forgot. Here you resend the whole list every turn, so the model remembers
+  (knowledge base: AGENTIC_ENGINEERING_PATTERS).
+- The list grows without bound. Each turn adds more messages. The price is counted in
+  tut08 and the cut comes in tut10. `/new` keeps the system prompt only, so the model
+  forgets again.
 - The system prompt is the standing order. It sits first and shapes every answer you get. The
   rulebook is the highest-leverage point in the harness (knowledge base: OsmaniHarness).
   - opencode assembles the prompt fresh every turn from a template plus environment facts.
-  - pi renders its tool list plus guidelines with the date and working directory last.
   - hermes-agent builds the prompt once per session and freezes it for cache savings.
 - The adapter is the vendor seam. One `chat()` entry point hides the address and the key,
   so swapping backends never touches your code (knowledge base: HarnessEngineeringCourse).
-  - opencode maps each vendor to its models with per-model normalization.
-  - pi keeps one model interface over four wire protocols.
-  - hermes-agent keeps one global name-to-vendor map plus per-profile scoped maps.
 
 ### Scope
 
