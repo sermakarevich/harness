@@ -11,9 +11,15 @@ every tutorial you still get the whole story.>
 
 <The two or three ideas this tutorial rests on, for an engineer who has not built an
 agent before. Say what the idea is, why harnesses need it, and what goes wrong without
-it. Lists, not long sentences. One analogy is allowed. One line each on how the harnesses in
-`docs/harnesses/OPERATIONS.md` handle it, naming the ones that differ in an interesting way
-rather than all four every time, and one line citing a knowledge-base note when one applies.>
+it. Lists, not long sentences. One analogy is allowed. The block must cover four things,
+one bullet or more per thing: (1) what you do in this chapter, in one line; (2) why this
+shape, with one line citing a knowledge-base note when one applies and one line on how
+the harnesses in `docs/harnesses/OPERATIONS.md` handle it, naming the ones that differ
+in an interesting way rather than all four every time; (3) how this moves on from the
+previous tutorial, naming its number and what it could not do; (4) the tricky cases,
+the one or two traps the code guards against. Anything already said in detail later
+(`How it works`, `Design decisions`, `Under the hood`) is previewed here in one line,
+not repeated in full.>
 
 ### Scope
 
