@@ -7,19 +7,19 @@ reads the instruction files that already sit in your directories.
 
 ### The concepts
 
-- **A fresh session knows nothing about your project.** The weights never change, so every new
-  conversation starts from the same beginner. Anything specific to your work has to be said
-  again, and the standing answer is a plain file on disk pasted into the prompt before your
+- **A fresh session knows nothing about your project.** The weights never change, so each talk
+  starts from the same beginner. Rules live in plain files pasted into the prompt before your
   first word. opencode reads one global file plus the first project-level match walking upward.
-- **Project notes and personal notes share one mechanism at different depths.** A project note
-  is checked in and shared with everyone who clones it, while a home-directory note is yours
-  alone (knowledge base: CodexMemories). The nearer file is read last, so the specific note
-  corrects the general one. pi collects a global file and stacks every ancestor file verbatim.
-- **Notes are pasted, not learned, and you pay for them on every call.** The model reads the
-  text again on every request, so a thousand-token note costs a thousand tokens a turn, and a
-  note someone else can edit is an instruction someone else can write (knowledge base:
-  ContextualAgenticMemoryIsAMemo). hermes-agent freezes the notes into a snapshot at session
-  start, while the DeepSeek Harness reconciles changed files back into context.
+- **Project and personal notes share one mechanism.** A project note is shared with everyone;
+  a home note is yours alone (knowledge base: CodexMemories). Nearer is read last, so it wins.
+- **Notes are pasted, not learned, and you pay per call.** The model rereads the text every
+  request, so long notes cost tokens each turn. Editable notes are writable instructions
+  (knowledge base: ContextualAgenticMemoryIsAMemo). hermes-agent freezes notes at session start.
+- **This chapter walks up from your working directory.** It takes the first matching name in
+  each folder and appends the notes farthest-first after the filled template.
+- **After tut10 this keeps standing rules outside the messages.** Tut10 replaces detail with a
+  summary, and a summary can drop a rule. Notes outside the messages survive it.
+- **Fill the template before you paste the notes.** You fill the template first.
 
 ### Scope
 
