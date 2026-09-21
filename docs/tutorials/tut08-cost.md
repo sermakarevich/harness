@@ -6,15 +6,14 @@ After this tutorial you see what every turn costs, and what the whole conversati
 
 ### The concepts
 
-- **The numbers come back with the reply.** You do not count tokens yourself and you cannot:
-  only the server knows how its tokeniser split your text. Every reply carries a usage record that
-  rides on the message, so tutorial 7 has been saving it all along (knowledge base:
-  HarnessEngineering). Usage per turn in opencode, per message in pi, queued in hermes-agent.
-- **A bill is three numbers against three rates.** Output costs twice as much as input on this
-  model, the thinking you never see is billed as output, and input the server has already seen
-  costs one fiftieth of the input rate. The server sends counts, never money, so you carry the
-  rates in settings. opencode prices with exact decimal maths and splits reasoning out, pi prices
-  into a cost field for the terminal footer, hermes-agent prices per million in the background.
+- **The numbers come back with the reply.** You do not count tokens yourself and you cannot: only
+  the server knows how its tokeniser split your text. Every reply carries a usage record that rides
+  on the message, so tutorial 7 has been saving it all along (knowledge base: HarnessEngineering).
+  No counter is kept, totals are re-read from saved messages so a resume cannot drift.
+- **A bill is three numbers against three rates.** Output costs twice as much as input on
+  this model, the thinking you never see is billed as output, and input the server has
+  already seen costs one fiftieth of the input rate. The server sends counts, never money,
+  so you carry the rates in settings.
 - **Every turn pays for the whole conversation again.** Tutorial 2 said the list is the memory
   and every turn resends it, so the input number on turn ten is the whole of turns one to nine.
   Caching keeps this survivable for you; compaction (tutorial 10) keeps it bounded. One study put
