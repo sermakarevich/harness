@@ -7,22 +7,20 @@ so it can fix a bug and run the tests itself.
 
 ### The concepts
 
+- **After tut04, before tut06.** Tut04 gave the model read tools; this adds write, edit and
+  shell with no graph-edge change. The approval gate comes in tut06.
 - **Edit is exact find-and-replace.** The model sends exact old and new text; you replace it
-  only on exactly one match, else answer with error text. An edit that fails over one missing
-  space is the textbook malformed argument (knowledge base: ModelOrHarnessFailureTaxonomy), so
-  the error text must let the model recover. Models are post-trained inside harnesses and do
-  best with the edit shapes they were trained on (knowledge base: OsmaniHarness). opencode edits
-  with diagnostics, pi queues edits per file, hermes-agent guards its file tools.
+  only on exactly one match, else answer with error text. A failed edit is the textbook malformed
+  argument (knowledge base: ModelOrHarnessFailureTaxonomy), so the error text must let the model
+  recover. Models do best with the edit shapes they were trained on (knowledge base: OsmaniHarness).
 - **Shell runs with a timeout in the working directory.** A command that never ends would hang
   your chat, so you kill it after a fixed number of seconds and say so. Every command runs in
-  the folder you started in, and every path is checked against that folder in one shared piece
-  of code. A sandbox does the same: scoped working directory, timeout, exit code with the
-  combined output (knowledge base: HarnessEngineeringCourse). opencode has a default timeout,
-  pi streams, hermes-agent guards.
-- **A process becomes text.** The model never sees your process, only text: output, error,
-  exit code. The shell is the general-purpose tool (knowledge base: TheAnatomyOfAnAgentHarness):
-  with it the model writes and runs code to make its own tools on the fly. opencode keeps the
-  tail, pi streams live, hermes-agent strips and redacts.
+  the folder you started in. A sandbox does the same: scoped working directory, timeout, exit code
+  with the combined output (knowledge base: HarnessEngineeringCourse).
+- **A process becomes text.** The model never sees your process, only text: output, error, exit
+  code. The shell is the general-purpose tool (knowledge base: TheAnatomyOfAnAgentHarness).
+- **Tricky paths, environment, size.** Every path goes through a shared resolver that rejects
+  escapes. The shell inherits the environment so `pytest` resolves. Big outputs are capped in tut09.
 
 ### Scope
 
