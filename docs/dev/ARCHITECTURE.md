@@ -21,6 +21,7 @@ src/harness/tui/render.py     one turn plus streamed reply rendering (run_turn, 
 src/harness/chat/__init__.py  conversation layer: graph, session, prompt, state, store, usage
 src/harness/chat/compact.py   swaps older turns for one summary once the conversation grows big
 src/harness/chat/graph.py     the agent loop as a graph (build_graph plus call_model)
+src/harness/chat/helper.py    the tools a helper may use and how one job is run
 src/harness/chat/memory.py    the instruction files found above the working directory
 src/harness/chat/prompt.py    system prompt assembly (build_system_prompt)
 src/harness/chat/prompts/system.txt system prompt text with {today} and {cwd} slots
@@ -28,6 +29,7 @@ src/harness/chat/prompts/summary.txt what to keep when the older turns are summa
 src/harness/chat/prompts/memory.txt how to treat the instruction files the prompt carries
 src/harness/chat/prompts/skills.txt how to treat the skills the prompt lists by name
 src/harness/chat/prompts/todos.txt  how to keep the task list, and the list as it stands
+src/harness/chat/prompts/helper.txt what a helper is told before it starts, and the job
 src/harness/chat/run_tools.py the tools node: ask about every risky call, then run each batch
 src/harness/chat/session.py   one conversation id bound to its model and graph (start, resume)
 src/harness/chat/sessions.py  reads saved conversations back as a list you can recognise
@@ -36,6 +38,7 @@ src/harness/chat/store.py     opens the SQLite file the conversations are saved 
 src/harness/chat/thread.py    session ids (new_session_id) and thread config
 src/harness/chat/usage.py     token counts of the saved replies and what they cost (dollars)
 src/harness/tools/__init__.py tool layer: one file per tool plus the shared path and policy rules
+src/harness/tools/ask_helper.py  hands one job to a helper and brings back one answer
 src/harness/tools/concurrency.py groups a turn's calls into batches that may run together
 src/harness/tools/edit_file.py  replaces one exact piece of text in a file
 src/harness/tools/offload.py  spills an over-long tool result to a file and previews it
@@ -97,7 +100,11 @@ a lower file never imports from a file above it.
    pass `src/harness/tools/offload.py`, which spills anything over the limit to a file and
    keeps a preview plus its path. Denied calls come back as a tool message saying so, and the
    model is called again from step 5. A `write_todos` call is cleaned and put back into state
-   as the whole new list, replacing the one before it.
+   as the whole new list, replacing the one before it. An `ask_helper` call runs a second
+   graph that `src/harness/chat/graph.py` builds from the same code, with only the tools
+   `src/harness/tools/permission.py` lets through without a question and with nothing saved.
+   Only that graph's last message comes back as the tool result, so nothing the helper read
+   reaches this conversation.
 10. The final message is appended to state (`src/harness/chat/state.py`) and saved under the `thread_id`.
    Every step saves, so the conversation is on disk before the turn ends and `/resume` finds it
    through `src/harness/chat/sessions.py` in the next run. The reply carries its token counts, so
@@ -132,7 +139,7 @@ hints in OPERATIONS.md).
 | 17 | Tool output offloading | 3 | done | `tools/offload.py` caps every result where `chat/run_tools.py` turns it into a message, spills the rest to a file and hands back a preview plus the path (`tut09`) |
 | 18 | Memory files | 3 | done | `chat/memory.py` walks up from the working directory taking the first `AGENTS.md` or `CLAUDE.md` in each folder; `chat/prompt.py` pastes them into the system prompt, nearest last (`tut11`) |
 | 19 | Skills / progressive disclosure | 3 | done | `tools/skills.py` reads one line from each `skills/*/SKILL.md`, `chat/prompt.py` puts that index in the system prompt, and `tools/read_skill.py` loads a body only when the model asks (`tut12`) |
-| 20 | Sub-agents / delegation | 5 | planned | Child subgraph with own thread id (`chat/thread.py`), fanned out with `Send` |
+| 20 | Sub-agents / delegation | 5 | partial | `tools/ask_helper.py` hands one job to a helper that `chat/graph.py` builds from the same code with only the tools that need no question and no saved conversation; `chat/helper.py` frames the job with `chat/prompts/helper.txt` and hands back the helper's last message (`tut15`); no parallel or background helpers, and nothing counts what a helper spends |
 | 21 | Planning & todo tracking | 4 | partial | `tools/todos.py` holds the list and the `write_todos` tool that replaces it whole; `chat/state.py` keeps it beside the messages and `chat/graph.py` puts it under the system prompt on every call (`tut14`); no plan mode or approval gate yet |
 | 22 | MCP / dynamic external tools | 4 | planned | `MultiServerMCPClient` adapted into the `tools` node in `chat/graph.py` |
 | 23 | Hooks, plugins & events | 5 | planned | Wrapper nodes around `call_model` in `chat/graph.py` first; a bus only when plugins need it |
