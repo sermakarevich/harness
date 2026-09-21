@@ -1,6 +1,7 @@
 """Tools borrowed from outside servers, made to look like the local ones."""
 
 import asyncio
+from collections.abc import Iterable
 
 from langchain_core.tools import StructuredTool
 from langchain_mcp_adapters.client import MultiServerMCPClient
@@ -25,7 +26,7 @@ def _server_tools(server: ToolServer) -> list:
     return asyncio.run(client.get_tools())
 
 
-def _local_tool(server: ToolServer, remote):
+def _local_tool(server: ToolServer, remote) -> StructuredTool:
     def run(**kwargs):
         return join_text(asyncio.run(remote.ainvoke(kwargs)))
 
@@ -37,7 +38,7 @@ def _local_tool(server: ToolServer, remote):
     )
 
 
-def build_server_tools(servers) -> list:
+def build_server_tools(servers: Iterable[ToolServer]) -> list:
     """List the tools borrowed from every server that answers."""
     tools = []
     for server in servers:

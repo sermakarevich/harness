@@ -19,7 +19,7 @@ TEXT_KEY = "text"
 TYPE_KEY = "type"
 
 
-def join_text(content) -> str:
+def join_text(content: str | list) -> str:
     if isinstance(content, str):
         return content
     parts: list[str] = []
