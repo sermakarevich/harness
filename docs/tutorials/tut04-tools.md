@@ -17,12 +17,14 @@ After this tutorial the model can read a file you name and use what it found in 
   (knowledge base: HarnessEngineeringCourse). Your harness runs only tools it has code
   for (knowledge base: TheAnatomyOfAnAgentHarness). opencode loops over streaming steps,
   pi loops turns with hooks, and hermes-agent runs a bounded model-then-tools loop.
-- **The loop is graph structure, and the first tool only reads.** The model node routes
-  to the tool node on a tool call and to the end otherwise; the tool node always routes
-  back. This reason, act, observe, repeat cycle dominates every harness (knowledge
-  base: TheAnatomyOfAnAgentHarness), and real loops carry a step budget, here the
-  recursion limit for now (knowledge base: HarnessEngineeringCourse). Reading has no side
-  effect so it needs no gate: only action tools that change things need gating
+- **The loop is graph structure, and the first tool only reads.** This extends the tut03
+  single-node graph with a tool node plus conditional edges. The first tool reads only.
+  The model node routes to the tool node on a tool call and to the end otherwise; the
+  tool node always routes back. Tool calls arrive as streamed pieces. A wrong path returns
+  text, not an exception. This reason, act, observe, repeat cycle dominates every harness
+  (knowledge base: TheAnatomyOfAnAgentHarness), and real loops carry a step budget, here
+  the recursion limit for now (knowledge base: HarnessEngineeringCourse). Reading has no
+  side effect so it needs no gate: only action tools that change things need gating
   (knowledge base: APracticalGuideToBuildingAgents). The file system won as the agent
   workspace because models were trained on it (knowledge base: TheAnatomyOfAnAgentHarness).
 
