@@ -14,22 +14,21 @@ a program running beside it.
   every tool name, hermes-agent keeps one long-lived connection per server and gives a failing one
   a cooldown before trying again, and pi has none.
 - **An outside tool server is a second program that offers tools.** Not a library and not a
-  plugin: a separate program the harness starts, talks to through the pipes of a child
-  process, and asks one question before anything else: what tools do you have?
-  Each answer becomes a tool in the same list the loop from tutorial 4 already runs.
-  The Model Context Protocol (MCP) is the agreement both sides follow, so the harness
-  needs no code written for that server (knowledge base: AI_Harness_Engineering).
-- **You pay for a borrowed tool on every turn, whether you use it or not.** Its
-  description and its arguments travel with every model call. Measured on a 120-tool,
-  six-server setup, tool definitions alone took 47.3 thousand tokens per turn; loading
-  the full description only for the tools that match the request cut that to 2.4
-  thousand, and raised the share of the context window doing useful work from 24 to 91
-  percent (knowledge base: ToolAttentionIsAllYouNeed).
-- **A borrowed tool is someone else's code holding your permissions.** An unattended
-  tool with a free hand was talked into deleting a database table, and a breach needs
-  three things together: private data, text from outside, and a way to send something
-  back out. So every borrowed tool stays off the no-question list from tutorial 6, and
-  the harness asks you before each call (knowledge base: BuildTimeVsRuntimeDevTools).
+  plugin: a separate program the harness starts, talks to through the pipes of a child process,
+  and asks one question before anything else: what tools do you have? Each answer becomes a tool
+  in the same list the loop from tutorial 4 already runs. The Model Context Protocol (MCP) is the
+  agreement both sides follow, so the harness needs no code written for that server (knowledge
+  base: AI_Harness_Engineering).
+- **You pay for a borrowed tool on every turn, whether you use it or not.** Its description and
+  its arguments travel with every model call. Measured on a 120-tool, six-server setup, tool
+  definitions alone took 47.3 thousand tokens per turn; loading the full description only for the
+  tools that match the request cut that to 2.4 thousand, and raised the share of the context
+  window doing useful work from 24 to 91 percent (knowledge base: ToolAttentionIsAllYouNeed).
+- **A borrowed tool is someone else's code holding your permissions.** An unattended tool with a
+  free hand was talked into deleting a database table, and a breach needs three things together:
+  private data, text from outside, and a way to send something back out. So every borrowed tool
+  stays off the no-question list from tutorial 6, and the harness asks you before each call
+  (knowledge base: BuildTimeVsRuntimeDevTools).
 - **Tutorial 15 shared jobs, but every tool was written here.** Tutorial 15 let the model hand a job
   to a helper, but every tool either of them could call was one this project wrote; this chapter is
   the first time the harness runs a tool nobody here wrote.
