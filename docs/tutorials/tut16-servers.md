@@ -114,3 +114,50 @@ def _local_tool(server: ToolServer, remote) -> StructuredTool:
 
 The name gains its server, and the wrapper makes the asynchronous call the loop cannot make;
 the text of the reply becomes the tool result: a borrowed tool and `read_file` are the same.
+
+### Run it
+
+```bash
+git checkout tut16
+just tutorial
+```
+
+The first start downloads the outside server once, and with it downloaded a start took 1.4 seconds.
+
+`just smoke` repeats the problem question with a tool made for it, and it took 7 seconds.
+
+```text
+> What time is it in Tokyo right now?
+I'll check the current time in Tokyo.
+allow time_get_current_time timezone=Asia/Tokyo? [y]es/[a]lways/[n]o a
+→ time_get_current_time timezone=Asia/Tokyo
+It's 4:44 PM on Monday in Tokyo.
+in 5513 (cached 2658) · out 215 (thinking 120) · turn $0.0003 · total $0.0003
+```
+
+The model asked for one narrow tool by name, and you approved that tool rather than a command line.
+The answer came from a program the harness did not write.
+
+### Under the hood
+
+The first turn read 5081 input tokens before this tutorial and 5513 after it, a difference of
+432 tokens, and that difference rides on every call whether a borrowed tool is used or not. Every
+call starts the server again. One round trip through a local server measured 254.9 milliseconds
+and 250.4 milliseconds on two calls, and 234.6, 232.2, 236.1 and 234.0 in repeat runs. Nothing is
+kept alive between calls, and nothing is left running afterwards. The harness pays that price for
+correctness it did not have to write, which is the trade the protocol exists to make.
+
+### Key takeaways
+
+- A borrowed tool is a normal tool by the time the loop sees it, and everything interesting
+  happens in the renaming and wrapping.
+- A server you do not control gets the same permission question as the shell, and for the
+  same reason.
+- The tool list is not free: every borrowed tool is paid for on every turn.
+
+### What is still missing
+
+Nothing is printed when a server is skipped, there is no retry or cooldown for a server that dies
+mid-run, only servers started as a child process are supported and not ones reached over
+HyperText Transfer Protocol (HTTP), and a helper still cannot borrow. Tutorial 17 adds
+evaluation, so a change to the harness can be measured instead of argued about.
