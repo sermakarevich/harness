@@ -64,3 +64,53 @@ src/harness/
 ~ settings.toml        the servers to start, and the command for each
 ~ tests/               offline checks with a tiny server of our own
 ```
+
+## In detail
+
+### How it works
+
+1. The settings file names each server and the command that starts it.
+2. At start-up the harness starts each server as a child process and asks what tools it has.
+3. Each remote tool gets its server's name in front of its own.
+4. Each one is wrapped in an ordinary tool, so the loop makes the call it always made.
+5. The model sees them beside `read_file` and asks for one by name.
+6. The harness asks you first, because a borrowed tool is not on the no-question list, then runs
+it and puts the text it returns into the tool result.
+
+Each server gets its own connection, so a server that is not there costs only its own tools;
+and the borrowed tools go to your conversation only, never to a helper from tutorial 15,
+because a helper may use only tools that need no question. pi stands alone in leaving it out.
+
+### Design decisions
+
+- **One connection per server.** Measured: a list holding one working server and one whose
+command does not exist failed the whole listing in about 0.01 seconds and returned no tools at
+all. One `try` per server turns that into losing one server's tools. hermes-agent goes further,
+giving a failing server a growing cooldown so a dead one never stalls a turn.
+- **Every tool is renamed after its server.** Remote names arrive raw. Running the same server
+under two names gave four tools whose names were `add`, `shout`, `add`, `shout`, and the
+dictionary the loop builds from them kept two: the second server quietly replaced the first.
+opencode namespaces every key as the server name plus the tool name for the same reason.
+- **The remote tool is wrapped, not adopted.** It answers only to an asynchronous call, which the
+loop from tutorial 13 does not make; the wrapper makes that call and hands back plain text. That
+is why nothing else changed: not the permission rule, not the tool-running node, not the registry.
+
+### The excerpt that carries the idea
+
+Adapting one remote tool into a local one is the function `_local_tool` in `servers.py`:
+
+```python
+def _local_tool(server: ToolServer, remote) -> StructuredTool:
+    def run(**kwargs):
+        return join_text(asyncio.run(remote.ainvoke(kwargs)))
+
+    return StructuredTool(
+        name=f"{server.name}{NAME_SEPARATOR}{remote.name}",
+        description=remote.description,
+        args_schema=remote.args_schema,
+        func=run,
+    )
+```
+
+The name gains its server, and the wrapper makes the asynchronous call the loop cannot make;
+the text of the reply becomes the tool result: a borrowed tool and `read_file` are the same.
