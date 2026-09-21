@@ -29,4 +29,4 @@ tutorial: run
 # Runs the harness once to show this tutorial (uses your key; run sparingly)
 smoke:
     rm -rf .harness
-    printf 'Ask a helper to read src/harness/tools/permission.py and src/harness/tools/registry.py and tell me in one sentence which tool calls never need a permission question.\na\n/exit\n' | uv run python -m harness
+    printf 'What time is it in Tokyo right now?\na\n/exit\n' | uv run python -m harness

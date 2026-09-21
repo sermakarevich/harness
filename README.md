@@ -69,7 +69,7 @@ that call the model say so; everything else runs offline.
 | 13 — Reliability and parallel tools | `tut13` | [tut13-reliability.md](docs/tutorials/tut13-reliability.md) |
 | 14 — Planning and todos | `tut14` | [tut14-planning.md](docs/tutorials/tut14-planning.md) |
 | 15 — Sub-agents | `tut15` | [tut15-subagents.md](docs/tutorials/tut15-subagents.md) |
-| 16 — Outside tool servers, MCP | `tut16` | planned |
+| 16 — Outside tool servers, MCP | `tut16` | [tut16-servers.md](docs/tutorials/tut16-servers.md) |
 | 17 — Evaluation | `tut17` | planned |
 
 A row says `planned` until its tag is published. The concept behind each row and the
