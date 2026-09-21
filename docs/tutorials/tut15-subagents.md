@@ -7,16 +7,18 @@ conversation, and everything the helper reads stays out of yours.
 
 ### The concepts
 
+- **A sub-agent is the same agent, started again.** Not a function and not a second model: the
+  loop from tutorial 4 with its own empty message list, its own turns and its own tool calls.
+  The parent's single tool call is the whole life of the child. The call starts it, it runs
+  until it has an answer, its last message becomes the tool result, and then it is gone. This
+  chapter calls it a helper because that is the name of the tool; sub-agent is the usual name.
 - **A helper buys context, not cleverness.** With the thinking-token budget held equal, a single
   agent matched or beat every multi-agent arrangement tested on multi-hop reasoning, and the
-  multi-agent versions only pulled ahead when the single agent's context was deliberately
-  damaged with masking, deletion or distractors (knowledge base:
-  SingleAgentLlmsOutperformMultiAgentSystemsOnMultiHopReasoning).
-  A helper is worth it when your context is the scarce thing, not when the thinking is hard.
-- **A helper knows only what the job says.** When agents each hold part of a specification,
-  integration success fell by 30 to 35 percentage points against one agent doing the whole
-  thing, at every level of detail tested, and restoring the full specification was both
-  necessary and sufficient to repair it (knowledge base: TheSpecificationGap).
+  multi-agent versions only pulled ahead when the single agent's context was damaged on purpose
+  (knowledge base: SingleAgentLlmsOutperformMultiAgentSystemsOnMultiHopReasoning). A helper is
+  worth it when your context is the scarce thing, not when the thinking is hard. It also knows
+  only what the job says: when agents each held part of a specification, integration success
+  fell by 30 to 35 percentage points (knowledge base: TheSpecificationGap).
 - **One rule gives the whole policy.** The tools that need no permission question are exactly
   the tools a helper may use. That keeps a helper read-only, and because asking for a helper
   needs a question, a helper cannot ask for one, with no counter anywhere. opencode reaches
@@ -75,6 +77,19 @@ src/harness/
 
 The helper is the same graph built a second time, so every later tutorial improves both at once.
 
+```text
+your conversation                        the helper's conversation
+  you: "ask a helper to read …"            (starts empty)
+  → ask_helper job="Read … and tell …" ──▶ the job, framed by helper.txt
+                                           → read_file permission.py
+                                           → read_file registry.py
+                                           "read_file, read_skill and write_todos"
+  tool result: "read_file, read_skill …" ◀─ its last message, and then it is gone
+  the model replies to you
+```
+The two files were read in the right-hand column, and nothing from that column is in the
+left-hand one except the one line that came back.
+
 ### Design decisions
 
 - **Same graph, smaller tool list.** A second engine would be a second thing to keep working.
@@ -83,6 +98,21 @@ The helper is the same graph built a second time, so every later tutorial improv
   helper of its own, so the depth limit needs no counter.
 - **Nothing saved but the answer.** No thread, no checkpoint, no conversation to resume. The
   only thing worth keeping is the answer.
+
+### The excerpt that carries the idea
+
+Everything a helper knows about its own situation is one file, `chat/prompts/helper.txt`:
+
+```text
+You are a helper. You were given one job and you cannot see the conversation it came from.
+Do the job with the tools you have, then answer in a few sentences. Your last message is the
+only thing that goes back, so put the answer in it; nothing else you write is kept.
+
+The job: {job}
+```
+
+`{job}` is the sentence the model wrote when it called the tool, and there is no system
+prompt from your conversation, no earlier turn and no way to ask you anything.
 
 ### Run it
 
