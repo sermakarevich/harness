@@ -22,7 +22,9 @@ of the author's knowledge base, with a few in neighbouring topics of the same wi
 
 Each tutorial is a document in `docs/tutorials/` and a git tag (`tut00`, `tut01`, ...).
 Read the documents here on `main`; run the code at the tag. `main` is the latest code and
-is not kept runnable for older tutorials. The tag is frozen and always matches its document.
+is not kept runnable for older tutorials. The tag freezes the code exactly as that tutorial
+built it. A document is improved in place on `main`, so the copy inside an older tag may be
+behind the one you read here.
 
 The document has two layers. **In short** gives the concepts, the scope and the problem
 in plain language, no code. **In detail** explains how the code works and why it is built
