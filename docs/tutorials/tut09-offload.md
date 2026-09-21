@@ -6,20 +6,20 @@ After this tutorial big tool outputs stay out of the conversation but within rea
 
 ### The concepts
 
-- **One tool call can flood the context.** A command prints what it wants; every character
-  stays in the conversation. The terminal shows the call, never the output, so only the cost
-  line from tutorial 8 reveals it. The OsmaniHarness note lists offloading among four defences
-  against context rot: compaction, skills with progressive disclosure, and full resets. All four
-  cap inline text and spill the rest to a file; hermes-agent budgets the whole turn on top.
-- **Save it, then point at it.** The whole text lands in a file; the model keeps the first part
-  plus the path, so nothing is lost and most stays out of context. Moving work out of context into
-  storage the model reads on demand is a harness job (knowledge base: ExternalizationInLLMAgents).
-  opencode previews the head and drops week-old spills, pi caps lines and bytes, and the DeepSeek
-  Harness previews both ends, spills images down a second path, and keeps the result inline when
-  it has nowhere to spill.
-- **Caching buys money back, never space.** Below, the second turn is almost entirely cached
-  input, so the flood cost almost nothing and still filled the window. Tutorial 8 could not
-  fix this half of the bill, which is why a cap is a separate job from a price.
+- **One tool call can flood the context.** A command prints what it wants; every character stays
+  in the conversation. The OsmaniHarness note lists offloading among four defences against
+  context rot: compaction, skills with progressive disclosure, and full resets. All four cap
+  inline text and spill the rest to a file; hermes-agent budgets the whole turn on top.
+- **Save it, then point at it.** This chapter adds the per-result limit plus the spill folder.
+  The whole text lands in a file; the model keeps the first part plus the path, so nothing is
+  lost. Moving work out of context into storage the model reads on demand is a harness job
+  (knowledge base: ExternalizationInLLMAgents). opencode previews the head and drops week-old
+  spills, pi caps lines and bytes, and the DeepSeek Harness previews both ends, spills images
+  down a second path, and keeps the result inline with nowhere to spill.
+- **Caching buys money back, never space.** Below, the second turn is mostly cached input. It
+  costs almost nothing yet fills the window. Tutorial 8 could not fix this half, so a cap is a
+  separate job from a price. The exit code stays in front, spills get a content-hashed filename
+  the model cannot pick, and the cap sits where every result passes.
 
 ### Scope
 
