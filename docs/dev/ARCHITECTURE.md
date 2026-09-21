@@ -18,6 +18,12 @@ src/harness/tui/ask.py        the permission question and its yes / always / no 
 src/harness/tui/commands.py   slash commands (handle_command for /new, /resume, /help, /exit)
 src/harness/tui/pick.py       the numbered list of saved conversations and the pick you type
 src/harness/tui/render.py     one turn plus streamed reply rendering (run_turn, render_event)
+src/harness/evals/__init__.py evaluation layer: a second front end, nobody watching
+src/harness/evals/__main__.py `just eval` entry point: run the suite, print the table
+src/harness/evals/report.py   suite results grouped into one table (rows, table)
+src/harness/evals/run.py      one task run with every permission question answered "always"
+src/harness/evals/tasks.py    reads the task file into tasks (load_tasks)
+src/harness/evals/tasks.toml  the tasks: prompt, expected answer, files they need
 src/harness/chat/__init__.py  conversation layer: graph, session, prompt, state, store, usage
 src/harness/chat/compact.py   swaps older turns for one summary once the conversation grows big
 src/harness/chat/graph.py     the agent loop as a graph (build_graph plus call_model)
@@ -62,7 +68,8 @@ Tutorial 1 wrote `model/client.py` as one raw HTTP call and tutorial 2 replaced 
 LangChain adapter. Tutorial 2 kept the conversation as a plain list in `chat/loop.py`, which
 tutorial 3 replaced with the graph. The `skills/` folder at the repository root sits outside
 `src/`: one directory per skill, each holding a `SKILL.md`. `just smoke` pipes a fixed exchange
-through `python -m harness`.
+through `python -m harness`. `just eval` runs the task suite through `python -m harness.evals`, which drives the same
+conversation layer with nobody watching and answers every permission question itself.
 
 ## Layers
 
@@ -70,7 +77,9 @@ The folders are the layers, top down: entry point, then the terminal
 (Terminal User Interface, TUI for short) layer, then the conversation (chat)
 layer, then the model layer, then settings at the bottom. A higher layer
 calls the one below it, never the other way round. Imports point down only;
-a lower file never imports from a file above it.
+a lower file never imports from a file above it. The evaluation layer sits beside
+the terminal layer, calls the conversation layer below it like the terminal does, and neither
+of the two front ends imports the other.
 
 ## 2. Data flow of one turn
 
