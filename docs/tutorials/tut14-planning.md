@@ -7,9 +7,12 @@ summarising the conversation no longer throws the plan away.
 
 ### The concepts
 
-- **A plan that lives in the reply is not a plan.** Nothing outside the words holds it, and the
-  summary from tutorial 10 can drop it. Long-running agents stop early, overestimate how much is
-  done, and write confident but weak plans (knowledge base: AutonomousLongRunningCodingAgents).
+- **Planning here is one short list the harness holds.** Not a document and not a design: a few
+  steps, each marked waiting, in progress or done. The model decides the steps and rewrites them
+  as it works; the harness keeps the list, prints it for you, and puts it back in front of the
+  model on every call. A plan that lives only in the reply is not a plan: nothing outside the
+  words holds it, the summary from tutorial 10 can drop it, and long-running agents stop early
+  and overestimate how much is done (knowledge base: AutonomousLongRunningCodingAgents).
 - **One writer, and the whole list every time.** opencode and the DeepSeek Harness replace the
   list whole on every call: no patch language, no identifiers to drift. hermes-agent numbers each
   revision and refuses a stale update; pi has neither and calls both extension work.
@@ -79,6 +82,26 @@ The list is not a message, so the summary node never sees it. That is why it liv
 - **The model replaces the whole list every time.** That costs a few more tokens than patching
   one item and removes every way for an index or an identifier to drift.
 - **One rule, and no more.** Only one item may be in progress; the rest is the model's judgement.
+
+### The excerpt that carries the idea
+
+How to plan is not in the code. It is five sentences the harness puts under the system prompt
+on every call, in `chat/prompts/todos.txt`.
+
+```text
+Keep one short task list for any job of more than one step. Write the whole list every
+time with the write_todos tool, one item per line, as status: what the step is, where
+status is todo, doing or done. Only one item may be doing. Move an item to doing when
+you start it and to done the moment it is finished. Do not write the list into your
+reply, because the list below is what the harness holds right now.
+
+{todos}
+```
+
+`{todos}` is replaced by the list as the harness holds it, so the model reads its own plan
+back before every decision. That is the whole method: write a list when the job has more than
+one step, rewrite it whole to change anything, keep exactly one item in progress, and let the
+harness rather than the reply hold it.
 
 ### Run it
 
