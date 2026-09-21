@@ -1,7 +1,7 @@
 # Tutorial 15 — Sub-agents
 
-After this tutorial the model can hand one job to a helper that starts with an
-empty conversation, and everything the helper reads stays out of yours.
+After this tutorial the model can hand one job to a helper that starts with an empty
+conversation, and everything the helper reads stays out of yours.
 
 ## In short
 
@@ -12,6 +12,7 @@ empty conversation, and everything the helper reads stays out of yours.
   multi-agent versions only pulled ahead when the single agent's context was deliberately
   damaged with masking, deletion or distractors (knowledge base:
   SingleAgentLlmsOutperformMultiAgentSystemsOnMultiHopReasoning).
+  A helper is worth it when your context is the scarce thing, not when the thinking is hard.
 - **A helper knows only what the job says.** When agents each hold part of a specification,
   integration success fell by 30 to 35 percentage points against one agent doing the whole
   thing, at every level of detail tested, and restoring the full specification was both
@@ -76,14 +77,12 @@ The helper is the same graph built a second time, so every later tutorial improv
 
 ### Design decisions
 
-- **Same graph, smaller tool list.** A second engine would be a second thing
-  to keep working. hermes-agent does the same: a child gets the parent's tool
-  groups minus the blocked ones.
-- **Only tools that need no question.** That keeps the helper read-only.
-  It cannot ask for a helper of its own,
-  so the depth limit needs no counter.
-- **Nothing saved but the answer.** No thread, no checkpoint,
-  no conversation to resume. The only thing worth keeping is the answer.
+- **Same graph, smaller tool list.** A second engine would be a second thing to keep working.
+  hermes-agent does the same: a child gets the parent's tool groups minus the blocked ones.
+- **Only tools that need no question.** That keeps the helper read-only. It cannot ask for a
+  helper of its own, so the depth limit needs no counter.
+- **Nothing saved but the answer.** No thread, no checkpoint, no conversation to resume. The
+  only thing worth keeping is the answer.
 
 ### Run it
 
