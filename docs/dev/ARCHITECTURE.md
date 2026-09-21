@@ -68,8 +68,9 @@ Tutorial 1 wrote `model/client.py` as one raw HTTP call and tutorial 2 replaced 
 LangChain adapter. Tutorial 2 kept the conversation as a plain list in `chat/loop.py`, which
 tutorial 3 replaced with the graph. The `skills/` folder at the repository root sits outside
 `src/`: one directory per skill, each holding a `SKILL.md`. `just smoke` pipes a fixed exchange
-through `python -m harness`. `just eval` runs the task suite through `python -m harness.evals`, which drives the same
-conversation layer with nobody watching and answers every permission question itself.
+through `python -m harness`. `just eval` runs the task suite through `python -m harness.evals`,
+which drives the same conversation layer with nobody watching and answers every permission
+question itself.
 
 ## Layers
 
@@ -77,9 +78,9 @@ The folders are the layers, top down: entry point, then the terminal
 (Terminal User Interface, TUI for short) layer, then the conversation (chat)
 layer, then the model layer, then settings at the bottom. A higher layer
 calls the one below it, never the other way round. Imports point down only;
-a lower file never imports from a file above it. The evaluation layer sits beside
-the terminal layer, calls the conversation layer below it like the terminal does, and neither
-of the two front ends imports the other.
+a lower file never imports from a file above it. The evaluation layer sits
+beside the terminal layer, calls the conversation layer below it like the
+terminal does, and neither of the two front ends imports the other.
 
 ## 2. Data flow of one turn
 
