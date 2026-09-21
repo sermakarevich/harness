@@ -17,6 +17,7 @@ retry_attempts = 3
 retry_initial_seconds = 1.0
 retry_backoff_factor = 2.0
 max_parallel_tools = 4
+eval_repeats = 3
 
 [[tool_servers]]
 name = "time"

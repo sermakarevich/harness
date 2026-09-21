@@ -24,9 +24,13 @@ test:
     uv run pytest -q
 
 # Shows what this tutorial built
-tutorial: run
+tutorial: eval
 
 # Runs the harness once to show this tutorial (uses your key; run sparingly)
 smoke:
     rm -rf .harness
     printf 'What time is it in Tokyo right now?\na\n/exit\n' | uv run python -m harness
+
+# Runs the task suite against the live model (uses your key; run sparingly)
+eval:
+    uv run python -m harness.evals
