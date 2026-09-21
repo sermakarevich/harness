@@ -8,7 +8,7 @@ from langchain_core.messages import AIMessage
 
 from harness.chat.usage import Usage
 from harness.evals.report import all_passed, rows, table
-from harness.evals.run import Result, run_once, run_task, write_files
+from harness.evals.run import Result, run_once, run_suite, run_task, write_files
 from harness.evals.tasks import Task, load_tasks
 from tests.conftest import FakeToolChatModel
 
@@ -100,3 +100,23 @@ def test_table_has_heading_line_plus_one_line_per_task():
 
 def test_all_passed_is_false_when_one_failed():
     assert all_passed([made_result("word", True), made_result("word", False)]) is False
+
+
+class FailingChatModel(FakeToolChatModel):
+    def _stream(self, messages, stop=None, run_manager=None, **kwargs):
+        raise RuntimeError("overloaded")
+
+
+def test_run_once_records_failed_call_as_failed_run(settings, tmp_path):
+    model = FailingChatModel(messages=iter([]))
+    result = run_once(settings, arithmetic_task(), tmp_path, model=model)
+    assert result.passed is False
+    assert "RuntimeError" in result.answer
+
+
+def test_run_suite_runs_every_task_when_model_raises(settings):
+    model = FailingChatModel(messages=iter([]))
+    word = Task(name="word", prompt="Reply with exactly the word: ready", expect="ready")
+    results = run_suite(settings, [arithmetic_task(), word], model=model)
+    assert len(results) == 2 * settings.eval_repeats
+    assert all(result.passed is False for result in results)

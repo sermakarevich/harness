@@ -19,6 +19,7 @@ from harness.model.text import text_of
 from harness.tools.permission import Answer
 
 AUTOMATIC_ANSWER = Answer.ALWAYS
+ERROR_ANSWER = "{name}: {message}"
 
 
 @dataclass(frozen=True)
@@ -49,26 +50,32 @@ def run_once(settings: Settings, task: Task, cwd: Path, model=None) -> Result:
     """Run one task once, saying yes to every permission question.
 
     A throw-away folder keeps that automatic yes away from the repository.
+    A failed call is recorded as a failed run.
     """
     session = Session.start(settings, InMemorySaver(), cwd, model)
     before_ids = {message.id for message in session.saved_messages()}
     start = time.perf_counter()
-    request: dict | Command = {"messages": [HumanMessage(content=task.prompt)]}
-    while True:
-        events = session.graph.stream(request, session.config, stream_mode="messages")
-        for _message, _meta in events:
-            pass
-        pending = session.pending_request()
-        if pending is None:
-            break
-        request = Command(resume=AUTOMATIC_ANSWER)
-    answer = last_answer(session)
+    try:
+        request: dict | Command = {"messages": [HumanMessage(content=task.prompt)]}
+        while True:
+            events = session.graph.stream(request, session.config, stream_mode="messages")
+            for _message, _meta in events:
+                pass
+            pending = session.pending_request()
+            if pending is None:
+                break
+            request = Command(resume=AUTOMATIC_ANSWER)
+        answer = last_answer(session)
+        passed = answer.strip() == task.expect
+    except Exception as exc:
+        answer = ERROR_ANSWER.format(name=type(exc).__name__, message=exc)
+        passed = False
     fresh = [message for message in session.saved_messages() if message.id not in before_ids]
     usage = usage_of(fresh)
     return Result(
         task=task.name,
         answer=answer,
-        passed=answer.strip() == task.expect,
+        passed=passed,
         usage=usage,
         cost=dollars(usage, settings),
         seconds=time.perf_counter() - start,
