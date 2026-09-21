@@ -11,7 +11,7 @@ until you allow it.
   and running are not, so everything else waits for your answer, with default ask on unknown
   tools added later (knowledge base: APracticalGuideToBuildingAgents). opencode checks ordered
   rules, pi fires a veto event.
-- **This gate wraps the tut05 tools.** The tool node checks before it runs, then
+- **This gate wraps the tutorial 5 tools.** The tool node checks before it runs, then
   freezes the turn. Your answer resumes it from its first line, so a resumed node must
   not run the tool twice (knowledge base: ModelOrHarnessFailureTaxonomy, OsmaniHarness).
 - **A no is text the model reads, not a crash.** The refused call still gets a

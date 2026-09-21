@@ -17,8 +17,8 @@ reads the instruction files that already sit in your directories.
   (knowledge base: ContextualAgenticMemoryIsAMemo). hermes-agent freezes notes at session start.
 - **This chapter walks up from your working directory.** It takes the first matching name in
   each folder and appends the notes farthest-first after the filled template.
-- **After tut10 this keeps standing rules outside the messages.** Tut10 replaces detail with a
-  summary, and a summary can drop a rule. Notes outside the messages survive it.
+- **After tutorial 10 this keeps standing rules outside the messages.** Tutorial 10 replaces
+  detail with a summary, and a summary can drop a rule. Notes outside the messages survive it.
 - **Fill the template before you paste the notes.** You fill the template first.
 
 ### Scope

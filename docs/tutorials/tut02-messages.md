@@ -7,11 +7,11 @@ exactly where that memory lives: in a list your harness keeps and resends every 
 
 ### The concepts
 
-- The list is the memory. In tut01 the 2nd request carried only the 2nd question and the
+- The list is the memory. In tutorial 1 the 2nd request carried only the 2nd question and the
   model forgot. Here you resend the whole list every turn, so the model remembers
   (knowledge base: AGENTIC_ENGINEERING_PATTERS).
 - The list grows without bound. Each turn adds more messages. The price is counted in
-  tut08 and the cut comes in tut10. `/new` keeps the system prompt only, so the model
+  tutorial 8 and the cut comes in tutorial 10. `/new` keeps the system prompt only, so the model
   forgets again.
 - The system prompt is the standing order. It sits first and shapes every answer you get. The
   rulebook is the highest-leverage point in the harness (knowledge base: OsmaniHarness).
@@ -73,7 +73,8 @@ second turn the model sees all of it, including its own earlier answer, so the w
 
 The `context: N messages` line makes this growth visible; later tutorials put a price on it (8)
 and cut it back (10). You type `/new` and the harness keeps only the system message, so the next
-question travels alone and the model forgets again. It is the same cause as tutorial 1, now under your control.
+question travels alone and the model forgets again. It is the same cause as tutorial 1, now under
+your control.
 
 ### Design decisions
 

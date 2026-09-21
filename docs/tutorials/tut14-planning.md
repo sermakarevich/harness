@@ -20,8 +20,8 @@ summarising the conversation no longer throws the plan away.
   model that inherited an exploration trail plus a todo list reached 92 to 97 percent of the
   frontier model's pass rate at 39 to 53 percent lower cost, while handing over a written plan
   instead cost 14 percent more than not splitting the task at all (knowledge base: Prewalk).
-- **You start after tut13 with retries and parallel calls but no memory of the job shape.** This
-  chapter adds a `todos` field in graph state plus a whole-replace write tool.
+- **You start after tutorial 13 with retries and parallel calls but no memory of the job shape.**
+  This chapter adds a `todos` field in graph state plus a whole-replace write tool.
 - **The list lives in state, not messages, with one `doing` task at most.** The harness demotes
   extras under the one-doing rule.
 

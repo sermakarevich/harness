@@ -7,8 +7,8 @@ so it can fix a bug and run the tests itself.
 
 ### The concepts
 
-- **After tut04, before tut06.** Tut04 gave the model read tools; this adds write, edit and
-  shell with no graph-edge change. The approval gate comes in tut06.
+- **After tutorial 4, before tutorial 6.** Tutorial 4 gave the model read tools; this adds write,
+  edit and shell with no graph-edge change. The approval gate comes in tutorial 6.
 - **Edit is exact find-and-replace.** The model sends exact old and new text; you replace it
   only on exactly one match, else answer with error text. A failed edit is the textbook malformed
   argument (knowledge base: ModelOrHarnessFailureTaxonomy), so the error text must let the model
@@ -20,7 +20,8 @@ so it can fix a bug and run the tests itself.
 - **A process becomes text.** The model never sees your process, only text: output, error, exit
   code. The shell is the general-purpose tool (knowledge base: TheAnatomyOfAnAgentHarness).
 - **Tricky paths, environment, size.** Every path goes through a shared resolver that rejects
-  escapes. The shell inherits the environment so `pytest` resolves. Big outputs are capped in tut09.
+  escapes. The shell inherits the environment so `pytest` resolves. Big outputs are capped in
+  tutorial 9.
 
 ### Scope
 

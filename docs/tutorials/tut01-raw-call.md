@@ -7,7 +7,7 @@ call by the second.
 
 ### The concepts
 
-- The tut00 scaffold made no call. This chapter sends two prompts over plain HTTP.
+- The tutorial 0 scaffold made no call. This chapter sends two prompts over plain HTTP.
 - A model call is plain HTTP. You send one request with a model name and a prompt, and you
   get one reply back. Everything else around that exchange is the harness.
   - opencode sends even the simplest call through one shared streaming service.
