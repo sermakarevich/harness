@@ -21,6 +21,11 @@ this series follows comes from a third source: "Put rules in code, not wishes in
 (knowledge base: HowToBuildACustomAgentHarness). The cause is plain: the model sees only what the
 harness puts in its context and acts only through what the harness runs for it.
 
+- You build scaffold only, no model call yet.
+- This is the baseline for the series. Tutorial 1 makes the first call.
+- The harness fails fast on a missing key. The server rejects a generic user-agent string.
+- Harness comparison: N/A - no harness behavior yet
+
 ### Scope
 
 This tutorial does two things:
