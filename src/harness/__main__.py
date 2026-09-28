@@ -5,6 +5,7 @@ import sys
 from rich.console import Console
 
 from harness.config import ConfigError, load_settings
+from harness.screen.app import ScreenApp
 from harness.tui.app import App
 
 
@@ -14,7 +15,10 @@ def main() -> int:
     except ConfigError as exc:
         Console(stderr=True).print(f"[red]{exc}[/red]")
         return 2
-    App(settings).run()
+    if sys.stdin.isatty():
+        ScreenApp(settings).run()
+    else:
+        App(settings).run()
     return 0
 
 
