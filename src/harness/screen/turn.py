@@ -6,15 +6,12 @@ from langchain_core.messages import AIMessageChunk, HumanMessage, ToolMessage
 from langgraph.types import Command
 
 from harness.chat.graph import COMPACT_NODE
-from harness.chat.lines import call_text, cost_line
+from harness.chat.lines import COMPACT_NOTICE, ERROR_LINE, call_text, cost_line, tool_line
 from harness.chat.usage import dollars, usage_of
 from harness.model.text import text_of
 from harness.screen import permission
 from harness.tools.permission import Answer
 from harness.tools.todos import TOOL_NAME as WRITE_TODOS
-
-TOOL_ARROW = "→"
-COMPACT_NOTICE = "Context over {budget} input tokens; older turns summarised."
 
 
 class StreamState:
@@ -45,9 +42,7 @@ def show_tool_call(app, message: ToolMessage, state: StreamState) -> None:
     call = next((c for c in calls or [] if c.get("id") == message.tool_call_id), None)
     if call is None:
         return
-    app.call_from_thread(
-        app.write, f"{TOOL_ARROW} {call_text(call.get('name'), call.get('args', {}))}"
-    )
+    app.call_from_thread(app.write, tool_line(call.get("name"), call.get("args", {})))
 
 
 def render_event(app, message, meta: dict, state: StreamState) -> None:
@@ -96,4 +91,4 @@ def stream_turn(app, text: str) -> None:
             app.set_status, cost_line(turn, total, dollars(turn, app.settings), total_cost)
         )
     except Exception as exc:
-        app.call_from_thread(app.write, f"error: {type(exc).__name__}: {exc}")
+        app.call_from_thread(app.write, ERROR_LINE.format(name=type(exc).__name__, message=exc))

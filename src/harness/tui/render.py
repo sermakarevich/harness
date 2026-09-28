@@ -9,15 +9,12 @@ from langchain_core.messages import AIMessageChunk, HumanMessage, ToolMessage
 from langgraph.types import Command
 
 from harness.chat.graph import COMPACT_NODE
-from harness.chat.lines import call_text, cost_line
+from harness.chat.lines import COMPACT_NOTICE, ERROR_LINE, call_text, cost_line, tool_line
 from harness.chat.usage import dollars, usage_of
 from harness.model.text import text_of
 from harness.tools.permission import Answer
 from harness.tools.todos import TOOL_NAME as WRITE_TODOS
 from harness.tui.ask import ask_permission
-
-TOOL_ARROW = "→"
-COMPACT_NOTICE = "Context over {budget} input tokens; older turns summarised."
 
 
 class StreamState:
@@ -56,7 +53,7 @@ def show_tool_call(console, message: ToolMessage, state: StreamState) -> None:
         return
     end_line(console, state)
     console.print(
-        f"{TOOL_ARROW} {call_text(call.get('name'), call.get('args', {}))}",
+        tool_line(call.get("name"), call.get("args", {})),
         style="dim",
         markup=False,
         highlight=False,
@@ -128,6 +125,6 @@ def run_turn(app, text: str) -> None:
             soft_wrap=True,
         )
     except Exception as exc:
-        app.console.print(f"\n[red]error:[/red] {type(exc).__name__}: {exc}")
+        app.console.print(f"\n[red]{ERROR_LINE.format(name=type(exc).__name__, message=exc)}[/red]")
     finally:
         app.console.print()
