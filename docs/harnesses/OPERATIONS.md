@@ -34,6 +34,7 @@ Difficulty runs from Tier 1 (a few lines of code, no saved state) through Tier 2
 | 22 | MCP / dynamic external tools | 4 | namespaced adapted external tools | — | background loop vendored servers | attached servers qualified names |
 | 23 | Hooks, plugins & events | 5 | global bus sequential hooks | extension bus veto patch | payload shell stream observers | shared matching bridges sandboxed plugins |
 | 24 | Background & concurrency | 5 | session jobs serialized runs | queued steering session swapping | tracked processes timer batch | job contract durable reminders terminals |
+| 25 | User interface & clients | 3 | fullscreen terminal server attach | — | terminal plus gateway messaging server | profile frontends web desktop headless |
 
 ## Operations in detail
 
@@ -857,6 +858,54 @@ def run_job(prompt: str, thread_id: str):
 
 job = threading.Thread(target=run_job, args=("run tests", "job-1"))
 job.start()
+```
+
+*Effort:* a project of its own
+
+### 25. User interface & clients
+
+**Tier 3.** Serving sessions from a server that pushes events to attached screens needs an outside process plus a fixed event contract.
+
+**What it is.** The harness needs a way for a person to talk to it: a terminal screen showing the message list with an input box, a status line, and pop-up dialogs for permission requests
+and questions. Some harnesses put session ownership in a server that pushes events, so more than one screen can attach to the same session. Around that core sit other clients: a headless
+single-prompt run, a web page, a desktop app, or messaging accounts.
+
+**How the four do it.**
+
+- **opencode:** the full-screen terminal app boots in `packages/tui/src/app.tsx`, showing the session message list in `packages/tui/src/routes/session/index.tsx` with input in
+  `packages/tui/src/component/prompt/index.tsx`, a sidebar in `packages/tui/src/routes/session/sidebar.tsx`, a command palette in `packages/tui/src/component/command-palette.tsx`,
+  and permission dialogs in `packages/tui/src/routes/session/permission.tsx`; sessions are owned by the server in `packages/opencode/src/server/server.ts` pushing events from
+  `packages/opencode/src/server/event.ts`, started headless via `packages/opencode/src/cli/cmd/serve.ts`, attached via `packages/opencode/src/cli/cmd/attach.ts`, or run once
+  non-interactively via `packages/opencode/src/cli/cmd/run.ts`, with web, desktop, app, and client-library clients under `packages/web`, `packages/desktop`, `packages/app`, and `packages/sdk`.
+- **pi:** this checkout has no pi source or pi documentation, so nothing is claimed about its interface.
+- **hermes-agent:** the interactive terminal lives in `cli.py`, built on prompt_toolkit in `hermes_cli/cli_tui_mixin.py` with a status bar in `hermes_cli/cli_status_bar_mixin.py`
+  and dialog overlays in `hermes_cli/cli_modal_mixin.py`, alongside non-interactive one-shot runs; the gateway in `gateway/run.py` owns sessions across transports through `start_gateway`
+  and `GatewayRunner`, reaching messaging apps through adapters in `gateway/platforms/` such as `gateway/platforms/signal.py` and `gateway/platforms/whatsapp_cloud.py`, plus an
+  OpenAI-compatible web server in `gateway/platforms/api_server.py`.
+- **DeepSeek Harness:** the `dsh` launcher in `apps/cli/src/bin.ts` with its grammar in `apps/cli/src/args.ts` boots one profile per frontend: a terminal profile taking flags such as
+  `--resume`, the web app in `apps/web`, a headless single-session run, the `sdk` profile serving client libraries, and the `acp` profile serving automation clients, with the desktop name
+  reserved for the Electron app in `apps/desktop`; question and approval dialogs live in `packages/interaction/tool-ask-user`, `packages/interaction/user-questions`, and the approval service
+  in `packages/interaction/user-approval/src/index.ts`.
+
+**Where they agree / differ.** opencode, hermes-agent, and the DeepSeek Harness agree that session ownership sits behind a server or gateway so more than one client can attach, while the
+terminal screen stays a consumer of pushed events; opencode ships the widest client set against one server, hermes-agent pairs an in-process terminal with a gateway that also serves messaging
+apps and a web server, and the DeepSeek Harness spreads frontends across boot profiles with headless, client-library, and automation profiles beside web and desktop.
+
+**In LangGraph / Python**
+
+A full-screen client is ordinary display code around the same graph: the model call runs in a background worker so the screen keeps drawing while the answer streams in. Textual gives you the
+screen and the worker decorator; the graph code from the earlier operations does not change.
+
+```python
+from textual.app import App
+from textual import work
+class ChatApp(App):
+    @work(thread=True)
+    def ask(self, prompt: str) -> None:
+        reply = model.invoke(prompt)
+        self.call_from_thread(self.show, reply)
+    def show(self, reply: str) -> None:
+        self.query_one("#log").update(reply)
 ```
 
 *Effort:* a project of its own
