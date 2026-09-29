@@ -18,6 +18,11 @@ src/harness/tui/ask.py        the permission question and its yes / always / no 
 src/harness/tui/commands.py   slash commands (handle_command for /new, /resume, /help, /exit)
 src/harness/tui/pick.py       the numbered list of saved conversations and the pick you type
 src/harness/tui/render.py     one turn plus streamed reply rendering (run_turn, render_event)
+src/harness/screen/__init__.py  full-screen layer: app, keys, turn, permission
+src/harness/screen/app.py     full-screen chat app (ScreenApp delegates turns to turn)
+src/harness/screen/keys.py    the commands the full-screen app accepts (EXIT)
+src/harness/screen/permission.py the pop-up permission question answered yes / always / no (ask)
+src/harness/screen/turn.py    one full-screen turn on a thread worker (stream_turn, render_event)
 src/harness/evals/__init__.py evaluation layer: a second front end, nobody watching
 src/harness/evals/__main__.py `just eval` entry point: run the suite, print the table
 src/harness/evals/report.py   suite results grouped into one table (rows, table)
@@ -43,6 +48,7 @@ src/harness/chat/state.py     conversation state (HarnessState); one field per h
 src/harness/chat/store.py     opens the SQLite file the conversations are saved in (open_store)
 src/harness/chat/thread.py    session ids (new_session_id) and thread config
 src/harness/chat/usage.py     token counts of the saved replies and what they cost (dollars)
+src/harness/chat/lines.py     plain text lines every front end prints (tool_line, cost_line)
 src/harness/tools/__init__.py tool layer: one file per tool plus the shared path and policy rules
 src/harness/tools/ask_helper.py  hands one job to a helper and brings back one answer
 src/harness/tools/concurrency.py groups a turn's calls into batches that may run together
@@ -70,7 +76,7 @@ tutorial 3 replaced with the graph. The `skills/` folder at the repository root 
 `src/`: one directory per skill, each holding a `SKILL.md`. `just smoke` pipes a fixed exchange
 through `python -m harness`. `just eval` runs the task suite through `python -m harness.evals`,
 which drives the same conversation layer with nobody watching and answers every permission
-question itself.
+question itself. `just run` opens the full screen on a terminal and line mode on a pipe.
 
 ## Layers
 
@@ -80,11 +86,18 @@ layer, then the model layer, then settings at the bottom. A higher layer
 calls the one below it, never the other way round. Imports point down only;
 a lower file never imports from a file above it. The evaluation layer sits
 beside the terminal layer, calls the conversation layer below it like the
-terminal does, and neither of the two front ends imports the other.
+terminal does, and neither of the two front ends imports the other. The
+screen layer (the full-screen app) also sits beside the terminal layer,
+calls the conversation layer only, and the text lines all three front
+ends print live in `chat/lines.py`, so no front end imports another.
 
 ## 2. Data flow of one turn
 
 1. Keypress — the user types a line and the main loop in `App.run` (`src/harness/tui/app.py`) reads it.
+   On a terminal `python -m harness` opens `ScreenApp` instead, the turn runs on a
+   thread worker in `screen/turn.py`, and every later step is the same code path
+   with the screen's own permission pop-up in `screen/permission.py` in place of
+   `tui/ask.py`.
 2. `run_turn` (`src/harness/tui/render.py`, via `App.run_turn`) wraps the text in a `HumanMessage` and calls `graph.stream`
    with the session config and `stream_mode="messages"`.
 3. The checkpointer, a `SqliteSaver` opened by `src/harness/chat/store.py`, loads the conversation's
@@ -161,6 +174,7 @@ hints in OPERATIONS.md).
 | 22 | MCP / dynamic external tools | 4 | partial | `tools/servers.py` connects to each server named in `settings.toml` with its own `MultiServerMCPClient`, one server at a time, and skips a server that does not answer; each remote tool is renamed `server_tool` and wrapped in a `StructuredTool` so the existing `chat/run_tools.py` can call it without change, and `chat/graph.py` adds them to the parent's tool list only, never to a helper's (`tut16`); no servers reached over HyperText Transfer Protocol (HTTP), no connection kept alive between calls, no retry or cooldown for a server that dies mid-run, and nothing is printed when a server is skipped |
 | 23 | Hooks, plugins & events | 5 | planned | Wrapper nodes around `call_model` in `chat/graph.py` first; a bus only when plugins need it |
 | 24 | Background & concurrency | 5 | planned | One thread per job with its own `thread_id` (`chat/thread.py`); ids already run in parallel |
+| 25 | User interface & clients | 3 | partial | `tui/` line mode plus the `screen/` full-screen app chosen by `isatty` in `__main__.py` (`tut18`); tool calls print as plain lines with no spinner or todo panel, only the exit command and one-line input, and no server behind the screen so nothing attaches or runs in a browser |
 
 ## 4. Rules of growth
 
