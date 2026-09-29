@@ -5,13 +5,14 @@ from langchain_core.messages import AIMessage, AIMessageChunk, HumanMessage, Too
 from rich.console import Console
 
 from harness.chat.graph import COMPACT_NODE
+from harness.chat.lines import COMPACT_NOTICE
 from harness.tools.permission import Answer
 from harness.tools.todos import TOOL_NAME as WRITE_TODOS
 from harness.tools.todos import clean_todos, todo_lines
 from harness.tui.app import App
 from harness.tui.ask import answer_of
 from harness.tui.pick import NOTHING_SAVED
-from harness.tui.render import COMPACT_NOTICE, StreamState, render_event
+from harness.tui.render import StreamState, render_event
 from tests.conftest import FakeToolChatModel
 
 

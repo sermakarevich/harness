@@ -71,6 +71,7 @@ that call the model say so; everything else runs offline.
 | 15 — Sub-agents | `tut15` | [tut15-subagents.md](docs/tutorials/tut15-subagents.md) |
 | 16 — Outside tool servers, MCP | `tut16` | [tut16-servers.md](docs/tutorials/tut16-servers.md) |
 | 17 — Evaluation | `tut17` | [tut17-eval.md](docs/tutorials/tut17-eval.md) |
+| 18 — Full-screen shell | `tut18` | [tut18-screen.md](docs/tutorials/tut18-screen.md) |
 
 A row says `planned` until its tag is published. The concept behind each row and the
 order of the story are in `docs/dev/TUTORIAL_METHOD.md`.

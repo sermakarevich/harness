@@ -7,6 +7,7 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.history import InMemoryHistory
 from rich.console import Console
 
+from harness.chat.lines import MEMORY_LINE, SKILLS_LINE
 from harness.chat.memory import memory_paths, short_path
 from harness.chat.session import Session
 from harness.chat.sessions import saved_sessions, short_id
@@ -17,8 +18,6 @@ from harness.tui import commands, render
 from harness.tui.commands import Command
 
 PROMPT = "> "
-MEMORY_LINE = "memory: {names}"
-SKILLS_LINE = "skills: {names}"
 
 
 class App:
