@@ -882,10 +882,10 @@ single-prompt run, a web page, a desktop app, or messaging accounts.
   and dialog overlays in `hermes_cli/cli_modal_mixin.py`, alongside non-interactive one-shot runs; the gateway in `gateway/run.py` owns sessions across transports through `start_gateway`
   and `GatewayRunner`, reaching messaging apps through adapters in `gateway/platforms/` such as `gateway/platforms/signal.py` and `gateway/platforms/whatsapp_cloud.py`, plus an
   OpenAI-compatible web server in `gateway/platforms/api_server.py`.
-- **DeepSeek Harness:** the `dsh` launcher in `apps/cli/src/bin.ts` with its grammar in `apps/cli/src/args.ts` boots one profile per frontend: a terminal profile taking flags such as
-  `--resume`, the web app in `apps/web`, a headless single-session run, the `sdk` profile serving client libraries, and the `acp` profile serving automation clients, with the desktop name
-  reserved for the Electron app in `apps/desktop`; question and approval dialogs live in `packages/interaction/tool-ask-user`, `packages/interaction/user-questions`, and the approval service
-  in `packages/interaction/user-approval/src/index.ts`.
+- **DeepSeek Harness:** the `dsh` launcher in `apps/cli/src/bin.ts` with its grammar in `apps/cli/src/args.ts` boots one profile per surface: the web app in `apps/web`, a headless
+  single-session run, the `sdk` profile serving client libraries, and the `acp` profile serving automation clients, with the desktop name reserved for the Electron app in `apps/desktop`;
+  this checkout ships no terminal-screen package, and question and approval dialogs live in `packages/interaction/tool-ask-user`, `packages/interaction/user-questions`, and the approval
+  service in `packages/interaction/user-approval/src/index.ts`.
 
 **Where they agree / differ.** opencode, hermes-agent, and the DeepSeek Harness agree that session ownership sits behind a server or gateway so more than one client can attach, while the
 terminal screen stays a consumer of pushed events; opencode ships the widest client set against one server, hermes-agent pairs an in-process terminal with a gateway that also serves messaging
