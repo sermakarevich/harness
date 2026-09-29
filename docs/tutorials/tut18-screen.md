@@ -79,7 +79,7 @@ while the tool runs the terminal shows nothing and accepts nothing.
 
 ```text
 + src/harness/chat/lines.py        the text lines both front ends print
-+ src/harness/screen/__init__.py the full-screen layer and what sits below it
++ src/harness/screen/__init__.py   the full-screen layer and what sits below it
 + src/harness/screen/app.py        the log, the input box and the status bar
 + src/harness/screen/keys.py       the commands the full-screen front end accepts
 + src/harness/screen/permission.py the permission pop-up the worker blocks on
@@ -169,3 +169,52 @@ def ask(app, call: str) -> Answer:
 
 It runs on the worker thread: the lines that touch the screen go through
 `app.call_from_thread`, and the wait blocks nothing but the thread.
+
+### Run it
+
+`just run` on a terminal opens the screen; `printf ... | just run` still gets
+line mode.
+
+![The permission pop-up asking to run a shell command](images/tut18-ask.svg)
+
+You see the modal with the tool call and the yes, always and no buttons.
+
+![The answered turn in the log with the cost line below](images/tut18-answer.svg)
+
+You see the answer in the log, the cost line in the status bar and the input
+box ready for the next turn.
+
+`just test` runs the five screen tests headless on a scripted model through
+`App.run_test`, so no terminal is needed:
+
+- A plain turn shows the reply in the log and the cost in the status bar.
+- Allowing runs the tool, writes the file and shows the arrow line.
+- Denying skips the tool, writes nothing and hides the arrow line.
+- The exit command closes the app.
+- The shared helpers shorten text, name a call and print a cost line.
+
+### Under the hood
+
+Textual gives what the chapter did not write: the event loop and the widget
+tree, the thread worker decorator and `call_from_thread`, modal screens with
+typed results, key bindings, and the headless test driver with SVG
+screenshots. The chapter wrote the three-widget layout, the turn thread that
+mirrors line mode, the event that bridges the modal and the thread, and the
+tty switch. hermes-agent's terminal is built on prompt_toolkit, the same
+library line mode uses for its input line, while opencode's screen is a full
+application framework in its own package.
+
+### Key takeaways
+
+- **One core, two front ends.** The screen and the line chat drive the same code.
+- **A thread carries the turn.** The loop keeps drawing while the worker streams.
+- **A modal answers through an event.** The worker blocks until one key resumes it.
+- **The bill stays put.** The status bar holds the cost while the log scrolls.
+- **Tests need no terminal.** `App.run_test` types, answers and screenshots headless.
+
+### What is still missing
+
+Tool calls are plain lines and nothing shows that the model is thinking; the
+todo list prints as text; every slash command but exit is gone until the
+palette; and the input takes one line. Tutorial 19 brings live widgets: tool
+rows, a spinner and a todo panel.
